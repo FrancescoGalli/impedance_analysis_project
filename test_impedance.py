@@ -14,6 +14,11 @@ def generate_initial_parameters():
     initial_parameters = ([p1, p2, p3, p4])
     return initial_parameters
 
+def generate_constant_elements_array():
+    """Generate an array for constant elements."""
+    constant_array = ([0, 0, 1, 0])
+    return constant_array
+
 @pytest.fixture
 def circuit_string():
     return generate_circuit()
@@ -299,3 +304,54 @@ def test_parameters_match(circuit_string, parameters):
         + ': elements \'' + str(elements_array) + ' with parameters '
         + str(parameters) + '. \'R\' and \'C\' elements must have '
         + 'a float as parameter, \'Q\' must have a list')
+
+@pytest.fixture
+def constant_elements():
+    return generate_constant_elements_array()
+
+def test_constant_type(constant_elements):
+    """Check that the constant arrey is a list."""
+    assert isinstance(constant_elements, list), (
+        'type error for circuit scheme. It must be a list')
+
+def test_constant_list_type(constant_elements):
+    """Check that the constant elements in constant_elements are integers.
+    
+    GIVEN: constant_elements is an array
+    """
+    wrong_types = ''
+    wrong_types_index = []
+    for i, constant_element in enumerate(constant_elements):
+        if not isinstance(constant_element, int):
+            wrong_types+= '\'' + str(constant_element) + '\', '
+            wrong_types_index.append(i)
+    assert not wrong_types, (
+        'type error for constant element(s) ' + str(wrong_types) + ' number ' 
+        + str(wrong_types_index) + ' in ' + str(constant_elements) 
+        + '. Constant element must be an integer')
+
+def test_constant_list_value(constant_elements):
+    """Check that the constant elements in constant_elements are non 
+    negative.
+    
+    GIVEN: constant_elements an array
+    """
+    wrong_value = ''
+    wrong_value_index = []
+    for i, constant_element in enumerate(constant_elements):
+        if constant_element<0 or constant_element>1:
+            wrong_value+= '\'' + str(constant_element) + '\', '
+            wrong_value_index.append(i)
+    assert not wrong_value, (
+        'value error for constant element(s) '+ wrong_value + 'at ' 
+        + str(wrong_value_index) + 'in \'' + str(constant_elements)
+        + '\'. Constant array must contain only 0 or 1')
+
+def test_constant_length(parameters, constant_elements):
+    """Check that the list of elements and the list of parameters have 
+    the same size.
+    """
+    assert len(parameters)==len(constant_elements), (
+        'parameters and constant array list size must be the same. ' 
+        + 'Parameters size: ' + str(len(parameters)) + ', constant array ' 
+        + 'size: ' + str(len(constant_elements)))
