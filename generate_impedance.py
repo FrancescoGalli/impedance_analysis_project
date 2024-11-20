@@ -180,3 +180,80 @@ def get_impedance_function_element(element_string, impedance_circuit,
         impedance_element, parameters_circuit = get_impedance_RCQ_element(
             element_type, parameters_circuit, parameter)
     return impedance_element, parameters_circuit, elements_circuit
+
+def add(f1, f2):
+    """Add two functions given by input and return the result.
+
+    Parameters
+    ----------
+    f1 : function
+        First generic function to be added
+    f2 : function
+        Second generic function to be added
+
+    Returns
+    -------
+    fsum : function
+        Result function of the sum of the two
+    """
+    fsum = lambda x, y: f1(x, y) + f2(x, y)
+    return fsum
+
+def serialComb(impedance_cell):
+    """Perform a serial comb (sum) of any number of functions. If no function is
+    provided, return the zero function.
+
+    Parameters
+    ----------
+    impedance_cell : list
+        List of all impedance functions inside a cell
+
+    Returns
+    -------
+    function_cell : function
+        Equivalent function of the serial comb of the cell
+    """
+    function_cell = lambda *_: 0
+    for i, _ in enumerate(impedance_cell):
+        function_cell = add(function_cell, impedance_cell[i])
+    return function_cell
+
+def reciprocal(f):
+    """Perform a (polynomial) inversion of a generic function. If no function
+    is provided, return the zero function.
+
+    Parameters
+    ----------
+    f : function
+        Function to be inverted
+
+    Returns
+    -------
+    receprocal_f : function
+        Inverted function
+    """
+    receprocal_f = lambda x, y: 1./f(x, y)
+    return receprocal_f
+    
+def parallelComb(impedance_cell):
+    """Perform a parallel comb (invertion of the sum of the inverted
+    functions) of any number of functions. If no function is
+    provided, return the zero function.
+
+    Parameters
+    ----------
+    impedance_cell : list
+        List of all impedance functions inside a cell
+
+    Returns
+    -------
+    function_cell : function
+        Equivalent function of the prallel comb of the cell
+    """
+    one_over_function_cell = lambda *_: 0
+    for impedance_element in impedance_cell:
+        one_over_impedance_element = reciprocal(impedance_element)
+        one_over_function_cell = add(one_over_function_cell, 
+                                     one_over_impedance_element)
+    function_cell = reciprocal(one_over_function_cell)
+    return function_cell

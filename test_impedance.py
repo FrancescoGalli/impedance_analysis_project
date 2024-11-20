@@ -11,6 +11,10 @@ from generate_impedance import impedance_Q
 from generate_impedance import get_impedance_const_RCQ_element
 from generate_impedance import get_impedance_RCQ_element
 from generate_impedance import get_impedance_function_element
+from generate_impedance import add
+from generate_impedance import serialComb
+from generate_impedance import reciprocal
+from generate_impedance import parallelComb
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -785,3 +789,80 @@ def test_get_impedance_function_element_elements(
         elements_letter(elements_circuit_test, caller)
         elements_number(elements_circuit_test, caller)
         elements_number_duplicates(elements_circuit_test, caller)
+
+def generate_f1():
+    """Generate a function."""
+    f1 = lambda x, y: x+y
+    return f1
+
+@pytest.fixture
+def f1():
+    return generate_f1()
+
+def generate_f2():
+    """Generate a function."""
+    f2 = lambda x, y: x*y
+    return f2
+
+@pytest.fixture
+def f2():
+    return generate_f2()
+
+def test_add(f1, f2):
+    """Check that the add function returns a function.
+    
+    GIVEN: f1, f2 are functions.
+    WHEN: I want the sum function of them.
+    THEN: the sum function is a function.
+    """
+    assert inspect.isfunction(add(f1, f2)),(
+        'type error in output of add(). It must be a function')
+    
+def generate_flist():
+    """Generate a list of function."""
+    f1 = lambda x, y: x+y
+    f2 = lambda x, y: x*y
+    return ([f1, f2])
+
+@pytest.fixture
+def f_list():
+    return generate_flist()
+
+def test_serialComb(f_list):
+    """Check that the serialComb function returns a function.
+
+    GIVEN: f_list is a list of fucntions.
+    WHEN: I want the equivalent function of a serial comb of them.
+    THEN: the equivalent function is a function.
+    """
+    assert inspect.isfunction(serialComb(f_list)), (
+        'type error in output of serialComb(). It must be a function')
+
+def generate_f():
+    """Generate a function."""
+    f = lambda x, y: x*y
+    return f
+
+@pytest.fixture
+def f():
+    return generate_f()  
+
+def test_reciprocal(f):
+    """Check that the add function returns a function.
+
+    GIVEN: f is a fucntions.
+    WHEN: I want the inverse function of f.
+    THEN: the inverse function is a function.  
+    """
+    assert inspect.isfunction(reciprocal(f)),(
+        'type error in output of reciprical(). It must be a function')
+    
+def test_parallelComb(f_list):
+    """Check that the serialComb function returns a function.
+
+    GIVEN: f_list is a list of fucntions.
+    WHEN: I want the equivalent function of a parallel comb of them.
+    THEN: the equivalent function is a function.
+    """
+    assert inspect.isfunction(parallelComb(f_list)), (
+        'type error in output of parallelComb(). It must be a function')
