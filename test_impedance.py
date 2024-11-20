@@ -1,4 +1,12 @@
 import pytest
+from hypothesis.extra import numpy as enp
+from hypothesis import given, settings
+import hypothesis.strategies as st
+import numpy as np
+
+from generate_impedance import impedance_R
+from generate_impedance import impedance_C
+from generate_impedance import impedance_Q
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -355,3 +363,80 @@ def test_constant_length(parameters, constant_elements):
         'parameters and constant array list size must be the same. ' 
         + 'Parameters size: ' + str(len(parameters)) + ', constant array ' 
         + 'size: ' + str(len(constant_elements)))
+
+@given(frequency=enp.arrays(dtype=float, shape=10, 
+                            elements=st.floats(1, 1e4), unique=True), 
+       resistance=st.floats(min_value=10, max_value=1e5))
+@settings(max_examples = 10)
+def test_impedance_R_array(resistance, frequency):
+    """Check that the definition of the impedance of resistors returns an 
+    array.
+    """
+    impedance = impedance_R(resistance, frequency)
+    assert isinstance(impedance, np.ndarray), (
+        'type error for resistive impedance. It must be a numpy array')
+
+@given(frequency=enp.arrays(dtype=float, shape=10, 
+                            elements=st.floats(1, 1e4), unique=True), 
+       resistance=st.floats(min_value=10, max_value=1e5))
+@settings(max_examples = 10)
+def test_impedance_R_complex_array(resistance, frequency):
+    """Check that the definition of the impedance of resistors returns a
+    complex object.
+    """
+    impedance = impedance_R(resistance, frequency)
+    assert np.iscomplexobj(impedance), (
+        'type error for resistive impedance. It must be a complex ' 
+        + 'numpy array')
+
+@given(frequency=enp.arrays(dtype=float, shape=10, 
+                            elements=st.floats(1, 1e4), unique=True), 
+       capacitance=st.floats(min_value=1e-9, max_value=1e-5))
+@settings(max_examples = 10)
+def test_impedance_C_array(capacitance, frequency):
+    """Check that the definition of the impedance of capacitors returns an 
+    array.
+    """
+    impedance = impedance_C(capacitance, frequency)
+    assert isinstance(impedance, np.ndarray), (
+        'type error for capacitative impedance. It must be a numpy array')
+
+@given(frequency=enp.arrays(dtype=float, shape=10, 
+                            elements=st.floats(1, 1e4), unique=True), 
+       capacitance=st.floats(min_value=1e-9,max_value=1e-5))
+@settings(max_examples = 10)
+def test_impedance_C_complex_array(capacitance, frequency):
+    """Check that the definition of the impedance of capacitors returns a 
+    complex object.
+    """
+    impedance = impedance_C(capacitance, frequency)
+    assert np.iscomplexobj(impedance), (
+        'type error for capacitative impedance. It must be a complex ' 
+        + 'numpy array')
+
+@given(frequency=enp.arrays(dtype=float, shape=10, 
+                            elements=st.floats(1, 1e4), unique=True), 
+       Q=st.floats(min_value=1e-9,max_value=1e-5),
+       n=st.floats(min_value=0., max_value=1.))
+@settings(max_examples = 10)
+def test_impedance_Q_array(Q, n, frequency):
+    """Check that the definition of the impedance of CPE returns an 
+    array.
+    """
+    impedance = impedance_Q(Q, n, frequency)
+    assert isinstance(impedance, np.ndarray), (
+        'type error for CPE impedance. It must be a numpy array')
+
+@given(frequency=enp.arrays(dtype=float, shape=10, 
+                            elements=st.floats(1, 1e4), unique=True), 
+       Q=st.floats(min_value=1e-9,max_value=1e-5),
+       n=st.floats(min_value=0., max_value=1.))
+@settings(max_examples = 10)
+def test_impedance_Q_complex_array(Q, n, frequency):
+    """Check that the definition of the impedance of resistors returns a 
+    complex object.
+    """
+    impedance = impedance_Q(Q, n, frequency)
+    assert np.iscomplexobj(impedance), (
+        'type error for CPE impedance. It must be a complex numpy array')
+    
