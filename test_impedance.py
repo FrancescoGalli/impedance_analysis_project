@@ -10,6 +10,7 @@ from generate_impedance import impedance_C
 from generate_impedance import impedance_Q
 from generate_impedance import get_impedance_const_RCQ_element
 from generate_impedance import get_impedance_RCQ_element
+from generate_impedance import get_impedance_function_element
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -543,3 +544,244 @@ def test_get_impedance_RCQ_element_parameters(element_types,
         test_parameters_list_type(parameters_test, caller)
         test_parameters_values(parameters_test, caller)
         test_parameters_list_value(parameters_test, caller)
+
+def generate_element_strings():
+    """Generate the three possible element types."""
+    element_strings = (['R2', 'C2', 'Q2', 'Z2'])
+    return element_strings
+
+@pytest.fixture
+def element_strings():
+    return generate_element_strings()
+
+def generate_impedance_circuit():
+    element_type = 'R'
+    list_parameters = []
+    element_parameter = 100
+    impedance_circuit = []
+    impedance_element, _ = get_impedance_RCQ_element(element_type, 
+                                                     list_parameters, 
+                                                     element_parameter)
+    impedance_circuit.append(impedance_element)
+    impedance_circuit.append(impedance_element)
+    return impedance_circuit
+
+@pytest.fixture
+def impedance_circuit():
+    return generate_impedance_circuit()
+
+def generate_elements_circuit():
+    """Generate the three possible element types."""
+    elements_circuit = (['R1'])
+    return elements_circuit
+
+@pytest.fixture
+def elements_circuit():
+    return generate_elements_circuit()
+
+def generate_element_parameters():
+    element_parameters = ([10, 2e-6, [1e-6, 0.5], 100])
+    return element_parameters
+
+@pytest.fixture
+def element_parameters():
+    return generate_element_parameters()
+
+def generate_circuit_parameters_get_impedance():
+    """Generate three possible element parameters."""
+    _parameters = ([100])
+    return _parameters
+
+@pytest.fixture
+def circuit_parameters_get_impedance():
+    return generate_circuit_parameters_get_impedance()
+
+def generate_constant_elements_get_impedance():
+    """Generate the three possible element types."""
+    constant_elements_get_impedance = ([0, 0])
+    return constant_elements_get_impedance
+
+@pytest.fixture
+def constant_elements_get_impedance():
+    return generate_constant_elements_get_impedance()
+
+def test_get_impedance_function_element_function(
+        element_strings, impedance_circuit, element_parameters,
+        circuit_parameters_get_impedance, elements_circuit, 
+        constant_elements_get_impedance):
+    """Check that get_impedance_function_element function returns a 
+    function as first argument.
+    
+    GIVEN: a valid element type (R, C, Q or Z followed by a number), 
+    a valid description of the circuit and valid parameters of the 
+    analysed circuit so far.
+    WHEN: I am calculating the correspondant impedance function.
+    THEN: the impedance funtion is a function.
+    """
+    wrong_element = ''
+    wrong_element_index = []
+    nominal_parameters = ([100, 0])
+    for i, element_string in enumerate(element_strings):
+        nominal_parameters[1]=element_parameters[i]
+        elements_circuit_test = elements_circuit.copy()
+        impedance_element, *_ = get_impedance_function_element(
+            element_string, impedance_circuit, nominal_parameters, 
+            circuit_parameters_get_impedance, elements_circuit_test,
+            constant_elements_get_impedance)
+        if not inspect.isfunction(impedance_element):
+            wrong_element+= '\'' + str(element_string) + '\', '
+            wrong_element_index.append(i)
+    assert not wrong_element, (
+        'type error in output of get_impedance_function() ' 
+        + 'for element type(s) number ' + str(wrong_element_index) 
+        + ' \'' + wrong_element + '\' in ' + str(element_string)
+        + '. Impedance function for an element must return as first argument ' 
+        + 'a function')
+    
+def test_get_impedance_function_element_parameters(
+        element_strings, impedance_circuit, element_parameters,
+        circuit_parameters_get_impedance, elements_circuit, 
+        constant_elements_get_impedance):
+    """Check that the second argument of get_impedance_function_element 
+    function is a valid list of parameters.
+
+    GIVEN: a valid element type (R, C or Q), a valid description of the
+    circuit and valid parameters of the analysed circuit so far.
+    WHEN: I am calculating the correspondant impedance function.
+    THEN: the list of parameters for the current funtion are valid.
+    """
+    caller = 'get_impedance_function_element()'
+    nominal_parameters = ([100, 0])
+    for i, element_string in enumerate(element_strings):
+        nominal_parameters[1] = element_parameters[i]
+        elements_circuit_test = elements_circuit.copy()
+        _, parameters_test, _ = get_impedance_function_element(
+            element_string, impedance_circuit, nominal_parameters, 
+            circuit_parameters_get_impedance, elements_circuit_test,
+            constant_elements_get_impedance)
+        test_parameters_is_list(parameters_test, caller)
+        test_parameters_type(parameters_test, caller)
+        test_parameters_list_two_elements(parameters_test, caller)
+        test_parameters_list_type(parameters_test, caller)
+        test_parameters_values(parameters_test, caller)
+        test_parameters_list_value(parameters_test, caller)
+
+def elements_is_list(elements_circuit, caller):
+    """Check that the elements_circuit is a list."""
+    assert isinstance(elements_circuit, list), (
+        'type error for elements in ' + caller + ' . It must be a list')
+
+def elements_type(elements_circuit, caller):
+    """Check that the list elements_circuit is a string list.
+    
+    GIVEN: elements_circuit is a list.
+    """
+    wrong_types = ''
+    wrong_types_index = []
+    for i, element in enumerate(elements_circuit):
+        if not isinstance(element, str):
+            wrong_types+= '\'' + str(element) + '\', '
+            wrong_types_index.append(i)
+    assert not wrong_types, (
+        'type error for element(s) number ' + str(wrong_types_index) + ' ' 
+        + wrong_types + ' in ' + str(elements_circuit) + ' in ' + caller 
+        + '. Elements can only be strings')
+
+def elements_string_length(elements_circuit, caller):
+    """Check that each string in elements_circuit has a length of 2.
+    
+    GIVEN: elements_circuit is a list of strings.
+    """
+    wrong_length = ''
+    wrong_length_index = []
+    for i, element in enumerate(elements_circuit):
+        if len(element)!=2:
+            wrong_length+= '\'' + str(element) + '\', '
+            wrong_length_index.append(i)
+    assert not wrong_length, (
+        'length error for element(s) number ' + str(wrong_length_index) 
+        + ' ' + wrong_length + ' in ' + str(elements_circuit) + ' in ' 
+        + caller + '. Elements must all be of length 2')
+
+def elements_letter(elements_circuit, caller):
+    """Check that each string in elements_circuit has a valid first character:
+    either R, C or Q.
+
+    GIVEN: elements_circuit is a list of strings of length 2.
+    """
+    wrong_char = ''
+    wrong_char_index = []
+    for i, element in enumerate(elements_circuit):
+        if element[0] not in {'R', 'C', 'Q'}:
+            wrong_char += '\'' + str(element) + '\', '
+            wrong_char_index.append(i)
+    assert not wrong_char, (
+        'structural error for element(s) number ' + str(wrong_char_index) 
+        + ' ' + wrong_char + ' in ' + str(elements_circuit) + ' in ' 
+        + caller + '. All elements must begin with a letter among \'C\', ' 
+        + '\'R\' and \'Q\'')
+    
+def elements_number(elements_circuit, caller):
+    """Check that each string in elements_circuit has a valid second character
+    (a number).
+
+    GIVEN: elements_circuit is a list of strings of length 2.
+    """
+    wrong_char = ''
+    wrong_char_index = []
+    for i, element in enumerate(elements_circuit):
+        if not element[1].isnumeric():
+            wrong_char += '\'' + str(element) + '\', '
+            wrong_char_index.append(i)
+    assert not wrong_char, (
+        'structural error for element(s) number ' + str(wrong_char_index) 
+        + ' ' + wrong_char + ' in ' + str(elements_circuit) + ' in ' + caller 
+        + '. All elements must end with a natural number')
+    
+def elements_number_duplicates(elements_circuit, caller):
+    """Check that in elements_circuit there is no duplicate in number.
+    
+    GIVEN: elements_circuit is a list of strings of length 2, with as second 
+    character a number.
+    """
+    wrong_char = ''
+    wrong_char_index = []
+    for i, element in enumerate(elements_circuit):
+        if element[1].isnumeric():
+            for j, other_element in enumerate(elements_circuit[i+1:]):
+                if element[1]==other_element[1]:
+                    wrong_char += '\'' + str(element[1]) + '\', '
+                    wrong_char_index.append((i, j+i+1))
+    assert not wrong_char, (
+        'structural error for element(s). Found duplicate of number ' 
+        + wrong_char + ' in positions ' + str(wrong_char_index) + ' in ' 
+        + str(elements_circuit) + ' in ' + caller + '. Each element number ' 
+        + 'must be unique')
+
+def test_get_impedance_function_element_elements(
+        element_strings, impedance_circuit, element_parameters,
+        circuit_parameters_get_impedance, elements_circuit, 
+        constant_elements_get_impedance):
+    """Check that get_impedance_function_element() returns a valid elements
+    array.
+
+    GIVEN: a valid element type (R, C or Q), a valid description of the
+    circuit and valid parameters of the analysed circuit so far.
+    WHEN: I am calculating the correspondant impedance function.
+    THEN: the list of elements for the current funtion are valid.
+    """
+    caller = 'get_impedance_function_element()'
+    nominal_parameters = ([100, 0])
+    for i, element_string in enumerate(element_strings):
+        nominal_parameters[1]=element_parameters[i]
+        elements_circuit_test=elements_circuit.copy()
+        *_, elements_circuit_test = get_impedance_function_element(
+            element_string, impedance_circuit, nominal_parameters, 
+            circuit_parameters_get_impedance, elements_circuit_test,
+            constant_elements_get_impedance)
+        elements_is_list(elements_circuit_test, caller)
+        elements_type(elements_circuit_test, caller)
+        elements_string_length(elements_circuit_test, caller)
+        elements_letter(elements_circuit_test, caller)
+        elements_number(elements_circuit_test, caller)
+        elements_number_duplicates(elements_circuit_test, caller)

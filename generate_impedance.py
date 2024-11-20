@@ -128,3 +128,55 @@ def get_impedance_RCQ_element(element_type, parameters, parameter):
         impedance_element = lambda p, f: impedance_Q(p[i_parameter-1], 
                                                      p[i_parameter], f)
     return impedance_element, parameters
+
+def get_impedance_function_element(element_string, impedance_circuit,
+                                   initial_parameters, parameters_circuit,
+                                   elements_circuit, constant_elements):
+    """Return the impedance function selecting the three cases: the element 
+    has already been analyzed, the element has parameters that will not figure
+    in the fit or the element has parameters that WILL figure in the fit.
+    
+    Parameters
+    ----------
+    element_string : string
+        String corresponding to the single element (letter and number)
+    impedance_circuit : list
+        List of impedance functions containing in chronological order each
+        cell analysis (the elements inside a pair of brackets)
+    initial_parameters : list
+        List of parameters given by input
+    parameters_circuit : list
+        List of parameters containing all parameters analyzed so far, that
+        will be object of the fit
+    elements_circuit : list
+        List of elements containing all elements analyzed so far, that
+        will be object of the fit
+    constant_elements : list
+        List of constant elements condition given by input
+
+    Returns
+    -------
+    impedance_element : function
+        Impedance function of the analyzed element
+    parameters_circuit : list
+        List of parameters containing all parameters analyzed so far, that
+        will be object of the fit
+    elements_circuit : list
+        List of elements containing all elements analyzed so far, that will be
+        object of the fit
+    """
+    i_element = int(element_string[1]) - 1
+    if element_string[0]=='Z':
+        impedance_element = impedance_circuit[i_element]
+    elif constant_elements[i_element]:
+        const_parameter = initial_parameters[i_element]
+        element_type = element_string[0]
+        impedance_element = get_impedance_const_RCQ_element(
+            element_type, const_parameter)
+    else:
+        elements_circuit.append(element_string)
+        parameter = initial_parameters[i_element]
+        element_type = element_string[0]
+        impedance_element, parameters_circuit = get_impedance_RCQ_element(
+            element_type, parameters_circuit, parameter)
+    return impedance_element, parameters_circuit, elements_circuit
