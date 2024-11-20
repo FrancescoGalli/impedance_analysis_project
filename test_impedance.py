@@ -3,10 +3,13 @@ from hypothesis.extra import numpy as enp
 from hypothesis import given, settings
 import hypothesis.strategies as st
 import numpy as np
+import inspect
 
 from generate_impedance import impedance_R
 from generate_impedance import impedance_C
 from generate_impedance import impedance_Q
+from generate_impedance import get_impedance_const_RCQ_element
+from generate_impedance import get_impedance_RCQ_element
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -439,4 +442,104 @@ def test_impedance_Q_complex_array(Q, n, frequency):
     impedance = impedance_Q(Q, n, frequency)
     assert np.iscomplexobj(impedance), (
         'type error for CPE impedance. It must be a complex numpy array')
+
+def generate_element_types():
+    """Generate the three possible element types."""
+    element_types = (['R', 'C', 'Q'])
+    return element_types
+
+@pytest.fixture
+def element_types():
+    return generate_element_types()
+
+def generate_parameters_type():
+    """Generate three possible element parameters."""
+    element_parameters = ([10, 3e-6, [2e-6, 0.5]])
+    return element_parameters
+
+@pytest.fixture
+def element_parameters():
+    return generate_parameters_type()
+
+def test_get_impedance_const_RCQ_element(element_types, element_parameters):
+    """Check that get_impedance_const_RCQ_element_type function returns 
+    a function.
+
+    GIVEN: element_type is a valid element type (R, C or Q) and a valid 
+    parameter.
+    WHEN: I am calculating the correspondant impedance function while keeping
+    the parameter(s) of this element constant.
+    THEN: the impedance funtion is a function
+    """
+    wrong_element = ''
+    wrong_element_index = []
+    for i, element_type in enumerate(element_types):
+        const_parameter = element_parameters[i]
+        impedance_element = get_impedance_const_RCQ_element(element_type, 
+                                                        const_parameter)
+        if not inspect.isfunction(impedance_element):
+            wrong_element+= '\'' + str(element_type) + '\', '
+            wrong_element_index.append(i)
+    assert not wrong_element, (
+        'type error in output of get_impedance_const_RCQ_element_type() ' 
+        + 'for element type(s) number ' + str(wrong_element_index) 
+        + ' \'' + wrong_element + '\' in ' + str(element_type)
+        + '. Impedance function for an element must return a function')
+
+def generate_circuit_parameters():
+    """Generate a possible circuit parameters list."""
+    circuit_parameters = ([100])
+    return circuit_parameters
+
+@pytest.fixture
+def circuit_parameters():
+    return generate_circuit_parameters()
+
+def test_get_impedance_RCQ_element_function(element_types, circuit_parameters,
+                                            element_parameters):
+    """Check that get_impedance_RCQ_element function returns a function as 
+    first argument.
+
+    GIVEN: element_type as a valid element type (R, C or Q), a valid parameter 
+    and a valid parameter list.
+    WHEN: I am calculating the correspondant impedance function.
+    THEN: the impedance funtion is a function.
+    """
+    wrong_element = ''
+    wrong_element_index = []
+    for i, element_type in enumerate(element_types):
+        impedance_element, _ = get_impedance_RCQ_element(element_type, 
+                                                     circuit_parameters, 
+                                                     element_parameters[i])
+        if not inspect.isfunction(impedance_element):
+            wrong_element+= '\'' + str(element_type) + '\', '
+            wrong_element_index.append(i)
+    assert not wrong_element, (
+        'type error in output of get_impedance_RCQ_element() ' 
+        + 'for element type(s) number ' + str(wrong_element_index) 
+        + ' \'' + wrong_element + '\' in ' + str(element_type)
+        + '. Impedance function for an element must return as first argument ' 
+        + 'a function')
     
+def test_get_impedance_RCQ_element_parameters(element_types, 
+                                              circuit_parameters,
+                                              element_parameters):
+    """ Check that the second argument of get_impedance_RCQ_element function
+    is a valid list of parameters.
+
+    GIVEN: a valid element type (R, C or Q), a valid description of the
+    circuit and valid parameters of the analysed circuit so far.
+    WHEN: I am calculating the correspondant impedance function.
+    THEN: the parameters for the current element funtion are valid.
+    """
+    caller = 'get_impedance_RCQ_element()'
+    for i, element_type in enumerate(element_types):
+        _, parameters_test = get_impedance_RCQ_element(element_type,
+                                                  circuit_parameters, 
+                                                  element_parameters[i])
+        test_parameters_is_list(parameters_test, caller)
+        test_parameters_type(parameters_test, caller)
+        test_parameters_list_two_elements(parameters_test, caller)
+        test_parameters_list_type(parameters_test, caller)
+        test_parameters_values(parameters_test, caller)
+        test_parameters_list_value(parameters_test, caller)
