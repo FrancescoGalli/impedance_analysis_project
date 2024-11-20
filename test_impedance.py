@@ -15,6 +15,7 @@ from generate_impedance import add
 from generate_impedance import serialComb
 from generate_impedance import reciprocal
 from generate_impedance import parallelComb
+from generate_impedance import get_position_opening_bracket
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -866,3 +867,38 @@ def test_parallelComb(f_list):
     """
     assert inspect.isfunction(parallelComb(f_list)), (
         'type error in output of parallelComb(). It must be a function')
+
+def generate_i_end():
+    """Generate a position for a close bracket."""
+    i_end = 10
+    return i_end
+
+@pytest.fixture
+def i_end():
+    return generate_i_end()
+
+def test_get_position_opening_bracket_type(circuit_string, i_end):
+    """Check that get_position_opening_bracket() returns an integer.
+
+    GIVEN: circuit_string is a valid string, i_end is the position of a closed
+    bracket.
+    """
+    last_opening_bracket_position = get_position_opening_bracket(
+        circuit_string, i_end)
+    assert isinstance(last_opening_bracket_position, int), (
+        'type error in output of get_position_opening_bracket(). Last '
+        + 'opening bracket position must be an integer')
+
+def test_get_position_opening_bracket_value(circuit_string, i_end):
+    """Check that get_position_opening_bracket() returns a non-negative 
+    number.
+
+    GIVEN: circuit_string is a valid string, i_end is the position of a closed
+    bracket and last_opening_bracket_position is an integer.
+    """
+    last_opening_bracket_position = get_position_opening_bracket(
+        circuit_string, i_end)    
+    assert last_opening_bracket_position >= 0, ('value error in output of ' 
+        + 'get_position_opening_bracket(). Last opening bracket position ' 
+        + 'must be non-negative')
+    

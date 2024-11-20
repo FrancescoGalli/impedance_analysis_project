@@ -257,3 +257,30 @@ def parallelComb(impedance_cell):
                                      one_over_impedance_element)
     function_cell = reciprocal(one_over_function_cell)
     return function_cell
+
+def get_position_opening_bracket(circuit_string, i_end):
+    """Given the circuit string and the position of a closing bracket, find
+    the corrispective opening bracket
+
+    Parameters
+    ----------
+    circuit_string : string
+        String of the current circuit
+    i_end : int
+        Index of circuit_string that corresponds to a closing bracket
+
+    Returns
+    -------
+    last_opening_bracket_position : int
+        Index of circuit_string that corresponds to the corresptive openening
+        bracket
+    """
+    if circuit_string.startswith(')', i_end):
+        opening_bracket = '('
+    else:
+        opening_bracket = '['
+    opening_bracket_positions = [
+        i for i, _ in enumerate(circuit_string[:i_end]) 
+        if circuit_string.startswith(opening_bracket, i)]
+    last_opening_bracket_position = opening_bracket_positions[-1]
+    return last_opening_bracket_position
