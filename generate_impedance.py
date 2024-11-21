@@ -365,3 +365,58 @@ def update_string(circuit_string, i_start, i_end, last_impedance_element):
     updated_circuit_string = circuit_string.replace(
         circuit_string[i_start:i_end+1], 'Z'+str(last_impedance_element))
     return updated_circuit_string
+
+def generate_impedance_function(circuit_string, initial_parameters,
+                                constant_elements):
+    """Given a circuit string, the initial parameters and the constant
+    element conditions, generate an impedance function for the circuit
+
+    Parameters
+    ----------
+    circuit_string : string
+        String of the circuit given by input
+    initial_parameters : list
+        List of parameters given by input
+    constant_elements : list
+        List of constant elements condition given by input
+        
+    Returns
+    -------
+    final_impedance_circuit : function
+        Impedance function of the circuit
+    parameters_circuit : list
+        List of parameters (integers, floats or lists) of the elements that 
+        compose the circuit and that will figure in the fit
+    elements_circuit : list
+        List of elements (strings) that compose the circuit and that will
+        figure in the fit 
+    """
+    working = 1
+    index = 1 #first element is just a bracket, cannot be an element
+    parameters_circuit = []
+    elements_circuit = []
+    impedance_circuit = []
+    while working:
+        if (circuit_string[index]==')' or circuit_string[index]==']'):
+            i_start = get_position_opening_bracket(circuit_string, index)
+            (impedance_cell, parameters_circuit,
+             elements_circuit) = generate_cell_impedance(
+                circuit_string, i_start, index, impedance_circuit,
+                initial_parameters, parameters_circuit, elements_circuit,
+                constant_elements)
+            if circuit_string[index]==')':
+                new_impedance = serialComb(impedance_cell)
+                impedance_circuit.append(new_impedance)
+            else:
+                new_impedance = parallelComb(impedance_cell)
+                impedance_circuit.append(new_impedance)
+            last_impedance_element = len(impedance_circuit) - 1
+            circuit_string = update_string(circuit_string, i_start, index,
+                                           last_impedance_element)
+            index = 1
+        else:
+            index += 1
+        if index>(len(circuit_string)-1):
+            working = 0
+    final_impedance_circuit = impedance_circuit[-1]
+    return (final_impedance_circuit, parameters_circuit, elements_circuit)

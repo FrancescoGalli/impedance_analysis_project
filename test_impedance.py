@@ -18,6 +18,7 @@ from generate_impedance import parallelComb
 from generate_impedance import get_position_opening_bracket
 from generate_impedance import generate_cell_impedance
 from generate_impedance import update_string
+from generate_impedance import generate_impedance_function
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -1112,3 +1113,90 @@ def test_update_string_element_consistency(circuit_string, i_start, i_end,
         + str(wrong_element_index) + ' in updated string: '
         + updated_circuit_string + '. An element is composed by a '
         + 'valid letter followed by a natural number')
+    
+def test_generate_impedance_function(circuit_string, initial_parameters,
+                                     constant_elements):
+    """Check that generate_impedance_function returns a function as 
+    first argument.
+
+    GIVEN: the description of the initial circuit is valid.
+    WHEN: I am taking the initial description of the circuit to have a proper
+    impedance function to describe it.
+    THEN: the first argument returned is a fucntion.
+    """
+    impedance, *_ = generate_impedance_function(circuit_string, 
+                                                initial_parameters, 
+                                                constant_elements)
+    assert inspect.isfunction(impedance), (
+        'type error in output of generate_impedance_function(). Impedance ' 
+        + 'function must return as first argument a function')
+    
+def test_generate_impedance_parameters(circuit_string, initial_parameters,
+                                             constant_elements):
+    """Check that generate_impedance_function returns a valid list of 
+    parameters as second argument.
+
+    GIVEN: the description of the initial circuit is valid.
+    WHEN: I am taking the initial description of the circuit to have a proper
+    impedance function to describe it.
+    THEN: the second argument returned is a list of valid parameters.
+    """    
+    _, parameters, _ = generate_impedance_function(circuit_string, 
+                                                   initial_parameters, 
+                                                   constant_elements)
+    caller = 'generate_impedance_function()'
+    test_parameters_is_list(parameters, caller)
+    test_parameters_type(parameters, caller)
+    test_parameters_list_two_elements(parameters, caller)
+    test_parameters_list_type(parameters, caller)
+    test_parameters_values(parameters, caller)
+    test_parameters_list_value(parameters, caller)
+
+def test_generate_impedance_elements(circuit_string, initial_parameters,
+                                             constant_elements):
+    """Check that generate_impedance_function returns a valid list of 
+    elements as third argument.
+
+    GIVEN: the description of the initial circuit is valid.
+    WHEN: I am taking the initial description of the circuit to have a proper
+    impedance function to describe it.
+    THEN: the third argument returned is a list of valid elements.
+    """   
+    *_, elements_circuit = generate_impedance_function(circuit_string,
+                                                       initial_parameters,
+                                                       constant_elements)
+    caller = 'generate_impedance()'
+    elements_is_list(elements_circuit, caller)
+    elements_type(elements_circuit, caller)
+    elements_string_length(elements_circuit, caller)
+    elements_letter(elements_circuit, caller)
+    elements_number(elements_circuit, caller)
+    elements_number_duplicates(elements_circuit, caller)
+
+def test_generate_impedance_number_of_arguments(circuit_string,
+                                                initial_parameters,
+                                                constant_elements):
+    """Check that the total number of parameters of the functions in the list
+    and the number of parameters in list given by generate_cell_impedance 
+    is the same.
+
+    GIVEN: the description of the initial circuit is valid.
+    WHEN: I am taking the initial description of the circuit to have a proper
+    impedance function to describe it.
+    THEN: the list of parameters and the list of elements have the same
+    length.
+    """
+    _, parameters_list, elements_circuit = generate_impedance_function(
+        circuit_string, initial_parameters, constant_elements)
+    elements_count = 0
+    for element in elements_circuit:
+        if element.startswith('Q'):
+            elements_count += 2
+        else:
+            elements_count += 1
+    assert len(parameters_list)==elements_count, (
+        'wrong number of parameters \'' + str(len(parameters_list))
+        + '\' with number of elements \'' + str(len(elements_circuit))
+        + '\' in output of generate_cell_impedance() \'. It should be 1 '
+        + 'parameter for one element')
+    
