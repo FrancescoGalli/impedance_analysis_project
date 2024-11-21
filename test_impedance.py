@@ -17,6 +17,7 @@ from generate_impedance import reciprocal
 from generate_impedance import parallelComb
 from generate_impedance import get_position_opening_bracket
 from generate_impedance import generate_cell_impedance
+from generate_impedance import update_string
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -1022,3 +1023,92 @@ def test_generate_cell_impedance_elements(
     elements_letter(elements_circuit, caller)
     elements_number(elements_circuit, caller)
     elements_number_duplicates(elements_circuit, caller)
+
+def generate_last_impedance_element():
+    last_impedance_element = 1
+    return last_impedance_element
+
+@pytest.fixture
+def last_impedance_element():
+    return generate_last_impedance_element()
+
+def test_update_string_valid_string(circuit_string, i_start, i_end,
+                                    last_impedance_element):
+    """Check that update_string returns a valid string.
+    
+
+    GIVEN: a valid circuit string, a valid position of the start and end of
+    the string substitution.
+    WHEN: I am substituting the old string with the updated string, acording
+    to the analysis done so far.
+    THEN: the updated string is valid, excpet for the characters and the
+    element consistency.
+    """
+    updated_circuit_string = update_string(circuit_string, i_start, i_end,
+                                           last_impedance_element)
+    caller = 'update_string()'
+    test_is_string(updated_circuit_string, caller)
+    test_empty_string(updated_circuit_string, caller)
+    test_string_different_number_brackets(updated_circuit_string, caller)
+    test_string_consistency_brackets(updated_circuit_string, caller)
+
+def test_update_string_characters(circuit_string, i_start, i_end,
+                                  last_impedance_element):
+    """Check that a string containes only valid characters:
+    '(', ')', '[', ']', 'Z', 'C', 'Q', 'R' and natural numbers.
+
+    GIVEN: a valid circuit string, a valid position of the start and end of
+    the string substitution.
+    WHEN: I am substituting the old string with the updated string, acording
+    to the analysis done so far.
+    THEN: the updated string has valid characters.
+    """
+    updated_circuit_string = update_string(circuit_string, i_start, i_end,
+                                        last_impedance_element)
+    wrong_characters = ''
+    wrong_characters_index = []
+    for i, char in enumerate(updated_circuit_string):
+        if (char not in {'(', ')', '[', ']', 'Z', 'C', 'Q', 'R'} 
+                and not char.isnumeric()):
+            wrong_characters += '\'' + char + '\', '
+            wrong_characters_index.append(i)
+    assert not wrong_characters, (
+        'Invalid character(s) ' + wrong_characters + ' at '
+        + str(wrong_characters_index) + ' in ' + updated_circuit_string 
+        + ' in update_string(). Only round and square brackets, C, Q, R ' 
+        + 'and natural numbers are valid characters')
+
+def test_update_string_element_consistency(circuit_string, i_start, i_end,
+                                           last_impedance_element):
+    """Check the element consistency of a string that containes only valid
+    characters: each element is composed by a capital letter among 
+    {'C', 'Q', 'R'} followed by a natural number.
+
+    GIVEN: a valid circuit string, a valid position of the start and end of
+    the string substitution.
+    WHEN: I am substituting the old string with the updated string, acording
+    to the analysis done so far.
+    THEN: the updated string has element consistency.
+    """
+    updated_circuit_string = update_string(circuit_string, i_start, i_end,
+                                           last_impedance_element)
+    wrong_elements=''
+    wrong_element_index=[]
+    for i, char in enumerate(updated_circuit_string):
+        if (char in {'Z', 'C', 'Q', 'R'} 
+            and updated_circuit_string[-1]!=char):
+            if not updated_circuit_string[i+1].isnumeric():
+                wrong_elements += ('\'' + char 
+                                   + str(updated_circuit_string[i+1])
+                                   + '\', ')
+                wrong_element_index.append(i)
+        elif (char.isnumeric() and updated_circuit_string[0]!=char):
+            if not (updated_circuit_string[i-1] in {'Z','C', 'Q', 'R'}):
+                wrong_elements += ('\'' + str(updated_circuit_string[i-1]) 
+                                   + char + '\', ')
+                wrong_element_index.append(i-1)
+    assert not wrong_elements, (
+        'element inconsistency for '+ wrong_elements + ' at ' 
+        + str(wrong_element_index) + ' in updated string: '
+        + updated_circuit_string + '. An element is composed by a '
+        + 'valid letter followed by a natural number')

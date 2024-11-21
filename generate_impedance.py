@@ -336,3 +336,32 @@ def generate_cell_impedance(circuit_string, i_start, i_end, impedance_circuit,
             parameters_circuit, elements_circuit, constant_elements)
         impedance_cell.append(impedance_element)
     return impedance_cell, parameters_circuit, elements_circuit
+
+def update_string(circuit_string, i_start, i_end, last_impedance_element):
+    """Given the circuit string,  the position of the analyzed cell bordes and
+    the number of cycles of analysis, update the circuit string substituting 
+    the analyzed cell with a generic Z followed by the corresponding number
+    of cycle.
+
+    Parameters
+    ----------
+    circuit_string : string
+        String of the circuit before the last cycle of analysis
+    i_start : int
+        Index of circuit_string that corresponds to an opening bracket.
+        Delimits the beginning of the cell to be analyzed
+    i_end : int
+        Index of circuit_string that corresponds to a closing bracket.
+        Delimits the end of the cell to be analyzed
+    last_impedance_element : int
+        Index of the list of impedance, which corresponds to the number of
+        cycles of analysis 
+
+    Returns
+    -------
+    updated_circuit_string : string
+        String of the circuit after the last cycle of analysis
+    """
+    updated_circuit_string = circuit_string.replace(
+        circuit_string[i_start:i_end+1], 'Z'+str(last_impedance_element))
+    return updated_circuit_string
