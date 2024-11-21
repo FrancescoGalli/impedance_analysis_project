@@ -16,6 +16,7 @@ from generate_impedance import serialComb
 from generate_impedance import reciprocal
 from generate_impedance import parallelComb
 from generate_impedance import get_position_opening_bracket
+from generate_impedance import generate_cell_impedance
 
 def generate_circuit():
     """Generate a test circuit string."""
@@ -902,3 +903,122 @@ def test_get_position_opening_bracket_value(circuit_string, i_end):
         + 'get_position_opening_bracket(). Last opening bracket position ' 
         + 'must be non-negative')
     
+def generate_i_start():
+    """Generate a position for a closing bracket."""
+    i_end = generate_i_end()
+    circuit_string = generate_circuit()
+    i_start = get_position_opening_bracket(
+        circuit_string, i_end)
+    return i_start
+
+@pytest.fixture
+def i_start():
+    return generate_i_start()
+
+@pytest.fixture
+def initial_parameters():
+    return generate_initial_parameters()
+
+def generate_parameters_circuit_generate_cell():
+    parameters_circuit = ([100])
+    return parameters_circuit
+
+@pytest.fixture
+def parameters_circuit_generate_cell():
+    return generate_parameters_circuit_generate_cell()
+
+def generate_elements_circuit_generate_cell():
+    elements_circuit = (['R1'])
+    return elements_circuit
+
+@pytest.fixture
+def elements_circuit_generate_cell():
+    return generate_elements_circuit_generate_cell()
+
+def test_generate_cell_impedance_function_list(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell, 
+        elements_circuit_generate_cell, constant_elements):
+    """Check that get_impedance_function_element function returns a list
+    as first argument.
+
+    GIVEN: a proper description of the circuit
+    """
+    impedance_cell, *_ = generate_cell_impedance(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell,
+        elements_circuit_generate_cell, constant_elements)
+    assert isinstance(impedance_cell, list), (
+        'type error in output of generate_cell_impedance(). Its first ' 
+        + 'argument must be a list')
+
+def test_generate_cell_impedance_function_type(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell, 
+        elements_circuit_generate_cell, constant_elements):
+    """Check that generate_cell_impedance_function() returns a list of 
+    functions.
+
+    GIVEN: generate_cell_impedance() returns a list as first argument
+    """
+    wrong_type_index = []
+    impedance_cell, *_ = generate_cell_impedance(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell,
+        elements_circuit_generate_cell, constant_elements)
+    for i, function in enumerate(impedance_cell):
+        if not inspect.isfunction(function):
+            wrong_type_index.append(i)
+    assert not wrong_type_index, (
+        'type error for function(s) number ' + str(wrong_type_index) + ' '
+        + ' in ' + str(elements_circuit_generate_cell) + ', in output of ' 
+        + 'generate_cell_impedance(). Its first argument must be a list of ' 
+        + 'functions')
+
+def test_generate_cell_impedance_parameters(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell, 
+        elements_circuit_generate_cell, constant_elements):
+    """Check that the second argument of generate_cell_impedance function is 
+    a valid list of parameters.
+
+    GIVEN: a valid circuit string, a valid description of the
+    circuit and valid parameters of the analysed circuit so far.
+    WHEN: I am calculating the correspondant impedance function of a cell.
+    THEN: the list of parameters for the current funtion are valid.
+    """
+    _, parameters_test, _ = generate_cell_impedance(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell,
+        elements_circuit_generate_cell, constant_elements)
+    caller = 'generate_cell_impedance()'
+    test_parameters_is_list(parameters_test, caller)
+    test_parameters_type(parameters_test, caller)
+    test_parameters_list_two_elements(parameters_test, caller)
+    test_parameters_list_type(parameters_test, caller)
+    test_parameters_values(parameters_test, caller)
+    test_parameters_list_value(parameters_test, caller)
+
+def test_generate_cell_impedance_elements(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell, 
+        elements_circuit_generate_cell, constant_elements):
+    """Check that generate_cell_impedance() returns a valid elements
+    array.
+
+    GIVEN: a valid circuit string, a valid description of the
+    circuit and valid parameters of the analysed circuit so far.
+    WHEN: I am calculating the correspondant impedance function of a cell.
+    THEN: the list of elements for the current funtion are valid.
+    """
+    *_, elements_circuit = generate_cell_impedance(
+        circuit_string, i_start, i_end, impedance_circuit,
+        initial_parameters, parameters_circuit_generate_cell,
+        elements_circuit_generate_cell, constant_elements)
+    caller = 'generate_cell_impedance()'
+    elements_is_list(elements_circuit, caller)
+    elements_type(elements_circuit, caller)
+    elements_string_length(elements_circuit, caller)
+    elements_letter(elements_circuit, caller)
+    elements_number(elements_circuit, caller)
+    elements_number_duplicates(elements_circuit, caller)

@@ -284,3 +284,55 @@ def get_position_opening_bracket(circuit_string, i_end):
         if circuit_string.startswith(opening_bracket, i)]
     last_opening_bracket_position = opening_bracket_positions[-1]
     return last_opening_bracket_position
+
+def generate_cell_impedance(circuit_string, i_start, i_end, impedance_circuit,
+                            initial_parameters, parameters_circuit,
+                            elements_circuit, constant_elements):
+    """Calculate the impedance function of a cell, defined as the group of
+    elements inside a pair of round or square brackets.
+
+    Parameters
+    ----------
+    circuit_string : string
+        String of the current circuit
+    i_start : int
+        Index of circuit_string that corresponds to an opening bracket.
+        Delimits the beginning of the cell to be analyzed
+    i_end : int
+        Index of circuit_string that corresponds to a closing bracket.
+        Delimits the end of the cell to be analyzed
+    impedance_circuit : dict
+        List of impedance functions containing in chronological order each
+        cell analysis (the elements inside a pair of brackets)
+    initial_parameters : list
+        List of parameters given by input
+    parameters_circuit : list
+        List of parameters containing all parameters analyzed so far, that
+        will be object of the fit
+    elements_circuit : list
+        List of elements containing all elements analyzed so far, that
+        will be object of the fit
+    constant_elements : list
+        List of constant elements condition given by input
+
+    Returns
+    -------
+    impedance_cell : function
+        Impedance function of the analyzed element
+    parameters_circuit : list
+        List of parameters containing all parameters analyzed so far, that
+        will be object of the fit
+    elements_circuit : list
+        List of elements containing all elements analyzed so far, that will be
+        object of the fit
+    """
+    impedance_cell = []
+    for i in range(i_start+1, i_end, 2): #increment of 2 to jump the numbers of the elements 
+        #and count only the letters in the string
+        element_string = circuit_string[i:i+2]
+        (impedance_element, parameters_circuit,
+         elements_circuit) = get_impedance_function_element(
+            element_string, impedance_circuit, initial_parameters, 
+            parameters_circuit, elements_circuit, constant_elements)
+        impedance_cell.append(impedance_element)
+    return impedance_cell, parameters_circuit, elements_circuit
