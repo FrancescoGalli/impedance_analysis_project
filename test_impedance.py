@@ -26,7 +26,6 @@ from generate_impedance import generate_cell_impedance
 from generate_impedance import update_string
 from generate_impedance import generate_impedance_function
 
-
 def generate_circuit():
     """Generate a test circuit string."""
     circuit_string = '(R1C2[R3Q4])'
@@ -723,7 +722,7 @@ def test_constant_length(example_parameters, example_constant_elements):
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
-                 resistance=st.floats(min_value=10, max_value=1e5))
+       resistance=st.floats(min_value=10, max_value=1e5))
 @settings(max_examples = 10)
 def test_impedance_resistor_array(resistance, frequency):
     """Check that the definition of the impedance of resistors returns an
@@ -745,6 +744,18 @@ def test_impedance_resistor_complex_array(resistance, frequency):
     assert np.iscomplexobj(impedance), (
         'type error for resistive impedance. It must be a complex '
         + 'numpy array')
+    
+@given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
+                            unique=True),
+       resistance=st.floats(min_value=10, max_value=1e5))
+@settings(max_examples = 10)
+def test_impedance_resistor_empty(resistance, frequency):
+    """Check that the definition of the impedance of resistors returns an
+    array that is not empty.
+    """
+    impedance = impedance_resistor(resistance, frequency)
+    assert impedance.size>0, ('structural error for resistive impedance. It'
+                              + 'cannot be empty')
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
@@ -773,6 +784,18 @@ def test_impedance_capacitor_complex_array(capacitance, frequency):
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
+       capacitance=st.floats(min_value=1e-9,max_value=1e-5))
+@settings(max_examples = 10)
+def test_impedance_capacitor_empty(capacitance, frequency):
+    """Check that the definition of the impedance of capacitors returns an
+    array that is not empty.
+    """
+    impedance = impedance_capacitor(capacitance, frequency)
+    assert impedance.size>0, ('structural error for capacitative impedance.'
+                              + 'It cannot be empty')
+
+@given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
+                            unique=True),
        q_parameter=st.floats(min_value=1e-9,max_value=1e-5),
        ideality_factor=st.floats(min_value=0., max_value=1.))
 @settings(max_examples = 10)
@@ -788,12 +811,25 @@ def test_impedance_cpe_array(q_parameter, ideality_factor, frequency):
        ideality_factor=st.floats(min_value=0., max_value=1.))
 @settings(max_examples = 10)
 def test_impedance_cpe_complex_array(q_parameter, ideality_factor, frequency):
-    """Check that the definition of the impedance of resistors returns a
-    complex object.
+    """Check that the definition of the impedance of CPE returns a complex
+    object.
     """
     impedance = impedance_cpe(q_parameter, ideality_factor, frequency)
     assert np.iscomplexobj(impedance), (
         'type error for CPE impedance. It must be a complex numpy array')
+    
+@given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
+                            unique=True),
+       q_parameter=st.floats(min_value=1e-9,max_value=1e-5),
+       ideality_factor=st.floats(min_value=0., max_value=1.))
+@settings(max_examples = 10)
+def test_impedance_cpe_empty(q_parameter, ideality_factor, frequency):
+    """Check that the definition of the impedance of CPE returns a
+    array that is not empty.
+    """
+    impedance = impedance_cpe(q_parameter, ideality_factor, frequency)
+    assert impedance.size>0, ('structural error for CPE impedance.'
+                              + 'It cannot be empty')
 
 def generate_element_types():
     """Generate the three possible element types."""
@@ -1420,7 +1456,7 @@ def test_get_position_opening_bracket_value(valid_circuit_string, i_end):
     """
     last_opening_bracket_position = get_position_opening_bracket(
         valid_circuit_string, i_end)
-    assert last_opening_bracket_position >= 0, ('value error in output of '
+    assert last_opening_bracket_position>=0, ('value error in output of '
         + 'get_position_opening_bracket(). Last opening bracket position '
         + 'must be non-negative')
 
@@ -1439,25 +1475,6 @@ def i_start():
 @pytest.fixture
 def valid_parameters():
     return generate_initial_parameters()
-
-"""
-def generate_parameters_circuit_generate_cell():
-    parameters_circuit = ([100])
-    return parameters_circuit
-
-@pytest.fixture
-def parameters_circuit_generate_cell():
-    return generate_parameters_circuit_generate_cell()
-
-
-def generate_elements_circuit_generate_cell():
-    elements_circuit = (['R1'])
-    return elements_circuit
-
-@pytest.fixture
-def elements_circuit_generate_cell():
-    return generate_elements_circuit_generate_cell()
-    """
 
 @pytest.fixture
 def valid_constant_elements():
