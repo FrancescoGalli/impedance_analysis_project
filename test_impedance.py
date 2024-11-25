@@ -11,6 +11,13 @@ from hypothesis import given, settings
 from hypothesis.extra import numpy as enp
 import hypothesis.strategies as st
 
+from generate_data import generate_circuit_data
+from generate_data import generate_parameters_data
+from generate_data import generate_constant_elements_array_data
+from generate_data import set_frequencies
+from generate_data import set_file_name
+from generate_data import generate_random_error_component
+from generate_data import simulate_noise
 from generate_impedance import impedance_resistor
 from generate_impedance import impedance_capacitor
 from generate_impedance import impedance_cpe
@@ -26,70 +33,50 @@ from generate_impedance import generate_cell_impedance
 from generate_impedance import update_string
 from generate_impedance import generate_impedance_function
 
-def generate_circuit():
-    """Generate a test circuit string."""
-    circuit_string = '(R1C2[R3Q4])'
-    return circuit_string
-
-def generate_initial_parameters():
-    """Generate a list of parameters."""
-    parameter_1 = 7000
-    parameter_2 = 8e-6
-    parameter_3 = 10000
-    parameter_4 = ([0.07e-6, 0.7])
-    initial_parameters = ([parameter_1, parameter_2, parameter_3,
-                           parameter_4])
-    return initial_parameters
-
-def generate_constant_elements_array():
-    """Generate an array for constant elements."""
-    constant_array = ([0, 0, 1, 0])
-    return constant_array
-
 ##############################################################################
-#String tests
+#String tests of generate_circuit_data() in generate_data.py
 
 @pytest.fixture
-def example_circuit_string():
-    return generate_circuit()
+def circuit_data_string():
+    return generate_circuit_data()
 
 @pytest.fixture
 def caller():
-    return 'input'
+    return 'generate_circuit_data()'
 
-def test_is_string(example_circuit_string, caller):
+def test_is_string(circuit_data_string, caller):
     """Check that the circuit string is a string."""
-    assert isinstance(example_circuit_string, str), (
+    assert isinstance(circuit_data_string, str), (
         'type error for circuit scheme in ' + caller
         + '. It must be a string')
 
-def test_empty_string(example_circuit_string, caller):
+def test_empty_string(circuit_data_string, caller):
     """Check that the string is not empty."""
-    assert example_circuit_string, 'empty string in ' + caller
+    assert circuit_data_string, 'empty string in ' + caller
 
-def test_input_string_open_brakets(example_circuit_string):
+def test_input_string_open_brakets(circuit_data_string):
     """Check that there is an open round or square bracket as first character
     in the string.
     """
-    assert (example_circuit_string.startswith('(')
-            or example_circuit_string.startswith('[')), (
+    assert (circuit_data_string.startswith('(')
+            or circuit_data_string.startswith('[')), (
                 'no initial open bracket detected')
 
-def test_input_string_close_brakets(example_circuit_string):
+def test_input_string_close_brakets(circuit_data_string):
     """Check that there is a close round or square bracket as last character
     in the string.
     """
-    assert (example_circuit_string.endswith(')')
-            or example_circuit_string.endswith(']')), (
+    assert (circuit_data_string.endswith(')')
+            or circuit_data_string.endswith(']')), (
         'no final close bracket detected')
 
-def same_number_of_brackets(example_circuit_string):
+def same_number_of_brackets(circuit_data_string):
     """Given a circuit string, return if the count of open brackets is the
     same of close brackets. Used for testing.
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
 
     Returns
@@ -98,64 +85,64 @@ def same_number_of_brackets(example_circuit_string):
         Boolean of the equality count condition
     """
     equality_count = (
-        example_circuit_string.count('(')==example_circuit_string.count(')')
-        and example_circuit_string.count('[')==example_circuit_string.count(']'))
+        circuit_data_string.count('(')==circuit_data_string.count(')')
+        and circuit_data_string.count('[')==circuit_data_string.count(']'))
     return equality_count
 
-def test_string_different_number_brackets(example_circuit_string, caller):
+def test_string_different_number_brackets(circuit_data_string, caller):
     """Check that there is an equal number of close and open bracket, for
     both square and round types.
     """
-    assert same_number_of_brackets(example_circuit_string), (
+    assert same_number_of_brackets(circuit_data_string), (
         'inconsistent number of open and close brackets in \''
-        + example_circuit_string + '\'  in ' + caller)
+        + circuit_data_string + '\'  in ' + caller)
 
-def test_string_consistency_brackets(example_circuit_string, caller):
+def test_string_consistency_brackets(circuit_data_string, caller):
     """Check that there is a consistency among the brackets.
 
-    GIVEN: example_circuit_string is a string with an equal number of open and
+    GIVEN: circuit_data_string is a string with an equal number of open and
     close brackets of the same type (round or square)
     """
-    position_of_brackets = [i for i, _ in enumerate(example_circuit_string)
-                            if (example_circuit_string.startswith(')', i)
-                                or example_circuit_string.startswith(']', i))]
+    position_of_brackets = [i for i, _ in enumerate(circuit_data_string)
+                            if (circuit_data_string.startswith(')', i)
+                                or circuit_data_string.startswith(']', i))]
     cut_parameter = 0
     for _ in position_of_brackets:
-        for i, char_i in enumerate(example_circuit_string):
+        for i, char_i in enumerate(circuit_data_string):
             if char_i in (')', ']'):
                 if char_i==')': bracket, wrong_bracket = '(', '['
                 if char_i==']': bracket, wrong_bracket = '[', '('
                 found = False
-                analyzed_string = example_circuit_string[:i]
+                analyzed_string = circuit_data_string[:i]
                 for j, _ in enumerate(analyzed_string):
                     bracket_index = len(analyzed_string) - 1 - j
-                    if (example_circuit_string[bracket_index]==bracket
+                    if (circuit_data_string[bracket_index]==bracket
                         and not found):
                         found = True
-                        index_wrong_bracket = example_circuit_string[
+                        index_wrong_bracket = circuit_data_string[
                             bracket_index+1:i].find(wrong_bracket)
                         assert index_wrong_bracket==-1, (
                             'inconsistent \'' + wrong_bracket + '\' at '
                             + str(index_wrong_bracket + bracket_index
                             + 1 + cut_parameter) + ': '
-                            + example_circuit_string + 'in ' + caller)
-                        example_circuit_string = (
-                            example_circuit_string[:bracket_index]
-                            + example_circuit_string[bracket_index+1:i]
-                            + example_circuit_string[i+1:])
+                            + circuit_data_string + 'in ' + caller)
+                        circuit_data_string = (
+                            circuit_data_string[:bracket_index]
+                            + circuit_data_string[bracket_index+1:i]
+                            + circuit_data_string[i+1:])
                         cut_parameter += 2
                         break
                 if found:
                     break
 
-def find_invalid_characters(example_circuit_string):
+def find_invalid_characters(circuit_data_string):
     """Given a circuit string, return any invalid character, i.e. different
     than '(', ')', '[', ']', 'C', 'Q', 'R' or natural numbers. Used for
     testing.
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
 
     Returns
@@ -168,33 +155,33 @@ def find_invalid_characters(example_circuit_string):
     """
     wrong_characters = ''
     wrong_characters_index = []
-    for i, char in enumerate(example_circuit_string):
+    for i, char in enumerate(circuit_data_string):
         if (char not in {'(', ')', '[', ']', 'C', 'Q', 'R'}
             and not char.isnumeric()):
             wrong_characters += '\'' + char + '\', '
             wrong_characters_index.append(i)
     return wrong_characters, wrong_characters_index
 
-def test_input_string_characters(example_circuit_string):
+def test_input_string_characters(circuit_data_string):
     """Check that a string containes only valid characters:
     '(', ')', '[', ']', 'C', 'Q', 'R' and natural numbers.
     """
     wrong_characters, wrong_characters_index = find_invalid_characters(
-        example_circuit_string)
+        circuit_data_string)
     assert not wrong_characters, (
         'Invalid character(s) ' + wrong_characters + ' at '
-        + str(wrong_characters_index) + ' in ' + example_circuit_string
+        + str(wrong_characters_index) + ' in ' + circuit_data_string
         + '. Only round and square brackets, C, Q, R and natural numbers are '
         + 'allowed')
 
-def find_inconsistent_elements(example_circuit_string):
+def find_inconsistent_elements(circuit_data_string):
     """Given a circuit string, return any inconsistent element character: each
     element is composed by a capital letter among {'C', 'Q', 'R'} followed
     by a natural number. Used for testing.
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
 
     Returns
@@ -207,41 +194,41 @@ def find_inconsistent_elements(example_circuit_string):
     """
     wrong_elements = ''
     wrong_element_index = []
-    for i, char in enumerate(example_circuit_string):
-        if (char in {'C', 'Q', 'R'} and example_circuit_string[-1]!=char):
-            if not example_circuit_string[i+1].isnumeric():
+    for i, char in enumerate(circuit_data_string):
+        if (char in {'C', 'Q', 'R'} and circuit_data_string[-1]!=char):
+            if not circuit_data_string[i+1].isnumeric():
                 wrong_elements += ('\'' + char
-                                   + str(example_circuit_string[i+1])
+                                   + str(circuit_data_string[i+1])
                                    + '\', ')
                 wrong_element_index.append(i)
-        elif (char.isnumeric() and example_circuit_string[0]!=char):
-            if not (example_circuit_string[i-1] in {'C', 'Q', 'R'}):
-                wrong_elements += ('\'' + str(example_circuit_string[i-1])
+        elif (char.isnumeric() and circuit_data_string[0]!=char):
+            if not (circuit_data_string[i-1] in {'C', 'Q', 'R'}):
+                wrong_elements += ('\'' + str(circuit_data_string[i-1])
                                    + char + '\', ')
                 wrong_element_index.append(i-1)
     return wrong_elements, wrong_element_index
 
-def test_input_string_element_consistency(example_circuit_string):
+def test_input_string_element_consistency(circuit_data_string):
     """Check the element consistency of a string.
 
     GIVEN: a valid string
     """
     wrong_elements, wrong_element_index = find_inconsistent_elements(
-        example_circuit_string)
+        circuit_data_string)
     assert not wrong_elements, (
         'element inconsistency for '+ wrong_elements + ' at '
-        + str(wrong_element_index) + ': ' + example_circuit_string + '. An '
+        + str(wrong_element_index) + ': ' + circuit_data_string + '. An '
         + 'element is composed by a valid letter followed by a natural '
         + 'number')
 
-def find_inconsistent_numbers(example_circuit_string):
+def find_inconsistent_numbers(circuit_data_string):
     """Given a circuit string, return any inconsistent element number: each
     element has a number that is the same of its order of writing in the
     string. Used for testing.
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
 
     Returns
@@ -255,45 +242,45 @@ def find_inconsistent_numbers(example_circuit_string):
     wrong_numbers = ''
     wrong_numbers_index = []
     numeric_char_counter = 0
-    for i, char in enumerate(example_circuit_string):
+    for i, char in enumerate(circuit_data_string):
         if char.isnumeric():
             numeric_char_counter += 1
             if numeric_char_counter!=int(char):
-                wrong_numbers += ('\'' + str(example_circuit_string[i-1:i+1])
+                wrong_numbers += ('\'' + str(circuit_data_string[i-1:i+1])
                                   + '\', ')
                 wrong_numbers_index.append(i)
     return wrong_numbers, wrong_numbers_index
 
-def test_input_string_number_sequency(example_circuit_string):
+def test_input_string_number_sequency(circuit_data_string):
     """Check that there is a correspondency between the element number and the
     order of appearance of its element.
     """
     wrong_numbers, wrong_numbers_index = find_inconsistent_numbers(
-        example_circuit_string)
+        circuit_data_string)
     assert not wrong_numbers, (
         'wrong number for element(s) '+ wrong_numbers + 'at '
-        + str(wrong_numbers_index) + ' in ' + example_circuit_string
+        + str(wrong_numbers_index) + ' in ' + circuit_data_string
         + '. Element numbers must increase of 1 unit per time')
 
 ##############################################################################
-#Parameters tests
+#Parameters tests of generate_parameters_data() in generate_data.py
 
 @pytest.fixture
-def example_parameters():
-    return generate_initial_parameters()
+def parameters_data():
+    return generate_parameters_data()
 
-def test_parameters_is_list(example_parameters, caller):
+def test_parameters_is_list(parameters_data, caller):
     """Check that the parameters are a list."""
-    assert isinstance(example_parameters, list), (
+    assert isinstance(parameters_data, list), (
         'type error for parameters in ' + caller + ' . It must be a list')
 
-def find_invalid_parameters_type(example_parameters):
+def find_invalid_parameters_type(parameters_data):
     """Given a parameters list, return any wrong type parameter: each
     parameter can be an integer, a float or a list. Used for testing.
 
     Parameters
     ----------
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -306,7 +293,7 @@ def find_invalid_parameters_type(example_parameters):
     """
     wrong_type = ''
     wrong_type_index = []
-    for i, parameter in enumerate(example_parameters):
+    for i, parameter in enumerate(parameters_data):
         if (not isinstance(parameter, float)
             and not isinstance(parameter, int)
             and not isinstance(parameter, list)):
@@ -314,26 +301,26 @@ def find_invalid_parameters_type(example_parameters):
             wrong_type_index.append(i)
     return wrong_type, wrong_type_index
 
-def test_parameters_type(example_parameters, caller):
+def test_parameters_type(parameters_data, caller):
     """Check that the only valid types as parameters are float, integer
     and lists.
 
-    GIVEN: a list (example_parameters)
+    GIVEN: a list (parameters_data)
     """
     wrong_type, wrong_type_index = find_invalid_parameters_type(
-        example_parameters)
+        parameters_data)
     assert not wrong_type, (
         'type error for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + ' in ' + str(example_parameters) + ' in '
+        + ' ' + wrong_type + ' in ' + str(parameters_data) + ' in '
         + caller + '. Parameters can only be floats, integers or lists')
 
-def find_invalid_parameters_value(example_parameters):
+def find_invalid_parameters_value(parameters_data):
     """Given a parameters list, return any integer of float parameter that has
     a non-positive value, thus invalid. Used for testing.
 
     Parameters
     ----------
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -346,32 +333,32 @@ def find_invalid_parameters_value(example_parameters):
     """
     wrong_value = ''
     wrong_value_index = []
-    for i, parameter in enumerate(example_parameters):
+    for i, parameter in enumerate(parameters_data):
         if isinstance(parameter, (float, int)):
             if parameter<=0:
                 wrong_value += '\'' + str(parameter) + '\', '
                 wrong_value_index.append(i)
     return wrong_value, wrong_value_index
 
-def test_parameters_values(example_parameters, caller):
+def test_parameters_values(parameters_data, caller):
     """Check that parameters that are not a list are positive.
 
-    GIVEN: example_parameters is a float, an integer or a list
+    GIVEN: parameters_data is a float, an integer or a list
     """
     wrong_value, wrong_value_index = find_invalid_parameters_value(
-        example_parameters)
+        parameters_data)
     assert not wrong_value, (
         'value error for parameter(s) number ' + str(wrong_value_index) + ' '
-        + wrong_value + ' in ' + str(example_parameters) + ' in ' + caller
+        + wrong_value + ' in ' + str(parameters_data) + ' in ' + caller
         + '. Float parameters must be positive')
 
-def find_invalid_parameters_list(example_parameters):
+def find_invalid_parameters_list(parameters_data):
     """Given a parameters list, return any parameter that is a list with a
     length different from 2, thus invalid. Used for testing.
 
     Parameters
     ----------
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -384,33 +371,33 @@ def find_invalid_parameters_list(example_parameters):
     """
     wrong_parameters = ''
     wrong_parameters_index = []
-    for i, parameter in enumerate(example_parameters):
+    for i, parameter in enumerate(parameters_data):
         if isinstance(parameter, list):
             if len(parameter)!=2:
                 wrong_parameters_index.append(i)
                 wrong_parameters+= '\''+str(parameter)+'\', '
     return wrong_parameters, wrong_parameters_index
 
-def test_parameters_list_two_elements(example_parameters, caller):
+def test_parameters_list_two_elements(parameters_data, caller):
     """Check that the list parameters contain exactly 2 parameters.
 
-    GIVEN: example_parameters is a float or integer
+    GIVEN: parameters_data is a float or integer
     """
     wrong_parameters, wrong_parameters_index = find_invalid_parameters_list(
-        example_parameters)
+        parameters_data)
     assert not wrong_parameters, (
         'type error for parameter(s) number ' + str(wrong_parameters_index)
-        + ': \'' + wrong_parameters + '\' in ' + str(example_parameters)
+        + ': \'' + wrong_parameters + '\' in ' + str(parameters_data)
         + ' in ' + caller + '. Lists parameters must contain exactly 2 '
         + 'parameters')
 
-def find_invalid_parameters_list_type(example_parameters):
+def find_invalid_parameters_list_type(parameters_data):
     """Given a parameters list, return any parameter that is a list and does
     not contains floats or integers, thus is invalid. Used for testing.
 
     Parameters
     ----------
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -423,7 +410,7 @@ def find_invalid_parameters_list_type(example_parameters):
     """
     wrong_types = ''
     wrong_types_index = []
-    for i, parameter in enumerate(example_parameters):
+    for i, parameter in enumerate(parameters_data):
         if isinstance(parameter, list):
             for _, sub_prameter in enumerate(parameter):
                 if (not isinstance(sub_prameter, float)
@@ -432,27 +419,27 @@ def find_invalid_parameters_list_type(example_parameters):
                     wrong_types_index.append(i)
     return wrong_types, wrong_types_index
 
-def test_parameters_list_type(example_parameters, caller):
+def test_parameters_list_type(parameters_data, caller):
     """Check that parameters contains only floats or integers.
 
-    GIVEN: example_parameters is a list of length 2.
+    GIVEN: parameters_data is a list of length 2.
     """
     wrong_types, wrong_types_index = find_invalid_parameters_list_type(
-        example_parameters)
+        parameters_data)
     assert not wrong_types, (
         'type error for parameter(s) '+ wrong_types  +' in parameter(s) '
         + 'number ' + str(wrong_types_index) + ' contained in: \'' + '\' in '
-        + str(example_parameters) + ' in ' + caller + '. Lists parameters '
+        + str(parameters_data) + ' in ' + caller + '. Lists parameters '
         + 'must only contain floats or integers')
 
-def find_invalid_parameters_list_value(example_parameters):
+def find_invalid_parameters_list_value(parameters_data):
     """Given a parameters list, return any parameter that is a list of length
     2 of floats or integers with invalid values: the first must be positive,
     the second must be within 0 and 1. Used for testing.
 
     Parameters
     ----------
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -465,7 +452,7 @@ def find_invalid_parameters_list_value(example_parameters):
     """
     wrong_value = ''
     wrong_value_index = ''
-    for i, parameter in enumerate(example_parameters):
+    for i, parameter in enumerate(parameters_data):
         if isinstance(parameter, list):
             if parameter[0]<=0:
                 wrong_value += '\'' + str(parameter[0]) + '\', '
@@ -475,7 +462,7 @@ def find_invalid_parameters_list_value(example_parameters):
                 wrong_value_index += 'second of [' + str(i) + ']'
     return wrong_value, wrong_value_index
 
-def test_parameters_list_value(example_parameters, caller):
+def test_parameters_list_value(parameters_data, caller):
     """Check that the two object contained in the list parameters meet the
     value requirements: the first one is positive, the second one is between
     0 and 1.
@@ -483,21 +470,21 @@ def test_parameters_list_value(example_parameters, caller):
     GIVEN: parameters is a list of float or integer of length 2.
     """
     wrong_value, wrong_value_index = find_invalid_parameters_list_value(
-        example_parameters)
+        parameters_data)
     assert not wrong_value, (
         'value error for parameter(s) '+ wrong_value + wrong_value_index
-        + ' parameter(s) ' + ' contained in: \'' + str(example_parameters)
+        + ' parameter(s) ' + ' contained in: \'' + str(parameters_data)
         + ' in ' + caller  + '. Lists parameters must contain as first '
         + 'parameter a positive float and as second parameter a float '
         + 'between 0 and 1')
 
-def elements(example_circuit_string):
+def elements(circuit_data_string):
     """Return the list of elements ('C', 'Q' or 'R' ) of a string. Used for
     testing.
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
 
     Returns
@@ -507,22 +494,22 @@ def elements(example_circuit_string):
         same order as they are written
     """
     elements_types = []
-    for char in example_circuit_string:
+    for char in circuit_data_string:
         if char in {'C', 'Q', 'R'}:
             elements_types.append(char)
     return elements_types
 
 def number_of_elements_is_equal_to_number_of_parameters(
-        example_circuit_string, example_parameters):
+        circuit_data_string, parameters_data):
     """Given the string circuit and its parameters list, return wheter the
     length of the parameters list and the number of elements in the string is
     the same. Used for testing
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -530,31 +517,31 @@ def number_of_elements_is_equal_to_number_of_parameters(
     length_equality : bool
         Boolean of the equality length condition
     """
-    elements_types = elements(example_circuit_string)
-    length_equality = len(elements_types)==len(example_parameters)
+    elements_types = elements(circuit_data_string)
+    length_equality = len(elements_types)==len(parameters_data)
     return length_equality
 
-def test_parameters_length(example_circuit_string, example_parameters):
+def test_parameters_length(circuit_data_string, parameters_data):
     """Check that the list of elements and the list of parameters
     have the same size.
     """
     length_equality = number_of_elements_is_equal_to_number_of_parameters(
-        example_circuit_string, example_parameters)
+        circuit_data_string, parameters_data)
     assert length_equality, (
         'element count and parameters list size must be the same. '
         + 'Element count: ' + str(len(length_equality))
-        + ', parameters size: ' + str(len(example_parameters)))
+        + ', parameters size: ' + str(len(parameters_data)))
 
-def elements_parameters_match(example_circuit_string, example_parameters):
+def elements_parameters_match(circuit_data_string, parameters_data):
     """Given the string circuit and its parameters list, return any element
     and parameter that do not match in type: R and C have a float
     or integer type, while Q has a list. Used for testing.
 
     Parameters
     ----------
-    example_circuit_string : string
+    circuit_data_string : string
         String of the circuit given by input
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
 
     Returns
@@ -565,55 +552,61 @@ def elements_parameters_match(example_circuit_string, example_parameters):
     wrong_match_index : list
         List of indexes of the invalid elements in the string
     """
-    elements_types = elements(example_circuit_string)
+    elements_types = elements(circuit_data_string)
     wrong_match = ''
     wrong_match_index = []
     for i, elements_type in enumerate(elements_types):
         if elements_type in {'C', 'R'}:
-            if (not isinstance(example_parameters[i], float)
-                and not isinstance(example_parameters[i], int)):
+            if (not isinstance(parameters_data[i], float)
+                and not isinstance(parameters_data[i], int)):
                 wrong_match += ('\'[' + str(elements_type) + ','
-                                + str(example_parameters[i]) + ']\', ')
+                                + str(parameters_data[i]) + ']\', ')
                 wrong_match_index.append(i)
         else:
-            if not isinstance(example_parameters[i], list):
+            if not isinstance(parameters_data[i], list):
                 wrong_match += ('\'[' + str(elements_type) + ','
-                                + str(example_parameters[i]) + ']\', ')
+                                + str(parameters_data[i]) + ']\', ')
                 wrong_match_index.append(i)
-    return wrong_match, wrong_match_index, elements_type
+    return wrong_match, wrong_match_index, elements_types
 
 
-def test_parameters_match(example_circuit_string, example_parameters):
+def test_parameters_match(circuit_data_string, parameters_data):
     """Check that there is a consistent correspondance between the elements
     and the parameters: C and R must have a float as parameter, Q a list.
     """
     wrong_match, wrong_match_index, elements_type = elements_parameters_match(
-        example_circuit_string, example_parameters)
+        circuit_data_string, parameters_data)
     assert not wrong_match, (
         'bad match for '+ wrong_match + ' in ' + str(wrong_match_index)
         + ': elements \'' + str(elements_type) + ' with parameters '
-        + str(example_parameters) + '. \'R\' and \'C\' elements must have '
+        + str(parameters_data) + '. \'R\' and \'C\' elements must have '
         + 'a float as parameter, \'Q\' must have a list')
 
 ##############################################################################
 #Constant vector tests
 
-@pytest.fixture
-def example_constant_elements():
-    return generate_constant_elements_array()
+def return_constant_elements_array_data():
+    parameters_data = generate_parameters_data()
+    constant_elements_array_data = generate_constant_elements_array_data(
+        parameters_data)
+    return constant_elements_array_data
 
-def test_constant_type(example_constant_elements):
+@pytest.fixture
+def constant_elements_data():
+    return return_constant_elements_array_data()
+
+def test_constant_type(constant_elements_data):
     """Check that the constant arrey is a list."""
-    assert isinstance(example_constant_elements, list), (
+    assert isinstance(constant_elements_data, list), (
         'type error for circuit scheme. It must be a list')
 
-def find_invalid_constant_type(example_constant_elements):
+def find_invalid_constant_type(constant_elements_data):
     """Given a constant elements condition list, return any wrong type
     constant elements condition: they can only be integers. Used for testing.
 
     Parameters
     ----------
-    example_constant_elements : list
+    constant_elements_data : list
         List of the constant elements condition given by input
 
     Returns
@@ -627,31 +620,31 @@ def find_invalid_constant_type(example_constant_elements):
     """
     wrong_types = ''
     wrong_types_index = []
-    for i, constant_element in enumerate(example_constant_elements):
+    for i, constant_element in enumerate(constant_elements_data):
         if not isinstance(constant_element, int):
             wrong_types+= '\'' + str(constant_element) + '\', '
             wrong_types_index.append(i)
     return wrong_types, wrong_types_index
 
-def test_constant_list_type(example_constant_elements):
+def test_constant_list_type(constant_elements_data):
     """Check that the constant elements in constant_elements are integers.
 
-    GIVEN: example_constant_elements is an array
+    GIVEN: constant_elements_data is an array
     """
     wrong_types, wrong_types_index = find_invalid_constant_type(
-        example_constant_elements)
+        constant_elements_data)
     assert not wrong_types, (
         'type error for constant element(s) ' + str(wrong_types) + ' number '
-        + str(wrong_types_index) + ' in ' + str(example_constant_elements)
+        + str(wrong_types_index) + ' in ' + str(constant_elements_data)
         + '. Constant element must be an integer')
 
-def find_invalid_constant_value(example_constant_elements):
+def find_invalid_constant_value(constant_elements_data):
     """Given a constant_elements list, return any wrong type constant elements
     condition: each on can only be either 0 or 1. Used for testing.
 
     Parameters
     ----------
-    example_constant_elements : list
+    constant_elements_data : list
         List of the constant elements condition given by input
 
     Returns
@@ -665,36 +658,36 @@ def find_invalid_constant_value(example_constant_elements):
     """
     wrong_value = ''
     wrong_value_index = []
-    for i, constant_element in enumerate(example_constant_elements):
+    for i, constant_element in enumerate(constant_elements_data):
         if constant_element<0 or constant_element>1:
             wrong_value+= '\'' + str(constant_element) + '\', '
             wrong_value_index.append(i)
     return wrong_value, wrong_value_index
 
-def test_constant_list_value(example_constant_elements):
-    """Check that the constant elements in example_constant_elements are non
+def test_constant_list_value(constant_elements_data):
+    """Check that the constant elements in constant_elements_data are non
     negative.
 
-    GIVEN: example_constant_elements an array
+    GIVEN: constant_elements_data an array
     """
     wrong_value, wrong_value_index = find_invalid_constant_value(
-        example_constant_elements)
+        constant_elements_data)
     assert not wrong_value, (
         'value error for constant element(s) '+ wrong_value + 'at '
-        + str(wrong_value_index) + 'in \'' + str(example_constant_elements)
+        + str(wrong_value_index) + 'in \'' + str(constant_elements_data)
         + '\'. Constant array must contain only 0 or 1')
 
 def number_of_parameters_is_equal_to_number_of_const_elements(
-        example_parameters, example_constant_elements):
+        parameters_data, constant_elements_data):
     """Given the parameters of a circuit and they constant conditions, return
     wheter the length of the parameters list and the constant conditions list
     is the same. Used for testing
 
     Parameters
     ----------
-    example_parameters : list
+    parameters_data : list
         List of the parameters given by input
-    example_constant_elements : list
+    constant_elements_data : list
         List of the constant elements condition given by input
 
     Returns
@@ -702,20 +695,19 @@ def number_of_parameters_is_equal_to_number_of_const_elements(
     length_equality : bool
         Boolean of the equality length condition
     """
-    length_equality = len(example_parameters)==len(example_constant_elements)
+    length_equality = len(parameters_data)==len(constant_elements_data)
     return length_equality
 
-
-def test_constant_length(example_parameters, example_constant_elements):
+def test_constant_length(parameters_data, constant_elements_data):
     """Check that the list of elements and the list of parameters have
     the same size.
     """
     length_equality = number_of_parameters_is_equal_to_number_of_const_elements(
-        example_parameters, example_constant_elements)
+        parameters_data, constant_elements_data)
     assert length_equality, (
         'parameters and constant array list size must be the same. '
-        + 'Parameters size: ' + str(len(example_parameters))
-        + ', constant array size: ' + str(len(example_constant_elements)))
+        + 'Parameters size: ' + str(len(parameters_data))
+        + ', constant array size: ' + str(len(constant_elements_data)))
 
 ##############################################################################
 #generate_impedance.py test
@@ -744,7 +736,7 @@ def test_impedance_resistor_complex_array(resistance, frequency):
     assert np.iscomplexobj(impedance), (
         'type error for resistive impedance. It must be a complex '
         + 'numpy array')
-    
+
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
        resistance=st.floats(min_value=10, max_value=1e5))
@@ -771,7 +763,7 @@ def test_impedance_capacitor_array(capacitance, frequency):
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
-       capacitance=st.floats(min_value=1e-9,max_value=1e-5))
+       capacitance=st.floats(min_value=1e-9, max_value=1e-5))
 @settings(max_examples = 10)
 def test_impedance_capacitor_complex_array(capacitance, frequency):
     """Check that the definition of the impedance of capacitors returns a
@@ -784,7 +776,7 @@ def test_impedance_capacitor_complex_array(capacitance, frequency):
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
-       capacitance=st.floats(min_value=1e-9,max_value=1e-5))
+       capacitance=st.floats(min_value=1e-9, max_value=1e-5))
 @settings(max_examples = 10)
 def test_impedance_capacitor_empty(capacitance, frequency):
     """Check that the definition of the impedance of capacitors returns an
@@ -796,7 +788,7 @@ def test_impedance_capacitor_empty(capacitance, frequency):
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
-       q_parameter=st.floats(min_value=1e-9,max_value=1e-5),
+       q_parameter=st.floats(min_value=1e-9, max_value=1e-5),
        ideality_factor=st.floats(min_value=0., max_value=1.))
 @settings(max_examples = 10)
 def test_impedance_cpe_array(q_parameter, ideality_factor, frequency):
@@ -807,7 +799,7 @@ def test_impedance_cpe_array(q_parameter, ideality_factor, frequency):
 
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
-       q_parameter=st.floats(min_value=1e-9,max_value=1e-5),
+       q_parameter=st.floats(min_value=1e-9, max_value=1e-5),
        ideality_factor=st.floats(min_value=0., max_value=1.))
 @settings(max_examples = 10)
 def test_impedance_cpe_complex_array(q_parameter, ideality_factor, frequency):
@@ -817,10 +809,10 @@ def test_impedance_cpe_complex_array(q_parameter, ideality_factor, frequency):
     impedance = impedance_cpe(q_parameter, ideality_factor, frequency)
     assert np.iscomplexobj(impedance), (
         'type error for CPE impedance. It must be a complex numpy array')
-    
+
 @given(frequency=enp.arrays(dtype=float, shape=10, elements=st.floats(1, 1e4),
                             unique=True),
-       q_parameter=st.floats(min_value=1e-9,max_value=1e-5),
+       q_parameter=st.floats(min_value=1e-9, max_value=1e-5),
        ideality_factor=st.floats(min_value=0., max_value=1.))
 @settings(max_examples = 10)
 def test_impedance_cpe_empty(q_parameter, ideality_factor, frequency):
@@ -989,7 +981,7 @@ def test_get_impedance_input_element_parameters(element_types,
         test_parameters_list_value(parameters_test, caller)
 
 def generate_element_strings():
-    """Generate the three possible element types."""
+    """Generate the three possible element types. Used for testing."""
     elements_string_type = (['R2', 'C2', 'Q2', 'Z2'])
     return elements_string_type
 
@@ -998,6 +990,10 @@ def elements_string_type():
     return generate_element_strings()
 
 def generate_impedance_circuit():
+    """Generate the impedance function of a circuit of just a 100 Ohm
+    resistor, to simulate a portion of the circuit already analyzed. Used for
+    testing.
+    """
     element_type = 'R'
     list_parameters = []
     element_parameter = 100
@@ -1423,6 +1419,11 @@ def test_parallel_comb(function_list):
     assert inspect.isfunction(parallel_comb(function_list)), (
         'type error in output of parallelComb(). It must be a function')
 
+def generate_circuit():
+    """Generate a test circuit string."""
+    circuit_string = '(R1C2[R3Q4])'
+    return circuit_string
+
 @pytest.fixture
 def valid_circuit_string():
     return generate_circuit()
@@ -1472,9 +1473,24 @@ def generate_i_start():
 def i_start():
     return generate_i_start()
 
+def generate_initial_parameters():
+    """Generate a list of parameters."""
+    parameter_1 = 7000
+    parameter_2 = 8e-6
+    parameter_3 = 10000
+    parameter_4 = ([0.07e-6, 0.7])
+    initial_parameters = ([parameter_1, parameter_2, parameter_3,
+                           parameter_4])
+    return initial_parameters
+
 @pytest.fixture
 def valid_parameters():
     return generate_initial_parameters()
+
+def generate_constant_elements_array():
+    """Generate an array for constant elements."""
+    constant_array = ([0, 0, 1, 0])
+    return constant_array
 
 @pytest.fixture
 def valid_constant_elements():
@@ -1583,6 +1599,10 @@ def test_generate_cell_impedance_elements(
     elements_number_duplicates(elements_circuit, caller)
 
 def generate_last_impedance_element():
+    """Return the number of cycles of analysis, i.e. the index of the previous
+    impedance analyzed. In this case is 1 to simulate only one ciìycle of
+    analysis.
+    """
     last_impedance_element = 1
     return last_impedance_element
 
@@ -1849,3 +1869,243 @@ def test_generate_impedance_number_of_arguments(valid_circuit_string,
         + '\' with number of elements \'' + str(len(elements_circuit))
         + '\' in output of generate_cell_impedance() \'. It should be 1 '
         + 'parameter for one element')
+
+##############################################################################
+#test generate_data.py
+
+def test_set_frequencies_array():
+    """Check that the output of set_frequencies() is an array.
+
+    WHEN: the function to generate the frequencies is called
+    THEN: the frequencies are an array
+    """
+    frequency_vector = set_frequencies()
+    assert isinstance(frequency_vector, np.ndarray), (
+        'type error in set_frequencies(): the output must be a numpy.ndarray')
+
+def test_set_frequencies_empty_array():
+    """Check that the output of set_frequencies() is not an empty array.
+
+    GIVEN:
+    WHEN: the function to generate the frequencies is called
+    THEN: the frequencies are a non-empty array
+    """
+    frequency_vector = set_frequencies()
+    assert frequency_vector.size>0, (
+        'structural error in set_frequencies(): the output cannot be empty')
+
+def find_wrong_elements_set_frequencies():
+    """Find the non-positive elements in the output of set_frequencies(). Used
+    for testing.
+
+    Returns
+    -------
+    wrong_elements : list
+        List that contains all the wrong elements
+    wrong_element_index : list
+        List of indexes of the wrong elements in the array
+    """
+    frequency_vector = set_frequencies()
+    wrong_element = []
+    wrong_element_index = []
+    for i, element in enumerate(frequency_vector):
+        if element<=0.:
+            wrong_element.append(element)
+            wrong_element_index.append(i)
+    return wrong_element, wrong_element_index
+
+def test_set_frequencies_value():
+    """Check that the output of set_frequencies() is an array containing only
+    positive elements.
+
+    GIVEN: a valid length of the generated signal and that the output of
+    generate_random_error_component() is an array (not empty)
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise contains only valid elements
+    """
+    (wrong_element,
+     wrong_element_index) = find_wrong_elements_set_frequencies()
+    assert not wrong_element, (
+        'value error in output of set_frequencies(): element(s) '
+        + str(wrong_element) + ' in position(s) ' + str(wrong_element_index)
+        + ' are not positive')
+
+def test_set_file_name_type():
+    """Check that the output of set_file_name() is a string.
+
+    WHEN: the function to generate the file name where the simulated data will
+    be saved is called
+    THEN: the file name is a string
+    """
+    file_name = set_file_name()
+    assert isinstance(file_name, str), (
+        'type error in set_file_name(): the file name must be a string')
+
+def test_set_file_name_extention():
+    """Check that the output of set_file_name() ends with the right extention.
+
+    GIVEN: the file name is a string
+    WHEN: the function to generate the file name where the simulated data will
+    be saved is called
+    THEN: the file name ends with the right extention
+    """
+    file_name = set_file_name()
+    assert file_name.endswith('.txt'), (
+        'structural error in set_file_name(): invalid file extention. The '
+        + 'file name must end with the right extention (.txt)')
+
+def test_set_file_name_name():
+    """Check that the output of set_file_name() has at least one character
+    before the file extention.
+
+    GIVEN: the file name is a string ending with the right extention
+    WHEN: the function to generate the file name where the simulated data will
+    be saved is called
+    THEN: the file name has at least one character before the file extention
+    """
+    file_name = set_file_name()
+    assert not file_name.startswith('.txt'), (
+        'structural error in set_file_name(): invalid file name. The file '
+        + 'name must have at least one character before the file extention')
+
+
+@given(signal_length=st.integers(min_value=1, max_value=100))
+@settings(max_examples = 10)
+def test_generate_random_error_component_array(signal_length):
+    """Check that the output of generate_random_error_component() is an array.
+
+    GIVEN: a valid length of the generated signal
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise is an array
+    """
+    random_error_component = generate_random_error_component(signal_length)
+    assert isinstance(random_error_component, np.ndarray), (
+        'type error in generate_random_error_component(): the output must be '
+        + 'a numpy.ndarray')
+
+@given(signal_length=st.integers(min_value=1, max_value=100))
+@settings(max_examples = 10)
+def test_generate_random_error_component_empty_array(signal_length):
+    """Check that the output of generate_random_error_component() is not an
+    empty array.
+
+    GIVEN: a valid length of the generated signal and that the output of
+    generate_random_error_component() is an array
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise array is not empty
+    """
+    random_error_component = generate_random_error_component(signal_length)
+    assert random_error_component.size>0, (
+        'structural error in generate_random_error_component(): the output'
+        + 'cannot be empty')
+
+def find_wrong_elements_generate_random_error(signal_length):
+    """Given the signal length find the elements in the output of
+    generate_random_error_component() that are not within 0 and 1. Used for
+    testing.
+
+    Parameters
+    ----------
+    signal_length : int
+        Length of the generated signal
+
+    Returns
+    -------
+    wrong_elements : list
+        List that contains all the wrong elements
+    wrong_element_index : list
+        List of indexes of the wrong elements in the array
+    """
+    random_error_component = generate_random_error_component(signal_length)
+    wrong_element = []
+    wrong_element_index = []
+    for i, element in enumerate(random_error_component):
+        if (element<0. or element>1.):
+            wrong_element.append(element)
+            wrong_element_index.append(i)
+    return wrong_element, wrong_element_index
+
+@given(signal_length=st.integers(min_value=1, max_value=100))
+@settings(max_examples = 10)
+def test_generate_random_error_component_value(signal_length):
+    """Check that the output of generate_random_error_component() is an array
+    containing only elements within 0 and 1.
+
+    GIVEN: a valid length of the generated signal and that the output of
+    generate_random_error_component() is an array (not empty)
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise contains only valid elements
+    """
+    (wrong_element,
+     wrong_element_index) = find_wrong_elements_generate_random_error(
+         signal_length)
+    assert not wrong_element, (
+        'value error in output of generate_random_error_component(): '
+        + 'element(s) ' + str(wrong_element) + ' in position(s) '
+        + str(wrong_element_index) + ' are not within 0 and 1')
+
+def generate_signal_vector():
+    """Generate a signal vector given the description of the circuit. Used
+    for testing.
+    """
+    frequency_vector = set_frequencies()
+    circuit_string = generate_circuit()
+    parameters = generate_initial_parameters()
+    constant_elements = generate_constant_elements_array()
+    impedance_function, parameters, _ = generate_impedance_function(
+        circuit_string, parameters, constant_elements)
+    signal_vector = impedance_function(parameters, frequency_vector)
+    return signal_vector
+
+@pytest.fixture
+def signal_vector():
+    return generate_signal_vector()
+
+def test_simulate_noise_array(signal_vector):
+    """Check that the output of generate_random_error_component() is an array.
+
+    GIVEN: a valid generated signal
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise array is an numpy array
+    """
+    simulated_signal = simulate_noise(signal_vector)
+    assert isinstance(simulated_signal, np.ndarray), (
+        'type error in simulate_noise(): the output must be a numpy.ndarray')
+
+def test_simulate_noise_empty(signal_vector):
+    """Check that the output of generate_random_error_component() is not an
+    empty array.
+
+    GIVEN: a valid generated signal
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise array is not an empty array
+    """
+    simulated_signal = simulate_noise(signal_vector)
+    assert simulated_signal.size>0, (
+        'type error in simulate_noise(): the output cannot be an empty array')
+
+def test_simulate_noise_one_dimention(signal_vector):
+    """Check that the output of generate_random_error_component() is one
+    dimentional.
+
+    GIVEN: a valid generated signal
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise array is one dimentional
+    """
+    simulated_signal = simulate_noise(signal_vector)
+    assert simulated_signal.ndim==1, (
+        'type error in simulate_noise(): the output must be a one-dimention '
+        + 'array, while it is ' + str(simulated_signal.ndim))
+
+def test_simulate_noise_type(signal_vector):
+    """Check that the output of generate_random_error_component() is a complex
+    array.
+
+    GIVEN: a valid generated signal
+    WHEN: the function to generate random numbers to simulate noise is called
+    THEN: the random noise array is a complex array
+    """
+    simulated_signal = simulate_noise(signal_vector)
+    assert simulated_signal.dtype==complex, (
+        'type error in simulate_noise(): the output must be a float array, '
+        + 'while it is ' + str(simulated_signal.dtype))
