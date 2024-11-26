@@ -8,13 +8,19 @@ The data are plotted and saved .pdf. The data are also saved in a .txt file.
 
 import numpy as np
 
+from generate_impedance import generate_impedance_function
+from plot_and_save import plot_data, save_data
+
+
 def generate_circuit_data():
     """Generate a circuit string for the data generation."""
     circuit_string_data = '(R1C2[R3Q4])'
     return circuit_string_data
 
 def generate_parameters_data():
-    """Generate a list of parameters for the data generation."""
+    """Generate a list of parameters for the data generation in standard
+    units.
+    """
     parameter_1 = 3000
     parameter_2 = 2e-6
     parameter_3 = 10000
@@ -53,8 +59,9 @@ def set_frequencies():
     return frequency_vector
 
 def set_file_name():
-    """Set the data file name where the data will be saved."""
-    file_name = 'data_impedance.txt'
+    """Set the .txt data file name where the data will be saved."""
+    file_name = 'data_impedance'
+    file_name += '.txt'
     return file_name
 
 ##############################################################################
@@ -99,3 +106,20 @@ def simulate_noise(signal_vector):
                                           + 1j*imaginary_part_error)
     impedance_vector = signal_vector + noise
     return impedance_vector
+
+
+circuit_string_data = generate_circuit_data()
+parameters_data = generate_parameters_data()
+
+constant_elements_data = generate_constant_elements_array_data(
+    parameters_data)
+impedance_function, parameters, _ = generate_impedance_function(
+    circuit_string_data, parameters_data, constant_elements_data)
+
+frequency_vector = set_frequencies()
+signal_vector = impedance_function(parameters, frequency_vector)
+impedance_vector = simulate_noise(signal_vector)
+
+plot_data(frequency_vector, impedance_vector)
+FILE_NAME = set_file_name()
+save_data(FILE_NAME, frequency_vector, impedance_vector)

@@ -32,6 +32,8 @@ from generate_impedance import get_position_opening_bracket
 from generate_impedance import generate_cell_impedance
 from generate_impedance import update_string
 from generate_impedance import generate_impedance_function
+from plot_and_save import get_modulus
+from plot_and_save import get_phase
 
 ##############################################################################
 #String tests of generate_circuit_data() in generate_data.py
@@ -2109,3 +2111,161 @@ def test_simulate_noise_type(signal_vector):
     assert simulated_signal.dtype==complex, (
         'type error in simulate_noise(): the output must be a float array, '
         + 'while it is ' + str(simulated_signal.dtype))
+
+def generate_impedance_vector():
+    """Generate an impedance vector with simulated noise, given the signal
+    vector. Used for testing.
+    """
+    signal_vector = generate_signal_vector()
+    impedance_vector = simulate_noise(signal_vector)
+    return impedance_vector
+
+@pytest.fixture
+def impedance_vector():
+    return generate_impedance_vector()
+
+def test_get_modulus_array(impedance_vector):
+    """Check that the output of get_modulus() is an array.
+
+    GIVEN: a valid impedance array
+    WHEN: the function to exctract the modulus of the impedance array is
+    called
+    THEN: the modulus is an array
+    """
+    modulus_vector = get_modulus(impedance_vector)
+    assert isinstance(modulus_vector, np.ndarray), (
+        'type error in get_modulus(): the output must be a '
+        + 'numpy.ndarray')
+
+def test_get_modulus_empty_array(impedance_vector):
+    """Check that the output of get_modulus() is not an empty array.
+
+    GIVEN: a valid impedance array and that the output of get_modulus()
+    is an array
+    WHEN: the function to exctract the modulus of the impedance array is
+    called
+    THEN: the modulus is a non-empty array
+    """
+    modulus_vector = get_modulus(impedance_vector)
+    assert modulus_vector.size>0, (
+        'structural error in get_modulus(): the output cannot be empty')
+
+def test_get_modulus_one_dimention(impedance_vector):
+    """Check that the output of get_modulus() is one dimentional.
+
+    GIVEN: a valid impedance array and that the output of get_modulus()
+    is a non-empty array
+    WHEN: the function to exctract the modulus of the impedance array is
+    called
+    THEN: the modulus is a one-domention array
+    """
+    modulus_vector = get_modulus(impedance_vector)
+    assert modulus_vector.ndim==1, (
+        'type error in get_modulus(): the output must be a one-dimention '
+        + 'array, while it is ' + str(modulus_vector.ndim))
+
+def test_get_modulus_type(impedance_vector):
+    """Check that the output of get_modulus() is a float array.
+
+    GIVEN: a valid impedance array and that the output of get_modulus()
+    is a non-empty 1D array
+    WHEN: the function to exctract the modulus of the impedance array is
+    called
+    THEN: the modulus is a one-domention float array
+    """
+    modulus_vector = get_modulus(impedance_vector)
+    assert modulus_vector.dtype==float, (
+        'type error in get_modulus(): the output must be a float array, '
+        + 'while it is ' + str(modulus_vector.dtype))
+
+def find_negative_values_get_modulus(impedance_vector):
+    """Given an impedance array list, return modulus that is negative. Used
+    for testing.
+
+    Parameters
+    ----------
+    impedance_vector : array
+        Array of impedances
+
+    Returns
+    -------
+    wrong_value : list
+        List that contains all the invalid modulus
+    wrong_value_index : list
+        List of indexes of the invalid modulus in the array
+    """
+    modulus_vector = get_modulus(impedance_vector)
+    wrong_value = []
+    wrong_value_index = []
+    for i, element in enumerate(modulus_vector):
+        if element<0:
+            wrong_value.append(element)
+            wrong_value_index.append(i)
+    return wrong_value, wrong_value_index
+
+def test_get_modulus_value(impedance_vector):
+    """Check that the output of get_modulus() containes only valid values
+    (non-negative values).
+
+    GIVEN: a valid impedance array and that the output of get_modulus()
+    is a not empty a one-domention float array
+    WHEN: the function to exctract the modulus of the impedance array is
+    called
+    THEN: the modulus containes non-negative values
+    """
+    wrong_value, wrong_value_index = find_negative_values_get_modulus(
+        impedance_vector)
+    assert not wrong_value, (
+        'value error for modulus ' + str(wrong_value) + ' number '
+        + str(wrong_value_index) + ' in get_modulus() output. Modulus must '
+        + 'be non-negative')
+
+def test_get_phase_array(impedance_vector):
+    """Check that the output of get_phase() is an array.
+
+    GIVEN: a valid impedance array
+    WHEN: the function to exctract the phase of the impedance array is called
+    THEN: the phase is an array
+    """
+    phase_vector = get_phase(impedance_vector)
+    assert isinstance(phase_vector, np.ndarray), (
+        'type error in get_phase(): the output must be a numpy.ndarray')
+
+def test_get_phase_empty_array(impedance_vector):
+    """Check that the output of get_phase() is not an empty array.
+
+    GIVEN: a valid impedance array and that the output of get_phase()
+    is an array
+    WHEN: the function to exctract the phase of the impedance array is called
+    THEN: the phase is a non-empty array
+    """
+    phase_vector = get_phase(impedance_vector)
+    assert phase_vector.size>0, (
+        'structural error in get_phase(): the output cannot be empty')
+
+def test_get_phase_one_dimention(impedance_vector):
+    """Check that the output of get_phase() is one dimentional.
+
+    GIVEN: a valid impedance array and that the output of get_phase() is a
+    non-empty array
+    WHEN: the function to exctract the phase of the impedance array is called
+    THEN: the phase is a one-domention array
+    """
+    phase_vector = get_phase(impedance_vector)
+    assert phase_vector.ndim==1, (
+        'type error in get_phase(): the output must be a one-dimention '
+        + 'array, while it is ' + str(phase_vector.ndim))
+
+def test_get_phase_type(impedance_vector):
+    """Check that the output of get_phase() is a float array.
+
+    GIVEN: a valid impedance array and that the output of get_phase()
+    is a non-empty 1D array
+    WHEN: the function to exctract the phase of the impedance array is
+    called
+    THEN: the phase is a one-domention float array
+    """
+    phase_vector = get_phase(impedance_vector)
+    assert phase_vector.dtype==float, (
+        'type error in get_phase(): the output must be a float array, '
+        + 'while it is ' + str(phase_vector.dtype))
