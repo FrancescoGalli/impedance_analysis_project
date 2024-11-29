@@ -39,6 +39,8 @@ from impedance_analysis import generate_circuit_fit
 from impedance_analysis import generate_circuit_parameters
 from impedance_analysis import generate_constant_elements_array_fit
 from impedance_analysis import get_file_name
+from impedance_analysis import get_number_of_columns
+from impedance_analysis import read_data
 
 
 ##############################################################################
@@ -2391,3 +2393,111 @@ def test_file_name_analysis(file_name_analysis):
     test_file_name_extention(file_name_analysis, caller)
     test_file_name_name(file_name_analysis, caller)
 
+
+def generate_number_of_columns():
+    file_name = generate_file_name_analysis()
+    number_of_columns = get_number_of_columns(file_name)
+    return number_of_columns
+
+@pytest.fixture
+def number_of_columns():
+    return generate_number_of_columns()
+
+def test_get_number_of_columns_type(number_of_columns):
+    """Check that the number of columns in get_number_of_columns() is an
+    integer.
+    
+    WHEN: the data file name is read to count the number of data columns
+    THEN: number of columns is an integer
+    """
+    assert isinstance(number_of_columns, int), (
+        'type error in get_number_of_columns(): the output must be an '
+        + 'integer, while it is ' + str(type(number_of_columns)))
+    
+def test_get_number_of_columns_value(number_of_columns):
+    """Check that the number of columns in get_number_of_columns() is a valid
+    number (2 or 3).
+    
+    WHEN: the data file name is read to count the number of data columns
+    THEN: number of columns is 2 or 3
+    """
+    assert (number_of_columns==2 or number_of_columns==3), (
+        'structural error in get_number_of_columns(): the output must be '
+        + 'either 2 or 3, while it is ' + str(number_of_columns))
+ 
+def find_non_positive_frequencies_read_data(frequency_vector):
+    """Given an frequencies array, return frequencies that is not positive.
+    Used for testing.
+
+    Parameters
+    ----------
+    frequency_vector : array
+        Array of frequencies read from data file
+
+    Returns
+    -------
+    wrong_value : list
+        List that contains all the invalid frequencies
+    wrong_value_index : list
+        List of indexes of the invalid frequencies in the array
+    """
+    wrong_value = []
+    wrong_value_index = []
+    for i, element in enumerate(frequency_vector):
+        if element<=0:
+            wrong_value.append(element)
+            wrong_value_index.append(i)
+    return wrong_value, wrong_value_index
+
+def test_frequency_read_data(file_name_analysis):
+    """Check that the output of read_data() is a valid impedance array as
+    second argument.
+
+    GIVEN: a valid file_name and a valid number of columns
+    WHEN: the function to read data from a data file is called
+    THEN: the second argument is a proper impedance vector: a 1D numpy array
+    containing only positive values (floats or integers)
+    """
+    frequency_vector, _ = read_data(file_name_analysis)
+    assert isinstance(frequency_vector, np.ndarray), (
+        'type error in the output read_data(): the second argument must be a '
+        + 'numpy.ndarray')
+    assert frequency_vector.size>0, (
+        'structural error in the output read_data(): the second argument '
+        + 'cannot be empty')
+    assert frequency_vector.ndim==1, (
+        'type error in the output read_data(): the second argument must be a '
+        + 'one-dimention array, while it is ' + str(frequency_vector.ndim))
+    assert (frequency_vector.dtype==float or frequency_vector.dtype==int), (
+        'type error in read_data(): the second argument must be a float array, '
+        + 'while it is ' + str(frequency_vector.dtype))
+    wrong_value, wrong_value_index = find_non_positive_frequencies_read_data(
+        frequency_vector)
+    assert not wrong_value, (
+        'value error for impedance ' + str(wrong_value) + ' number '
+        + str(wrong_value_index) + ' in read_data() output. Frequencies must '
+        + 'be positive')
+
+def test_impedance_read_data(file_name_analysis):
+    """Check that the output of read_data() is a valid impedance array as
+    second argument.
+
+    GIVEN: a valid file_name and a valid number of columns
+    WHEN: the function to read data from a data file is called
+    THEN: the second argument is a proper impedance vector: a 1D numpy complex
+    array containing
+    """
+    _, impedance_data_vector = read_data(file_name_analysis)
+    assert isinstance(impedance_data_vector, np.ndarray), (
+        'type error in the output read_data(): the second argument must be a '
+        + 'numpy.ndarray')
+    assert impedance_data_vector.size>0, (
+        'structural error in the output read_data(): the second argument '
+        + 'cannot be empty')
+    assert impedance_data_vector.ndim==1, (
+        'type error in the output read_data(): the second argument must be a '
+        + 'one-dimention array, while it is '
+        + str(impedance_data_vector.ndim))
+    assert np.iscomplexobj(impedance_data_vector), (
+        'type error in read_data(): the second argument must be a complex '
+        + 'array, while it is ' + str(impedance_data_vector.dtype))
