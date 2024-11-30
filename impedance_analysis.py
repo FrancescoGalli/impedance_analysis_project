@@ -110,3 +110,106 @@ def read_data(file_name):
         impedance_data_vector = modulus_data_vector * np.e**(
             1j * phase_data_vector * np.pi/180)
     return frequency_vector, impedance_data_vector
+
+def list_string_elements(circuit_string):
+    """Return the list of input elements (type 'C', 'Q' or 'R' ) of a circuit
+    string.
+
+    Parameters
+    ----------
+    circuit_string : string
+        String representing the disposition of elements of a circuit
+
+    Returns
+    -------
+    string_elements : string
+        String listing the elements in order of apparition in a circuit string
+    """
+    string_elements = []
+    for i, char in enumerate(circuit_string):
+        if char in {'C', 'Q', 'R'}:
+            string_elements.append(circuit_string[i:i+2])
+    #string_elements = (['R1', 'C2', 'Q4'])
+    return string_elements
+
+def error_function(parameters, impedance_data_vector, impedance_function,
+                   frequency):
+    """Error function to be minimized to perform the fit. The first argument
+    must be the parameters to be optimized
+
+    Parameters
+    ----------
+    parameters : list
+        List of current parameters value
+    impedance_data_vector : array
+        Complex array containing the impedance data from the data file
+    impedance_function : function
+        Impedance function of the circuit, depending on the frequencies and on
+        the parameters
+    frequency_vector : array
+        Data frequencies array from the data file
+
+    Returns
+    -------
+    error : float
+        Value of the error function, to be minimized for the fitting process
+
+    """
+    impedance_calaculated = impedance_function(parameters, frequency)
+    error = np.sum(np.abs(impedance_data_vector-impedance_calaculated)/np.abs(
+        impedance_data_vector))
+    #print('parameters = ' + str(parameters) + ' error = ' + str(error))
+    return error
+
+def get_initial_parameters_string_vector(circuit_string_fit,
+                                         circuit_parameters,
+                                         constant_elements_fit,
+                                         initial_error):
+    """Return a string vector in which each element is the circuit element
+    name followed by its parameter value. Then the error estimated with the
+    initial values of the parameters is added as last element.
+    Used to print the parameters value and error.
+
+    Parameters
+    ----------
+    circuit_string_fit : string
+        String representing the disposition of elements of the fitting circuit
+    circuit_parameters : list
+        List of parameters for the circuit given by input
+    constant_elements_fit : list
+        List of constant element conditions for the fit given by input
+    initial_error : float
+        Output given by the error function used in the fit with the initial
+        parameters
+
+    Returns
+    -------
+    parameters_string_vector : list
+        List of strings containing the name and inital value of the
+        parameters. If the parameters is set constant, a '(constant)' follows
+        the parameter value. Then the error estimated with the initial values
+        of the parameters is added as last element.
+    """
+    string_elements = list_string_elements(circuit_string_fit)
+    parameters_string_vector = [' ' for _ in string_elements]
+    for i, parameter in enumerate(circuit_parameters):
+        if string_elements[i][0]=='Q':
+            parameters_string_vector[i] = ('  ' + string_elements[i] + ': '
+            + str(parameter[0]) + ', ' + str(parameter[1]))
+        else:
+            parameters_string_vector[i] = ('  ' + string_elements[i] + ': '
+            + str(parameter))
+        if constant_elements_fit[i]:
+            parameters_string_vector[i] += ' (constant)'
+    parameters_string_vector.append('Error: ' + f'{initial_error:.4f}')
+    return parameters_string_vector
+
+def get_string(string_vector):
+    """From a string vector creates a single string, concatenating each
+    element.
+    """
+    string_ = ''
+    new_line = '\n'
+    string_ = new_line.join(string_vector)
+    return string_
+    

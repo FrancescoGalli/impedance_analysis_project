@@ -41,6 +41,10 @@ from impedance_analysis import generate_constant_elements_array_fit
 from impedance_analysis import get_file_name
 from impedance_analysis import get_number_of_columns
 from impedance_analysis import read_data
+from impedance_analysis import list_string_elements
+from impedance_analysis import error_function
+from impedance_analysis import get_initial_parameters_string_vector
+from impedance_analysis import get_string
 
 
 ##############################################################################
@@ -2501,3 +2505,175 @@ def test_impedance_read_data(file_name_analysis):
     assert np.iscomplexobj(impedance_data_vector), (
         'type error in read_data(): the second argument must be a complex '
         + 'array, while it is ' + str(impedance_data_vector.dtype))
+
+def generate_string_elements():
+    circuit_string = generate_circuit_fit()
+    string_elements = list_string_elements(circuit_string)
+    return string_elements
+
+@pytest.fixture
+def string_elements():
+    return generate_string_elements()
+
+def find_wrong_element_type_list_string_elements(string_elements):
+    wrong_element_type = []
+    wrong_element_type_index = []
+    wrong_number = []
+    wrong_number_index = []
+    for i, element in enumerate(string_elements):
+        if not set(element[0]).issubset({'C', 'Q', 'R'}):
+            wrong_element_type.append(element)
+            wrong_element_type_index.append(i)
+        if not element[1].isnumeric():
+            wrong_number.append(element)
+            wrong_number_index.append(i)
+        else:
+            if int(element[1])!=i+1:
+                wrong_number.append(element)
+                wrong_number_index.append(i)
+    return (wrong_element_type, wrong_element_type_index, wrong_number,
+            wrong_number_index)
+
+def test_list_string_elements(string_elements, circuit_string_fit):
+    """Check that the output of list_string_elements() is a list of strings of
+    input elements.
+
+    GIVEN: a valid circuit input string
+    WHEN: the function to list all the elements type is called
+    THEN: the output is a proper list of strings of elements
+    """
+    assert isinstance(string_elements, list), (
+        'type error in list_string_elements(): the output must be a list, '
+        + 'not a ' + str(type(string_elements)))
+    assert string_elements, (
+        'structural error in list_string_elements(): the output cannot be an '
+        + 'empty string')
+    (wrong_element_type, wrong_element_type_index, wrong_number,
+     wrong_number_index) = find_wrong_element_type_list_string_elements(
+         string_elements)
+    assert not wrong_element_type, (
+        'structural error in circuit string ' + circuit_string_fit
+        + ' for element(s) ' + str(wrong_element_type) + ' number ' 
+        + str(wrong_element_type_index) + ' in output of '
+        + 'list_string_elements() ' + str(string_elements) + ': the output can '
+        + 'have only elements that begin with \'C\', \'Q\' or \'R\' ')
+    assert not wrong_number, (
+        'structural error in circuit string ' + circuit_string_fit
+        + ' for element(s) ' + str(wrong_number) + ' number '
+        + str(wrong_number_index) + ' in output of list_string_elements()'
+        + str(string_elements) + ': the output can have only elements that end '
+        + 'with a number that reflect the order of appereance of the element '
+        + 'in the string')
+
+def generate_error():
+    """Generate the error from the error function, given a typical data
+    example. Used for testing.
+    """
+    file_name_analysis = generate_file_name_analysis()
+    circuit_string_fit = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
+    frequency_vector, impedance_data_vector = read_data(file_name_analysis)
+    impedance_function, initial_parameters, _ = generate_impedance_function(
+    circuit_string_fit, circuit_parameters, constant_elements_fit)
+    error = error_function(initial_parameters, impedance_data_vector,
+                           impedance_function, frequency_vector)
+    return error
+
+@pytest.fixture
+def error():
+    return generate_error()
+
+def test_error_function(error):
+    """Check that the output of error_function() is a valid error (a positive
+    float).
+
+    GIVEN: a valid imported data and a valid correspondant impedance function
+    WHEN: the function to calculate the error between the impedance function
+    (with given parameters) and the data is called
+    THEN: the error is a positive float or int
+    """
+    assert isinstance(error, (float, int)), (
+        'type error for output of error_function(): the output must be a '
+        + 'float or an integer, not a ' + str(type(error)))
+    assert error>0, ('structural error in output of error_function(): the '
+        + 'output must be positive')
+    
+def generate_parameters_string_vector():
+    circuit_string_fit = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
+    initial_error = generate_error()
+    initial_parameters_string_vector = get_initial_parameters_string_vector(
+        circuit_string_fit, circuit_parameters, constant_elements_fit,
+        initial_error)
+    return initial_parameters_string_vector
+
+@pytest.fixture
+def initial_parameters_string_vector():
+    return generate_parameters_string_vector()
+
+def find_wrong_element_type_get_initial_parameters_string_vector(
+        initial_parameters_string_vector):
+    """Find the invalid elements type (non-string) inside the list of strings
+    of intial parameters. Used for testing
+
+    Parameters
+    ----------
+    initial_parameters_string_vector : list
+        List of strings of intial parameters
+
+    Returns
+    -------
+    wrong_element_index : list
+        List of indexes of the wrong elements in the list
+    """
+    wrong_element_index = []
+    for i, element in enumerate(initial_parameters_string_vector):
+        if not isinstance(element, str):
+            wrong_element_index.append(i)
+    return wrong_element_index
+
+def test_get_initial_parameters_string_vector(
+        initial_parameters_string_vector):
+    """Check that the output of get_initial_parameters_string_vector() is a
+    valid string list containing the information about the intial values of
+    the fit.
+
+    GIVEN: a valid circuit, valid initial vparameters alues and valid initial
+    error
+    WHEN: the function to list the initial parameters values and error is called
+    THEN: the output of get_initial_parameters_string_vector() is a valid
+    list of strings of parameters
+    """
+    assert isinstance(initial_parameters_string_vector, list), (
+        'type error for output of get_initial_parameters_string_vector(): '
+        + 'the output must be a list, not a '
+        + str(type(initial_parameters_string_vector)))
+    wrong_element_index = find_wrong_element_type_get_initial_parameters_string_vector(
+        initial_parameters_string_vector)
+    assert not wrong_element_index, (
+        'type error for element ' + str(wrong_element_index) + ' in output of '
+        + 'get_initial_parameters_string_vector(): all the element must be '
+        + 'strings')
+
+def generate_string_():
+    list_string = ['first element', 'second element']
+    string_ = get_string(list_string)
+    return string_
+
+@pytest.fixture
+def string_():
+    return generate_string_()
+
+def test_get_string(string_):
+    """Check that the output of get_string() is a valid string.
+
+    GIVEN: a list of strings 
+    WHEN: the function to concatenate a list of strings is called
+    THEN: the output of get_string() is a string
+    """
+    assert isinstance(string_, str), ('type error for output of '
+        + 'get_string(): the output must be a string, not a '
+        + str(type(string_)))
+    
