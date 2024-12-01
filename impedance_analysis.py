@@ -16,6 +16,8 @@ import sys
 from csv import reader
 
 import numpy as np
+from scipy.optimize import minimize
+
 
 def generate_circuit_fit():
     """Return the circuit string for the fit."""
@@ -129,7 +131,6 @@ def list_string_elements(circuit_string):
     for i, char in enumerate(circuit_string):
         if char in {'C', 'Q', 'R'}:
             string_elements.append(circuit_string[i:i+2])
-    #string_elements = (['R1', 'C2', 'Q4'])
     return string_elements
 
 def error_function(parameters, impedance_data_vector, impedance_function,
@@ -212,4 +213,73 @@ def get_string(string_vector):
     new_line = '\n'
     string_ = new_line.join(string_vector)
     return string_
-    
+
+def bounds_definitions(elements):
+    """Return the parameters bounds for the fit algorithm, based on the type
+    of elements.
+
+    Parameters
+    ----------
+    elements : list
+        List of elements (strings) that compose the circuit and that will
+        figure in the fit, in order of analysis
+
+    Returns
+    -------
+    bounds_list : list
+        List of bounds (a pair of numbers/None) to make sure the optimized
+        parameters will not have unreasonable values
+    """
+    bounds_list = []
+    r_bound = (10, None)
+    c_bound = (1e-9, None)
+    q_bound = (1e-9, None)
+    n_bound = (0, 1)
+    for element in elements:
+        if element[0] == 'R':
+            bounds_list.append(r_bound)
+        elif element[0] == 'C':
+            bounds_list.append(c_bound)
+        else:
+            bounds_list.append(q_bound)
+            bounds_list.append(n_bound)
+    return bounds_list
+
+def fit(initial_parameters, impedance_data_vector, impedance_function,
+        frequency_vector, elements):
+    """Perform the fit minimizing a specified error function, with certain
+    bonds. The method used is the Nelder-Mead, with a maximum iteration of
+    1000.
+
+    Parameters
+    ----------
+    initial_parameters : list
+        List of initial parameter values to be optimized given by input
+    impedance_data_vector : array
+        Complex array containing the impedance data from the data file
+    impedance_function : function
+        Impedance function of the circuit, depending on the frequencies and on
+        the parameters
+    frequency_vector : array
+        Data frequencies array from the data file
+    elements : list
+        List of elements (strings) that compose the circuit and that will
+        figure in the fit, in order of analysis
+        
+
+    Returns
+    -------
+    optimized_parameters : list
+        List of optimized parameter values, i.e. the parameters value that
+        minimized the error function
+    Succes flag : string
+        String containing the convergence outcome of the algorithm
+    """
+    bounds_list = bounds_definitions(elements)
+    result = minimize(error_function, initial_parameters,
+        args=(impedance_data_vector, impedance_function, frequency_vector),
+        method='Nelder-Mead', options= {'maxiter': 1000, 'disp': True},
+        bounds=bounds_list)
+    optimized_parameters = result.x
+    success_flag = str(result.success)
+    return optimized_parameters, success_flag

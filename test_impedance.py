@@ -45,6 +45,8 @@ from impedance_analysis import list_string_elements
 from impedance_analysis import error_function
 from impedance_analysis import get_initial_parameters_string_vector
 from impedance_analysis import get_string
+from impedance_analysis import bounds_definitions
+from impedance_analysis import fit
 
 
 ##############################################################################
@@ -2676,4 +2678,338 @@ def test_get_string(string_):
     assert isinstance(string_, str), ('type error for output of '
         + 'get_string(): the output must be a string, not a '
         + str(type(string_)))
+
+def generate_elements_bound():
+    """Generate an element list from the inital description of the circuit.
+    Used for testing.
+    """
+    circuit_string_fit = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
+    *_, elements = generate_impedance_function(circuit_string_fit,
+                                               circuit_parameters,
+                                               constant_elements_fit)
+    return elements
+
+@pytest.fixture
+def elements_bound():
+    return generate_elements_bound()
+
+def generate_bounds_list():
+    """Generate a bound list from the element list. Used for testing."""
+    elements = generate_elements_bound()
+    bounds_list = bounds_definitions(elements)
+    return bounds_list
+
+@pytest.fixture
+def bounds_list():
+    return generate_bounds_list()
     
+def find_wrong_element_type_bound_definitions(bounds_list):
+    """Find the invalid elements type (any but tuples) inside the bounds list.
+    Used for testing
+
+    Parameters
+    ----------
+    bounds_list : list
+        List of all the bounds (numeric tuples)
+
+
+    Returns
+    -------
+    wrong_element_index : list
+        List of indexes of the wrong elements in the list
+    """
+    wrong_element_type_index = []
+    for i, bound in enumerate(bounds_list):
+        if not isinstance(bound, tuple):
+            wrong_element_type_index.append(i)
+        elif len(bound)!=2:
+            wrong_element_type_index.append(i)
+    return wrong_element_type_index
+
+def find_wrong_element_value_bound_definitions(bounds_list):
+    """Find the invalid elements values (any but tuples) inside the bounds list.
+    Used for testing
+
+    Parameters
+    ----------
+    bounds_list : list
+        List of all the bounds (numeric tuples)
+
+    Returns
+    -------
+    wrong_element_index : string
+        String of indexes of the wrong elements in the list
+    """
+    wrong_element_value_index = ''
+    for i, bound in enumerate(bounds_list):
+        if not isinstance(bound[0], (float, int)):
+            wrong_element_value_index += '[' + str(i) + '] (first element), '
+        elif isinstance(bound[0], (float, int)):
+            if bound[0]<0:
+                wrong_element_value_index += ('[' + str(i) + '] (first '
+                + 'element), ')
+        if not (isinstance(bound[1], (float, int)) or bound[1]==None):
+            wrong_element_value_index += '[' + str(i) + '] (second element), '
+        elif isinstance(bound[1], (float, int)):
+            if (bound[1]<bound[0] or bound[1]<0):
+                print('e')
+                wrong_element_value_index += ('[' + str(i) + '] (second '
+                + 'element), ')
+    return wrong_element_value_index
+
+def count_q(elements_bound, i_element):
+    """Count howm many Q elements there are before a certain element.
+    
+    Parameters
+    ----------
+    elements : list
+        List of elements string of the fitting parameters
+    i_element : int
+        Index of the element of interest
+
+    Returns
+    -------
+    q_count : int
+        Number of Q elements present before a certain element
+    """
+    number_of_q = 0
+    for element in elements_bound[:i_element]:
+        number_of_q += element.count('Q')
+    return number_of_q
+
+def bound_definitions_same_length_elements_list(elements_bound, bounds_list):
+    """Return whether there is a consistent correspondance between the length
+    of elements and bounds_list. For each element but for Q 1 element is equal
+    to 1 bound. For Q case is 1 element to 2 bounds. Used for testing
+
+    Parameters
+    ----------
+    elements : list
+        List of elements string of the fitting parameters
+    bounds_list : list
+        List of all the bounds (numeric tuples)
+
+    Returns
+    -------
+    consistent_condition : bool
+        Boolean condition for correspondance between the length of elements
+        and bounds_list
+    """
+    number_of_q = count_q(elements_bound, len(elements_bound)+1)
+    consistent_condition = ((len(elements_bound) + number_of_q)==len(bounds_list))
+    return consistent_condition
+
+def find_bad_match_bound_definitions_elements_list(elements_bound, bounds_list):
+    """Find the invalid correspondance between a single element and its bound.
+    Used for testing
+
+    Parameters
+    ----------
+    elements : list
+        List of elements string of the fitting parameters
+    bounds_list : list
+        List of all the bounds (numeric tuples)
+
+    Returns
+    -------
+    wrong_match_index : string
+        String of indexes of the wrong matches in the list
+    """
+    wrong_match_index = ''
+    for i, element in enumerate(elements_bound):
+        if not element.startswith('Q'):
+            number_of_q = count_q(elements_bound, i)
+            if bounds_list[i+number_of_q][0]==0:
+                wrong_match_index += '[' + str(i) + '] (first element), '
+        if element.startswith('Q'):
+            number_of_q = count_q(elements_bound, i)
+            if bounds_list[i+number_of_q][0]==0:
+                wrong_match_index += '[' + str(i) + '] (first element), '
+            if bounds_list[i+number_of_q+1][1]>1:
+                wrong_match_index += '[' + str(i) + '] (second element), '
+    return wrong_match_index
+
+def test_bound_definitions(elements_bound, bounds_list):
+    """Check that the output of bound_definitions() is a valid list of tuple
+    for bound conditions.
+
+    GIVEN: a valid list of elements
+    WHEN: the function to get the bounds defintiion is called during the fit
+    THEN: the output is a proper list of tuples for elements
+    """
+    assert isinstance(bounds_list, list), (
+        'type error in bound_definitions(): the output must be a list, '
+        + 'not a ' + str(type(bounds_list)))
+    wrong_element_type_index = find_wrong_element_type_bound_definitions(
+        bounds_list)
+    assert not wrong_element_type_index, (
+        'type error in output of bound_definitions(): the output must '
+        + 'be a list of tuples of length 2')
+    wrong_element_value_index = find_wrong_element_value_bound_definitions(
+        bounds_list)
+    assert not wrong_element_value_index, (
+        'structural error for ' + wrong_element_value_index + 'in output of '
+        + 'bound_definitions(): each element of the output must be a tuple '
+        + 'with as first element a non-negative number, and as a second '
+        + 'element either \'None\' or a non-negative number bigger than the '
+        + 'first element')
+    assert bound_definitions_same_length_elements_list(elements_bound,
+                                                       bounds_list), (
+        'structural error in output of bound_definitions(): the list of '
+        + 'bounds must have a proper length related to the elements list. '
+        + 'For each element but for Q 1 element is equal to 1 bound. For Q '
+        + 'case is 1 element to 2 bounds.')
+    wrong_match_index = find_bad_match_bound_definitions_elements_list(
+        elements_bound, bounds_list)
+    assert not wrong_match_index, (
+        'structural error for elements ' + wrong_match_index + 'in output of '
+        + 'bound_definitions(): the must be a correspondace between each '
+        + 'element of the element list \'' + str(elements_bound) + '\' and '
+        + 'the correspective bound. Bound for R, C or Q must have a positive '
+        + 'number as first element, while for n the second parameter must '
+        + 'not be bigger than 1')
+    
+def generate_fit_results():
+    """Generate the fit results list from a valid data, initial parameters,
+    element list and impedance function. Used for testing."""
+    circuit_string_fit = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
+    impedance_function, initial_parameters, elements = generate_impedance_function(
+    circuit_string_fit, circuit_parameters, constant_elements_fit)
+    file_name = get_file_name()
+    frequency_vector, impedance_data_vector = read_data(file_name)
+    fit_results = fit(initial_parameters, impedance_data_vector,
+                      impedance_function, frequency_vector, elements)
+    return fit_results
+
+@pytest.fixture
+def fit_results():
+    return generate_fit_results()
+
+def generate_initial_parameters_fit():
+    """Generate the intial parameter for the fit list from a valid circuit
+    description. Used for testing."""
+    circuit_string_fit = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
+    _, initial_parameters_fit, _ = generate_impedance_function(
+    circuit_string_fit, circuit_parameters, constant_elements_fit)
+    return initial_parameters_fit
+
+@pytest.fixture
+def initial_parameters_fit():
+    return generate_initial_parameters_fit()
+
+def initial_and_optimized_parameters_same_length(initial_parameters_fit, 
+                                                 optimized_parameters):
+    """Given the string circuit and its parameters list, return wheter the
+    length of the parameters list and the number of elements in the string is
+    the same. Used for testing
+
+    Parameters
+    ----------
+    initial_parameters_fit : list
+        List of initial parameters of the fit given by input
+    optimized_parameters : list
+        List of final parameters given by the fit
+
+    Returns
+    -------
+    length_equality : bool
+        Boolean of the equality length condition
+    """
+    length_equality = (len(initial_parameters_fit)==len(optimized_parameters))
+    return length_equality
+
+def find_bad_match_initial_and_optimized_parameters(initial_parameters_fit, 
+                                                    optimized_parameters):
+    """Find the invalid correspondance between a initial and optimized
+    parameters. Used for testing
+
+    Parameters
+    ----------
+    initial_parameters_fit : list
+        List of initial parameters of the fit given by input
+    optimized_parameters : list
+        List of final parameters given by the fit
+
+    Returns
+    -------
+    wrong_match_index : list
+        List of indexes of the wrong matches in the list
+    """
+    wrong_match_index = []
+    for i, initial_parameter in enumerate(initial_parameters_fit):
+        if not (type(initial_parameter)==type(optimized_parameters[i])):
+            wrong_match_index.append(i)
+    return wrong_match_index
+
+def find_outside_bound_optimized_parameters(optimized_parameters, bounds_list):
+    """Find the optimized parameters that are outside the correspondant
+    bounds. Used for testing
+
+    Parameters
+    ----------
+    optimized_parameters : list
+        List of final parameters given by the fit
+    bounds_list : list
+        List of the parameters bounds for the fit
+
+    Returns
+    -------
+    outside_bound_index : string
+        String of indexes of the optimized parameters outside the bound
+    """
+    outside_bound_index = ''
+    for i, parameter in enumerate(optimized_parameters):
+        if isinstance(bounds_list[i][0], (float, int)):
+            if parameter<bounds_list[i][0]:
+                outside_bound_index += '[' + str(i) + '] (first element), '
+        if isinstance(bounds_list[i][1], (float, int)):
+            if parameter>bounds_list[i][1]:
+                outside_bound_index += '[' + str(i) + '] (second element), ' 
+    return outside_bound_index
+
+def test_fit_optimized_parameters(fit_results, bounds_list,
+                                  initial_parameters_fit):
+    """Check that first argument of the output of fit() is a valid parameter
+    list, with a correspondance in length and type with the initial
+    parameters, and within the bounds.
+
+    GIVEN: a valid data, initial parameters, element list and impedance
+    function
+    WHEN: the fit function is called
+    THEN: first argument of the output of fit() is a proper parameter list
+    """
+    optimized_parameters = fit_results[0]
+    print(bounds_list)
+    assert isinstance(optimized_parameters, np.ndarray), (
+        'type error for parameters in fit() . It must be a list')
+    assert initial_and_optimized_parameters_same_length(
+        initial_parameters_fit, optimized_parameters), (
+        'wrong number of optimized parameters \''
+        + str(len(optimized_parameters)) + '\' (with number of initial '
+        + 'parameters \'' + str(len(initial_parameters_fit))
+        + '\') in output of fit() \'. They must be the same')
+    outside_bound_index = find_outside_bound_optimized_parameters(
+        optimized_parameters, bounds_list)
+    assert not outside_bound_index, (
+        'structural error for optimized parametrs with bound(s) '
+        + outside_bound_index + 'in output of fit(): the optimized '
+        + 'parameters must be within their bounds: ' + str(bounds_list))
+
+def test_fit_success_flag(fit_results):
+    """Check that second argument of the output of fit() is a string.
+
+    GIVEN: a valid data, initial parameters, element list and impedance
+    function
+    WHEN: the fit function is called
+    THEN: second argument of the output of fit() is a string
+    """
+    success_flag = fit_results[1]
+    assert isinstance(success_flag, str), ('type error for output of '
+        + 'fit(): the output must be a string, not a '
+        + str(type(success_flag)))

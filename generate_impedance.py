@@ -164,7 +164,7 @@ def get_impedance_function_element(element_string, impedance_circuit,
         will be object of the fit
     elements_circuit : list
         List of elements containing all elements analyzed so far, that
-        will be object of the fit
+        will be object of the fit, in order of analysis
     constant_elements : list
         List of constant elements condition given by input
 
@@ -177,7 +177,7 @@ def get_impedance_function_element(element_string, impedance_circuit,
         will be object of the fit
     elements_circuit : list
         List of elements containing all elements analyzed so far, that will be
-        object of the fit
+        object of the fit, in order of analysis
     """
     i_element = int(element_string[1]) - 1
     if element_string[0]=='Z':
@@ -325,7 +325,7 @@ def generate_cell_impedance(circuit_string, i_start, i_end, impedance_circuit,
         will be object of the fit
     elements_circuit : list
         List of elements containing all elements analyzed so far, that
-        will be object of the fit
+        will be object of the fit, in order of analysis
     constant_elements : list
         List of constant elements condition given by input
 
@@ -338,11 +338,12 @@ def generate_cell_impedance(circuit_string, i_start, i_end, impedance_circuit,
         will be object of the fit
     elements_circuit : list
         List of elements containing all elements analyzed so far, that will be
-        object of the fit
+        object of the fit, in order of analysis
     """
     impedance_cell = []
-    for i in range(i_start+1, i_end, 2): #increment of 2 to jump the numbers of the elements
-        #and count only the letters in the string
+    for i in range(i_start+1, i_end, 2): #Increment of 2 to jump the numbers
+        #of the elements and count only the letters in the string (one letter
+        #for one element)
         element_string = circuit_string[i:i+2]
         (impedance_element, parameters_circuit,
          elements_circuit) = get_impedance_function_element(
@@ -403,7 +404,7 @@ def generate_impedance_function(circuit_string, initial_parameters,
         compose the circuit and that will figure in the fit
     elements_circuit : list
         List of elements (strings) that compose the circuit and that will
-        figure in the fit
+        figure in the fit, in order of analysis
     """
     working = 1
     index = 1 #first element is just a bracket, cannot be an element
