@@ -18,6 +18,8 @@ from csv import reader
 import numpy as np
 from scipy.optimize import minimize
 
+from generate_impedance import generate_impedance_function
+from plot_and_save import plot_data
 
 def generate_circuit_fit():
     """Return the circuit string for the fit."""
@@ -283,3 +285,94 @@ def fit(initial_parameters, impedance_data_vector, impedance_function,
     optimized_parameters = result.x
     success_flag = str(result.success)
     return optimized_parameters, success_flag
+
+def get_result_string(circuit_string_fit, optimized_parameters, elements,
+                      final_parameters, final_error):
+    """Return a string containing parameter's name and its current rounded
+    value. Return a string containing all the circuit elements name followed
+    by their own optimized parameter value. Then the final error estimated
+    with these values is added at the last line.
+    Used to print the optimized parameters value and error.
+
+    Parameters
+    ----------
+    circuit_string_fit : string
+        String representing the disposition of elements of the fitting circuit
+    optimized_parameters : list
+        List of optimized parameters given by the fit, in order of analysis
+    elements : list
+        List of elements (strings) that compose the circuit and that figured
+        in the fit, in order of analysis
+    final_parameters : list
+        List of strings containing the name and optimized value of the non
+        constant parameters or the input value for consatnt parameters, with
+        the final error as last element
+    final_error : float
+        Output given by the error function used in the fit with the optimized
+        parameters
+
+    Returns
+    -------
+    result_string : string
+        Strings containing the name and optimized value of all the
+        non-constant parameters. If the parameters is set constant, a
+        '(constant)' follows the parameter value. Then the error estimated
+        with the optimized and constant values of the parameters is added as
+        last element.
+    """
+    string_elements = list_string_elements(circuit_string_fit)
+    i_q = 0 #To take into account that Q elements have two parameters each
+    for i, element in enumerate(elements):
+        if element[0]=='Q':
+            first_parameter = optimized_parameters[i+i_q]
+            second_parameter = optimized_parameters[i+i_q+1]
+            final_parameters[int(element[1])-1] = (
+                '  ' + string_elements[int(element[1])-1] + ': ' + str(
+                round(first_parameter, 11)) + ', ' + str(
+                round(second_parameter, 3)))
+            i_q += 1
+        else:
+            if element[0]=='R':
+                round_number = 3
+            else:
+                round_number = 11
+            parameter = optimized_parameters[i+i_q]
+            final_parameters[int(element[1])-1] = (
+                '  ' + string_elements[int(element[1])-1] + ': '
+                + str(round(parameter, round_number)))
+    final_parameters[-1] = 'Error: ' + f'{final_error:.4f}'
+    result_string = get_string(final_parameters)
+    return result_string
+
+
+FILE_NAME = get_file_name()
+print('\nReading data . . . ')
+frequency_vector, impedance_data_vector = read_data(FILE_NAME)
+plot_data(frequency_vector, impedance_data_vector)
+
+CIRCUIT_STRING_FIT = generate_circuit_fit()
+circuit_parameters = generate_circuit_parameters()
+constant_elements_fit = generate_constant_elements_array_fit()
+print(CIRCUIT_STRING_FIT)
+
+impedance_function, initial_parameters, elements = generate_impedance_function(
+    CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit)
+initial_error = error_function(initial_parameters, impedance_data_vector,
+                                impedance_function, frequency_vector)
+initial_parameters_string_vector = get_initial_parameters_string_vector(
+    CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit,
+    initial_error)
+INITIAL_PARAMETERS_STRING = get_string(initial_parameters_string_vector)
+print('\nInitial fit parameters:\n' + INITIAL_PARAMETERS_STRING)
+
+print('\nFitting . . . ')
+optimized_parameters, success_flag = fit(
+    initial_parameters, impedance_data_vector, impedance_function,
+    frequency_vector, elements)
+print('Success flag: ' + success_flag)
+final_error = error_function(optimized_parameters, impedance_data_vector,
+                                impedance_function, frequency_vector)
+RESULT_STRING = get_result_string(
+    CIRCUIT_STRING_FIT, optimized_parameters, elements,
+    initial_parameters_string_vector, final_error)
+print('\nOptimized fit parameters:\n' + RESULT_STRING)

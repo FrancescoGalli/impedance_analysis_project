@@ -47,6 +47,7 @@ from impedance_analysis import get_initial_parameters_string_vector
 from impedance_analysis import get_string
 from impedance_analysis import bounds_definitions
 from impedance_analysis import fit
+from impedance_analysis import get_result_string
 
 
 ##############################################################################
@@ -3013,3 +3014,44 @@ def test_fit_success_flag(fit_results):
     assert isinstance(success_flag, str), ('type error for output of '
         + 'fit(): the output must be a string, not a '
         + str(type(success_flag)))
+
+def generate_result_string():
+    """Generate the result string."""
+    file_name_analysis = generate_file_name_analysis()
+    frequency_vector, impedance_data_vector = read_data(file_name_analysis)
+    circuit_string_fit = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
+    (impedance_function, initial_parameters,
+     elements) = generate_impedance_function(
+         circuit_string_fit, circuit_parameters, constant_elements_fit)
+    initial_error = error_function(initial_parameters, impedance_data_vector,
+                                impedance_function, frequency_vector)
+    initial_parameters_string_vector = get_initial_parameters_string_vector(
+        circuit_string_fit, circuit_parameters, constant_elements_fit,
+        initial_error)
+    optimized_parameters, success_flag = fit(
+        initial_parameters, impedance_data_vector, impedance_function,
+    frequency_vector, elements)
+    final_error = error_function(optimized_parameters, impedance_data_vector,
+                                impedance_function, frequency_vector)
+    result_string = get_result_string(
+        circuit_string_fit, optimized_parameters, elements,
+        initial_parameters_string_vector, final_error)
+    return result_string
+
+@pytest.fixture
+def result_string():
+    return generate_result_string()
+
+def test_result_string(result_string):
+    """Check that the output of get_result_string() is a string.
+
+    GIVEN: a valid data, initial parameters, element list, impedance
+    function and valid fit results
+    WHEN: the function to put in a string all the results is called
+    THEN: the output of get_result_string() is a string
+    """
+    assert isinstance(result_string, str), ('type error for output of '
+        + 'get_result_string(): the output must be a string, not a '
+        + str(type(result_string)))
