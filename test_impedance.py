@@ -35,6 +35,7 @@ from generate_impedance import update_string
 from generate_impedance import generate_impedance_function
 from plot_and_save import get_modulus
 from plot_and_save import get_phase
+from plot_and_save import get_box_coordinates
 from impedance_analysis import generate_circuit_fit
 from impedance_analysis import generate_circuit_parameters
 from impedance_analysis import generate_constant_elements_array_fit
@@ -3055,3 +3056,38 @@ def test_result_string(result_string):
     assert isinstance(result_string, str), ('type error for output of '
         + 'get_result_string(): the output must be a string, not a '
         + str(type(result_string)))
+
+def generate_box_coordinates():
+    """Generate the box coordinates fot the result string."""
+    file_name_analysis = generate_file_name_analysis()
+    frequency_vector, impedance_data_vector = read_data(file_name_analysis)
+    modulus_vector = get_modulus(impedance_data_vector)
+    box_coordinates = get_box_coordinates(frequency_vector, modulus_vector)
+    return box_coordinates
+
+@pytest.fixture
+def box_coordinates():
+    return generate_box_coordinates()
+
+def test_get_box_coordinates(box_coordinates, frequency_vector,
+                             modulus_vector):
+    """Check that the box coordinates are a float and within the data.
+
+    GIVEN: a valid set of data to be plotted in logarithmic scale
+    WHEN: the function to plot the fit result is called
+    THEN: the coordinates are a proper x, y set
+    """
+    box_x, box_y = box_coordinates
+    caller = 'get_box_coordinates()'
+    assert isinstance(box_x, float), (
+        'type error for box x coordinate in ' + caller +'. It must be a float'
+        + 'number.')
+    assert (np.min(frequency_vector)<box_x<np.max(frequency_vector)), (
+            'value error for box x coordinate in ' + caller +'. It must be '
+            + 'within the range defined by the frequency vector (x vector).')
+    assert isinstance(box_y, float), (
+        'type error for box y coordinate in ' + caller +'. It must be a float'
+        + 'number.')
+    assert (np.min(modulus_vector)<box_y<np.max(modulus_vector)), (
+            'value error for box y coordinate in ' + caller +'. It must be '
+            + 'within the range defined by the modulus vector (y vector).')

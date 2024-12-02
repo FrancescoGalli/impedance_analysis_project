@@ -19,7 +19,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 from generate_impedance import generate_impedance_function
-from plot_and_save import plot_data
+from plot_and_save import plot_data, plot_fit
 
 def generate_circuit_fit():
     """Return the circuit string for the fit."""
@@ -376,3 +376,9 @@ RESULT_STRING = get_result_string(
     CIRCUIT_STRING_FIT, optimized_parameters, elements,
     initial_parameters_string_vector, final_error)
 print('\nOptimized fit parameters:\n' + RESULT_STRING)
+
+print('\nPlotting results . . . ')
+final_impedance_calculated = impedance_function(optimized_parameters,
+                                                frequency_vector)
+plot_fit(frequency_vector, impedance_data_vector, final_impedance_calculated,
+        RESULT_STRING)
