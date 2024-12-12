@@ -28,6 +28,24 @@ def generate_parameters_data():
     parameters_data = ([parameter_1, parameter_2, parameter_3, parameter_4])
     return parameters_data
 
+def set_frequencies():
+    """Set the range and number of frequencies for the data generation."""
+    lower_limit_oom = -1
+    upper_limit_oom = 6
+    number_of_points = 100
+    log_frequency_vector = np.linspace(lower_limit_oom, upper_limit_oom,
+                                       number_of_points)
+    frequency_vector = 10.**log_frequency_vector
+    return frequency_vector
+
+def set_file_name():
+    """Set the .txt data file name where the data will be saved."""
+    file_name = 'four_elements_data'
+    file_name += '.txt'
+    return file_name
+
+##############################################################################
+
 def generate_constant_elements_array_data(parameters_data):
     """Generate an array for constant elements conditions for the data
     generation.
@@ -48,24 +66,6 @@ def generate_constant_elements_array_data(parameters_data):
     constant_elements_data = [1] * parameters_data_length
     return constant_elements_data
 
-def set_frequencies():
-    """Set the range and number of frequencies for the data generation."""
-    lower_limit_oom = -1
-    upper_limit_oom = 6
-    number_of_points = 100
-    log_frequency_vector = np.linspace(lower_limit_oom, upper_limit_oom,
-                                       number_of_points)
-    frequency_vector = 10.**log_frequency_vector
-    return frequency_vector
-
-def set_file_name():
-    """Set the .txt data file name where the data will be saved."""
-    file_name = 'data_impedance'
-    file_name += '.txt'
-    return file_name
-
-##############################################################################
-
 def generate_random_error_component(signal_length):
     """Generate a random array of numbers between 0 and 1 of length
     signal_length.
@@ -80,7 +80,7 @@ def generate_random_error_component(signal_length):
     random_error_component : array
         Array of random numbers to simulate random noise
     """
-    random_error_component = np.random.rand(signal_length)
+    random_error_component = np.random.uniform(-0.5, 0.5, signal_length)
     return random_error_component
 
 def simulate_noise(signal_vector):
@@ -108,13 +108,13 @@ def simulate_noise(signal_vector):
     return impedance_vector
 
 
-circuit_string_data = generate_circuit_data()
+CIRCUIT_STRING_DATA = generate_circuit_data()
 parameters_data = generate_parameters_data()
 
 constant_elements_data = generate_constant_elements_array_data(
     parameters_data)
 impedance_function, parameters, _ = generate_impedance_function(
-    circuit_string_data, parameters_data, constant_elements_data)
+    CIRCUIT_STRING_DATA, parameters_data, constant_elements_data)
 
 frequency_vector = set_frequencies()
 signal_vector = impedance_function(parameters, frequency_vector)
