@@ -21,6 +21,7 @@ from scipy.optimize import minimize
 from generate_impedance import generate_impedance_function
 from plot_and_save import plot_data, plot_fit
 
+
 def generate_circuit_fit():
     """Return the circuit string for the fit."""
     circuit_string_fit = '(R1C2[R3Q4])'
@@ -267,7 +268,6 @@ def fit(initial_parameters, impedance_data_vector, impedance_function,
     elements : list
         List of elements (strings) that compose the circuit and that will
         figure in the fit, in order of analysis
-        
 
     Returns
     -------
@@ -353,7 +353,6 @@ plot_data(frequency_vector, impedance_data_vector)
 CIRCUIT_STRING_FIT = generate_circuit_fit()
 circuit_parameters = generate_circuit_parameters()
 constant_elements_fit = generate_constant_elements_array_fit()
-print(CIRCUIT_STRING_FIT)
 
 impedance_function, initial_parameters, elements = generate_impedance_function(
     CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit)

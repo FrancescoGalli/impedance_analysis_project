@@ -34,14 +34,20 @@ def plot_data(frequency_vector, impedance_vector):
     modulus.set_title('Modulus', fontsize=12)
     modulus.set_xlabel('Frequency(Hz)')
     modulus.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
+    min_y_mod = min(modulus_data_vector)/2
+    max_y_mod = max(modulus_data_vector)*2
+    modulus.set_ylim(min_y_mod, max_y_mod)
     modulus.loglog(frequency_vector, modulus_data_vector, color='blue',
                    linestyle='-', marker='o')
     phase_data_vector = get_phase(impedance_vector)
     phase.set_title('Phase', fontsize=12)
     phase.set_xlabel('Frequency(Hz)')
     phase.set_ylabel('Phase(deg)')
-    ticks_array = np.linspace(-90, 0, 10)
+    min_y_phase_plot = (min(phase_data_vector)//10 - 1)*10
+    max_y_phase_plot = (max(phase_data_vector)//10 + 2)*10
+    ticks_array = np.arange(min_y_phase_plot, (max_y_phase_plot)*11/10, 10)
     phase.set_yticks(ticks_array)
+    phase.set_ylim(min_y_phase_plot, max_y_phase_plot)
     phase.semilogx(frequency_vector, phase_data_vector, color='orange',
                    linestyle='-', marker='o')
     plt.suptitle('Impedance data', fontsize=17)
@@ -49,22 +55,33 @@ def plot_data(frequency_vector, impedance_vector):
     plt.savefig('Data.pdf')
     plt.show()
 
-def save_data(file_name, frequency_vector, impedance_vector):
+def save_data(file_name, number_of_columns, frequency_vector, impedance_vector):
     """Save the data in a .txt file with as header the name of the
-    quantities.
+    quantities. The two formats avaible are two-column (complex frequence
+    and impedance) or three-column (frequence, modulus and phase).
 
     Parameters
     ----------
     file_name : string
         Name of the file where the data will be saved
+    number_of_columns : int
+        Number of columns (and thus the format) to write the data
     frequency_vector : array
         Array containing the data frequencies
     impedance_vector : array
         Array containing the data impedances
     """
-    header_text = 'Frequency(Hz)    Impedance(Ohm)'
-    np.savetxt(file_name, np.c_[frequency_vector, impedance_vector],
+    if number_of_columns==2:
+        header_text = 'Frequency(Hz)    Impedance(Ohm)'
+        np.savetxt(file_name, np.c_[frequency_vector, impedance_vector],
                delimiter=';', header=header_text, comments='%')
+    elif number_of_columns==3:
+        modulus_vector = get_modulus(impedance_vector)
+        phase_vector = get_phase(impedance_vector)
+        header_text = 'Frequency(Hz)    Modulus(Ohm)    Phase(deg)'
+        np.savetxt(file_name,
+                   np.c_[frequency_vector, modulus_vector,phase_vector],
+                   delimiter=';', header=header_text, comments='%')
 
 def get_box_coordinates(x_vector, y_vector):
     """Return the box position in log-log scale graph.
@@ -117,6 +134,9 @@ def plot_fit(frequency_vector, impedance_data_vector, impedance_fit_vector,
     modulus.set_title('Modulus', fontsize=18)
     modulus.set_xlabel('Frequency(Hz)')
     modulus.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
+    min_y_mod = min(modulus_data_vector)/2
+    max_y_mod = max(modulus_data_vector)*2
+    modulus.set_ylim(min_y_mod, max_y_mod)
     modulus.loglog(frequency_vector, modulus_data_vector, label='Data',
                    color='blue', marker='o')
     modulus.loglog(frequency_vector, modulus_fit_vector, label='Fit',
@@ -131,8 +151,11 @@ def plot_fit(frequency_vector, impedance_data_vector, impedance_fit_vector,
     phase.set_title('Phase', fontsize=18)
     phase.set_xlabel('Frequency(Hz)')
     phase.set_ylabel('Phase(deg)')
-    ticks_array = np.linspace(-90, 0, 10)
+    min_y_phase_plot = (min(phase_data_vector)//10 - 1)*10
+    max_y_phase_plot = (max(phase_data_vector)//10 + 2)*10
+    ticks_array = np.arange(min_y_phase_plot, (max_y_phase_plot)*11/10, 10)
     phase.set_yticks(ticks_array)
+    phase.set_ylim(min_y_phase_plot, max_y_phase_plot)
     phase.semilogx(frequency_vector, phase_data_vector, label='Data',
                    color='orange', marker='o')
     phase.semilogx(frequency_vector, phase_fit_vector, label='Fit',

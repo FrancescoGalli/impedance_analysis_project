@@ -40,7 +40,7 @@ def set_frequencies():
 
 def set_file_name():
     """Set the .txt data file name where the data will be saved."""
-    file_name = 'four_elements_data'
+    file_name = 'data_impedance'
     file_name += '.txt'
     return file_name
 
@@ -108,6 +108,7 @@ def simulate_noise(signal_vector):
     return impedance_vector
 
 
+
 CIRCUIT_STRING_DATA = generate_circuit_data()
 parameters_data = generate_parameters_data()
 
@@ -122,4 +123,5 @@ impedance_vector = simulate_noise(signal_vector)
 
 plot_data(frequency_vector, impedance_vector)
 FILE_NAME = set_file_name()
-save_data(FILE_NAME, frequency_vector, impedance_vector)
+number_of_columns = 2
+save_data(FILE_NAME, number_of_columns, frequency_vector, impedance_vector)
