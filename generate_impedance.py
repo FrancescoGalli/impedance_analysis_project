@@ -246,8 +246,8 @@ def reciprocal(function_):
     receprocal_f : function
         Inverted function
     """
-    receprocal_function = lambda x, y: 1./function_(x, y)
-    return receprocal_function
+    reciprocal_function = lambda x, y: 1./function_(x, y)
+    return reciprocal_function
 
 def parallel_comb(impedance_cell):
     """Perform a parallel comb (invertion of the sum of the inverted
@@ -411,6 +411,8 @@ def generate_impedance_function(circuit_string, initial_parameters,
     parameters_circuit = []
     elements_circuit = []
     impedance_circuit = []
+    working_count = 0
+    working_limit = 100
     while working:
         if (circuit_string[index]==')' or circuit_string[index]==']'):
             i_start = get_position_opening_bracket(circuit_string, index)
@@ -432,6 +434,9 @@ def generate_impedance_function(circuit_string, initial_parameters,
         else:
             index += 1
         if index>(len(circuit_string)-1):
+            working = 0
+        working_count += 1
+        if working_count>working_limit:
             working = 0
     final_impedance_circuit = impedance_circuit[-1]
     return (final_impedance_circuit, parameters_circuit, elements_circuit)
