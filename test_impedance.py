@@ -84,9 +84,8 @@ def test_input_string_close_brakets(circuit_string, caller_c):
     """Check that there is a close round or square bracket as last character
     in the string.
     """
-    assert (circuit_string.endswith(')')
-            or circuit_string.endswith(']')), (
-        'no final close bracket detected')
+    assert (circuit_string.endswith(')') or circuit_string.endswith(']')), (
+        'no final close bracket detected' + caller_c)
 
 def same_number_of_brackets(circuit_string):
     """Given a circuit string, return if the count of open brackets is the
@@ -251,8 +250,8 @@ def find_inconsistent_elements(circuit_string):
                 wrong_element_index.append(i)
         elif (char.isnumeric() and circuit_string[0]!=char):
             if not (circuit_string[i-1] in {'C', 'Q', 'R'}):
-                wrong_elements += ('\'' + str(circuit_string[i-1])
-                                   + char + '\', ')
+                wrong_elements += ('\'' + str(circuit_string[i-1]) + char
+                                   + '\', ')
                 wrong_element_index.append(i-1)
     return wrong_elements, wrong_element_index
 
@@ -2042,7 +2041,7 @@ def test_set_frequencies_value(frequency_vector):
     positive elements.
 
     GIVEN: a valid length of the generated signal and that the output of
-    generate_random_error_component() is an array (not empty)
+    set_frequencies() is an array (not empty)
     WHEN: the function to generate random numbers to simulate noise is called
     THEN: the random noise contains only valid elements
     """
@@ -2158,7 +2157,7 @@ def find_wrong_elements_generate_random_error(signal_length):
     wrong_element = []
     wrong_element_index = []
     for i, element in enumerate(random_error_component):
-        if (element<0. or element>1.):
+        if abs(element)>1.:
             wrong_element.append(element)
             wrong_element_index.append(i)
     return wrong_element, wrong_element_index
@@ -2866,12 +2865,11 @@ def find_wrong_element_value_bound_definitions(bounds_list):
         elif isinstance(bound[0], (float, int)):
             if bound[0]<0:
                 wrong_element_value_index += ('[' + str(i) + '] (first '
-                + 'element), ')
+                                              + 'element), ')
         if not (isinstance(bound[1], (float, int)) or bound[1] is None):
             wrong_element_value_index += '[' + str(i) + '] (second element), '
         elif isinstance(bound[1], (float, int)):
             if (bound[1]<bound[0] or bound[1]<0):
-                print('e')
                 wrong_element_value_index += ('[' + str(i) + '] (second '
                 + 'element), ')
     return wrong_element_value_index
@@ -3123,7 +3121,7 @@ def generate_result_string():
     initial_parameters_string_vector = get_initial_parameters_string_vector(
         circuit_string_fit, circuit_parameters, constant_elements_fit,
         initial_error)
-    optimized_parameters, success_flag = fit(
+    optimized_parameters, _ = fit(
         initial_parameters, impedance_data_vector, impedance_function,
     frequency_vector, elements)
     final_error = error_function(optimized_parameters, impedance_data_vector,
