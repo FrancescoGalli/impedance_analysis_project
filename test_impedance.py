@@ -426,7 +426,7 @@ def find_invalid_parameters_list(parameters_list):
         if isinstance(parameter, list):
             if len(parameter)!=2:
                 wrong_parameters_index.append(i)
-                wrong_parameters+= '\''+str(parameter)+'\', '
+                wrong_parameters += '\'' + str(parameter) + '\', '
     return wrong_parameters, wrong_parameters_index
 
 def test_parameters_list_two_elements(parameters_list, caller_p):

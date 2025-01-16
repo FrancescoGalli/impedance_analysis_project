@@ -345,39 +345,40 @@ def get_result_string(circuit_string_fit, optimized_parameters, elements,
     return result_string
 
 
-FILE_NAME = get_file_name()
-print('\nReading data . . . ')
-frequency_vector, impedance_data_vector = read_data(FILE_NAME)
-plot_data(frequency_vector, impedance_data_vector)
+if __name__=="__main__":
+    FILE_NAME = get_file_name()
+    print('\nReading data . . . ')
+    frequency_vector, impedance_data_vector = read_data(FILE_NAME)
+    plot_data(frequency_vector, impedance_data_vector)
 
-CIRCUIT_STRING_FIT = generate_circuit_fit()
-circuit_parameters = generate_circuit_parameters()
-constant_elements_fit = generate_constant_elements_array_fit()
+    CIRCUIT_STRING_FIT = generate_circuit_fit()
+    circuit_parameters = generate_circuit_parameters()
+    constant_elements_fit = generate_constant_elements_array_fit()
 
-impedance_function, initial_parameters, elements = generate_impedance_function(
-    CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit)
-initial_error = error_function(initial_parameters, impedance_data_vector,
-                                impedance_function, frequency_vector)
-initial_parameters_string_vector = get_initial_parameters_string_vector(
-    CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit,
-    initial_error)
-INITIAL_PARAMETERS_STRING = get_string(initial_parameters_string_vector)
-print('\nInitial fit parameters:\n' + INITIAL_PARAMETERS_STRING)
+    impedance_function, initial_parameters, elements = generate_impedance_function(
+        CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit)
+    initial_error = error_function(initial_parameters, impedance_data_vector,
+                                    impedance_function, frequency_vector)
+    initial_parameters_string_vector = get_initial_parameters_string_vector(
+        CIRCUIT_STRING_FIT, circuit_parameters, constant_elements_fit,
+        initial_error)
+    INITIAL_PARAMETERS_STRING = get_string(initial_parameters_string_vector)
+    print('\nInitial fit parameters:\n' + INITIAL_PARAMETERS_STRING)
 
-print('\nFitting . . . ')
-optimized_parameters, success_flag = fit(
-    initial_parameters, impedance_data_vector, impedance_function,
-    frequency_vector, elements)
-print('Success flag: ' + success_flag)
-final_error = error_function(optimized_parameters, impedance_data_vector,
-                                impedance_function, frequency_vector)
-RESULT_STRING = get_result_string(
-    CIRCUIT_STRING_FIT, optimized_parameters, elements,
-    initial_parameters_string_vector, final_error)
-print('\nOptimized fit parameters:\n' + RESULT_STRING)
+    print('\nFitting . . . ')
+    optimized_parameters, success_flag = fit(
+        initial_parameters, impedance_data_vector, impedance_function,
+        frequency_vector, elements)
+    print('Success flag: ' + success_flag)
+    final_error = error_function(optimized_parameters, impedance_data_vector,
+                                    impedance_function, frequency_vector)
+    RESULT_STRING = get_result_string(
+        CIRCUIT_STRING_FIT, optimized_parameters, elements,
+        initial_parameters_string_vector, final_error)
+    print('\nOptimized fit parameters:\n' + RESULT_STRING)
 
-print('\nPlotting results . . . ')
-final_impedance_calculated = impedance_function(optimized_parameters,
-                                                frequency_vector)
-plot_fit(frequency_vector, impedance_data_vector, final_impedance_calculated,
-        RESULT_STRING)
+    print('\nPlotting results . . . ')
+    final_impedance_calculated = impedance_function(optimized_parameters,
+                                                    frequency_vector)
+    plot_fit(frequency_vector, impedance_data_vector, final_impedance_calculated,
+            RESULT_STRING)

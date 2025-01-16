@@ -108,20 +108,20 @@ def simulate_noise(signal_vector):
     return impedance_vector
 
 
+if __name__=="__main__":
+    CIRCUIT_STRING_DATA = generate_circuit_data()
+    parameters_data = generate_parameters_data()
 
-CIRCUIT_STRING_DATA = generate_circuit_data()
-parameters_data = generate_parameters_data()
+    constant_elements_data = generate_constant_elements_array_data(
+        parameters_data)
+    impedance_function, parameters, _ = generate_impedance_function(
+        CIRCUIT_STRING_DATA, parameters_data, constant_elements_data)
 
-constant_elements_data = generate_constant_elements_array_data(
-    parameters_data)
-impedance_function, parameters, _ = generate_impedance_function(
-    CIRCUIT_STRING_DATA, parameters_data, constant_elements_data)
+    frequency_vector = set_frequencies()
+    signal_vector = impedance_function(parameters, frequency_vector)
+    impedance_vector = simulate_noise(signal_vector)
 
-frequency_vector = set_frequencies()
-signal_vector = impedance_function(parameters, frequency_vector)
-impedance_vector = simulate_noise(signal_vector)
-
-plot_data(frequency_vector, impedance_vector)
-FILE_NAME = set_file_name()
-number_of_columns = 2
-save_data(FILE_NAME, number_of_columns, frequency_vector, impedance_vector)
+    plot_data(frequency_vector, impedance_vector)
+    FILE_NAME = set_file_name()
+    number_of_columns = 2
+    save_data(FILE_NAME, number_of_columns, frequency_vector, impedance_vector)
