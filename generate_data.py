@@ -1,21 +1,29 @@
 """This module simulates impedance data starting from the circuit string, the
 initial parameters of each element and the element constant conditions.
-The elements type and disposition id specified in the circuit string, while
-their values in the parameters list. The element constant conditions are set
-to 1, since they are not relevant to the generation of the data.
-The data are plotted and saved .pdf. The data are also saved in a .txt file.
+These three pieces of information are stored inside of an Circuit class object
+named initial_circuit. The circuit string containes the elements type and
+their disposition, while their values in the parameters list. The element
+constant conditions are all set to 1, since they are not relevant to the
+generation of the data.
+Starting from this signal, a small randomized noise is added to it.
+The final data are plotted and saved .pdf. The data are also saved in a .txt
+file, with the complex impedance format.
 """
 
 import numpy as np
 
-from generate_impedance import generate_impedance_function
+from generate_impedance import Circuit, list_elements_string
 from plot_and_save import plot_data, save_data
 
 
-def generate_circuit_data():
+#####################################
+#Input functions, free to edit
+
+def generate_circuit_string_data():
     """Generate a circuit string for the data generation."""
     circuit_string_data = '(R1C2[R3Q4])'
     return circuit_string_data
+
 
 def generate_parameters_data():
     """Generate a list of parameters for the data generation in standard
@@ -28,15 +36,17 @@ def generate_parameters_data():
     parameters_data = ([parameter_1, parameter_2, parameter_3, parameter_4])
     return parameters_data
 
+
 def set_frequencies():
     """Set the range and number of frequencies for the data generation."""
     lower_limit_oom = -1
     upper_limit_oom = 6
     number_of_points = 100
-    log_frequency_vector = np.linspace(lower_limit_oom, upper_limit_oom,
-                                       number_of_points)
-    frequency_vector = 10.**log_frequency_vector
-    return frequency_vector
+    log_frequency = np.linspace(lower_limit_oom, upper_limit_oom,
+                                 number_of_points)
+    frequency = 10.**log_frequency
+    return frequency
+
 
 def set_file_name():
     """Set the .txt data file name where the data will be saved."""
@@ -44,27 +54,57 @@ def set_file_name():
     file_name += '.txt'
     return file_name
 
+#No modifications below this line
 ##############################################################################
 
-def generate_constant_elements_array_data(parameters_data):
+###############################
+#Setting-up functions
+
+def generate_constant_elements_data(parameters_data):
     """Generate an array for constant elements conditions for the data
     generation.
 
     Parameters
     ----------
-    parameters_data : array
+    parameters_data : list
         List of the parameters of the circuit's elemetns given by input
 
     Returns
     -------
-    random_error_component : array
-        Array for constant elements conditions, with the same length of the
-        parameters list. During the data generation both 0 and 1 have the same
-        effect, thus this array is set to contain only 1 (faster process).
+    constant_elements_data : list
+        List of constant elements conditions, all set to 1
     """
     parameters_data_length = len(parameters_data)
     constant_elements_data = [1] * parameters_data_length
     return constant_elements_data
+
+def generate_circuit_data(circuit_string_data, parameters_data):
+    """Build the Circuit instance based on the circuit string and parameters
+    input data.
+
+    Parameters
+    ----------
+    circuit_string_data : str
+        Circuit string given by input
+    parameters_data : list
+        List of the parameters of the circuit's elements given by input
+
+    Returns
+    -------
+    initial_circuit_data : Circuit
+        Circuit object for the input data
+    """
+    constant_elements_data = generate_constant_elements_data(
+        parameters_data)
+    parameters = {}
+    elements = list_elements_string(circuit_string_data)
+    for i, element in enumerate(elements):
+        parameters[element] = (parameters_data[i], constant_elements_data[i])
+    initial_circuit_data = Circuit(circuit_string_data, parameters)
+    return initial_circuit_data
+
+############################
+#Noise simulation
 
 def generate_random_error_component(signal_length):
     """Generate a random array of numbers between 0 and 1 of length
@@ -78,50 +118,53 @@ def generate_random_error_component(signal_length):
     Returns
     -------
     random_error_component : array
-        Array of random numbers to simulate random noise
+        Array for constant elements conditions, with the same length of the
+        parameters list. During the data generation both 0 and 1 have the same
+        effect, thus this array is set to contain only 1 (faster process).
     """
     random_error_component = np.random.uniform(-0.5, 0.5, signal_length)
     return random_error_component
 
-def simulate_noise(signal_vector):
+def simulate_noise(impedance_signal):
     """For each of the real and imaginary part of the signal, add a uniform
     probability distribution noise between 0 and 1%/np.sqrt(2) of the
     impedance to the signal.
 
     Parameters
     ----------
-    signal_vector : array
+    impedance_signal : array
         Impedances given by the generated impedance function of the circuit
 
     Returns
     -------
-    impedance_vector : array
-        Simulation of impedances with a random error
+    impedance_data : array
+        Simulation of impedances with a random error component
     """
-    signal_length = len(signal_vector)
+    signal_length = len(impedance_signal)
     noise_factor = 0.01/np.sqrt(2)
     real_part_error = generate_random_error_component(signal_length)
     imaginary_part_error = generate_random_error_component(signal_length)
-    noise = noise_factor*signal_vector * (real_part_error
+    noise = noise_factor*impedance_signal * (real_part_error
                                           + 1j*imaginary_part_error)
-    impedance_vector = signal_vector + noise
-    return impedance_vector
+    impedance_data = impedance_signal + noise
+    return impedance_data
+
 
 
 if __name__=="__main__":
-    CIRCUIT_STRING_DATA = generate_circuit_data()
+    CIRCUIT_STRING_DATA = generate_circuit_string_data()
     parameters_data = generate_parameters_data()
+    initial_circuit_data = generate_circuit_data(CIRCUIT_STRING_DATA,
+                                                 parameters_data)
+    analyzed_circuit_data = initial_circuit_data.generate_analyzed_circuit()
+    impedance_function = analyzed_circuit_data.impedance
 
-    constant_elements_data = generate_constant_elements_array_data(
-        parameters_data)
-    impedance_function, parameters, _ = generate_impedance_function(
-        CIRCUIT_STRING_DATA, parameters_data, constant_elements_data)
+    frequency = set_frequencies()
+    final_parameters = analyzed_circuit_data.list_parameters()
+    impedance_signal = impedance_function(final_parameters, frequency)
+    impedance_data = simulate_noise(impedance_signal)
 
-    frequency_vector = set_frequencies()
-    signal_vector = impedance_function(parameters, frequency_vector)
-    impedance_vector = simulate_noise(signal_vector)
-
-    plot_data(frequency_vector, impedance_vector)
+    plot_data(frequency, impedance_data)
     FILE_NAME = set_file_name()
-    number_of_columns = 2
-    save_data(FILE_NAME, number_of_columns, frequency_vector, impedance_vector)
+    NUMBER_OF_COLUMNS = 2
+    save_data(FILE_NAME, NUMBER_OF_COLUMNS, frequency, impedance_data)

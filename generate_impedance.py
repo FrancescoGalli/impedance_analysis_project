@@ -1,13 +1,397 @@
 """This module is a collection of functions aimed to generate an impedance
 function of a circuit, based on its elements.
-Starting with a string that represent the circuit, a list of the parameters of
-all the elements and an array for considering certain parameters as constants
-in the function, this module aims to give the impedance function, a list with
-all the non-constant parameters and a list that contains all the non-constant
-elements. Both lists are ordered in the chronoclocal way of the alghoritm.
+It is composed by two classes with relative methods, plus other functions.
+The first class is the Circuit class, describing a circuit given the circuit
+string, the parameters, the constant elements for the fit and eventually the
+error that will be minimized during the fit.
+The second class is the AnalisysCircuit. It is an intermediary class between
+the initial circuit and the circuit which impedance function will be minimized
+during the fit. Its scope is to generate an impedance function based on the
+circuit string and its parameters.
+Given a certain initial circuit, this module divide its circuit string in
+cells, based on series or parallel bracket block. For each of them
+every element gets its impedance function (based on the parameter), then they
+are combined using the electrical circuit rules. Thus to a single cell it is
+associated an impedance function with its parameters, and the cell becomes a
+single equivalent element. This analysis goes on until there is a single
+element in the string, and all of the information is stored inside an
+instance of the AnalysisCircuit class.
 """
 
 import numpy as np
+
+
+class Circuit:
+    """
+    Class describing a circuit.
+
+    Attributes
+    ----------
+    circuit_string : str
+        circuit string, representing the circuit scheme.
+    parameters_map : dict
+        a dictionary that correlate each element to a tuple containing the
+        element parameter and the constant condition
+    error : float
+        error based on the data, impedance function and parameters
+
+    Methods
+    -------
+    generate_analyzed_circuit()
+        Analyze the circuit and create an object that contains the analysis
+    get_initial_parameters()
+        Print the elements of the circuit with their relative parameter and
+        the impedance error
+    """
+    def __init__(self, circuit_string, parameters_map, error=None):
+        """
+        Parameters
+        ----------
+        circuit_string : str
+            circuit string, representing the circuit scheme.
+        parameters_map : dict
+            a dictionary that correlate each element to a tuple containing the
+            element parameter and the constant condition
+        error : int or float, optional
+            error based on the impedance function, data and parameters
+            (default is None)
+        """
+        self.circuit_string = circuit_string
+        self.parameters_map = parameters_map
+        self.error = error
+
+    def generate_analyzed_circuit(self):
+        """Generate an AnalysisCircuit instance containing all the analysis
+         of the initial circuit.
+
+        Returns
+        -------
+        analyzed_circuit : AnalisysCircuit
+            object containing all the analysis of the initial circuit
+        """
+        working = 1
+        index = 1 #first element is just a bracket, cannot be an element
+        analyzed_circuit = AnalisysCircuit(self.circuit_string, {})
+        working_count = 0
+        working_limit = 100
+        cell_count = 0
+        while working:
+            circuit_string = analyzed_circuit.circuit_string
+            if (circuit_string[index]==')' or circuit_string[index]==']'):
+                cell_count += 1
+                i_start = get_position_opening_bracket(circuit_string, index)
+                impedance_cell = analyzed_circuit.generate_cell_impedance(
+                    self, i_start, index)
+                if analyzed_circuit.circuit_string[index]==')':
+                    impedance_cell_equivalent = serial_comb(impedance_cell)
+                else:
+                    impedance_cell_equivalent = parallel_comb(impedance_cell)
+                new_element = analyzed_circuit.update_string(i_start, index,
+                                                             cell_count)
+                analyzed_circuit.impedance_parameters_map[
+                    new_element] = (impedance_cell_equivalent, 'equivalent')
+                index = 1
+            else:
+                index += 1
+            if index>(len(analyzed_circuit.circuit_string)-1):
+                working = 0
+            working_count += 1
+            if working_count>working_limit:
+                working = 0
+        analyzed_circuit.get_final_results()
+        return analyzed_circuit
+
+    def get_initial_parameters(self):
+        """Return a string in which each element is the circuit element
+        name followed by its parameter value. The last element is the error
+        estimated with the current values of the parameters.
+        Used to print the parameters value and error.
+
+        Returns
+        -------
+        parameters_string : str
+            List of strings containing the name and inital value of the
+            parameters. If the parameters is set constant, a '(constant)'
+            follows the parameter value. Then the error estimated with the
+            initial values of the parameters is added as last element.
+        """
+        parameters_string_vector = []
+        for element, parameter in self.parameters_map.items():
+            if element.startswith('Q'):
+                element_info = (element + ': ' + str(parameter[0][0]) + ', '
+                                + str(parameter[0][1]))
+            else:
+                element_info = element + ': ' + str(parameter[0])
+            if parameter[1]:
+                element_info += ' (constant)'
+            parameters_string_vector.append(element_info)
+        parameters_string_vector.append('Error: ' + f'{self.error:.4f}')
+        parameters_string = get_string(parameters_string_vector)
+        return parameters_string
+
+
+class AnalisysCircuit:
+    """Class describing the analysis of a circuit.
+
+    Attributes
+    ----------
+    circuit_string : str
+        circuit string, representing the initial circuit scheme
+    impedance_parameters_map : dict
+        dictionary that correlate each element (or equivalent element of a
+        cell) with a tuple containing its impedance function and parameter(s).
+        If the element was constant a 'const' string takes the parameter's
+        place. If is an equivalent element, the saying 'equivalent' is present
+    impedance : function
+        last impedance function calculated, i.e. the impedance of the whole
+        circuit
+    parameters_map : dict
+        dictionary containing all the non-constant elements - parameter
+        relationships, put in chronological order during the analysis
+
+    Methods
+    -------
+    generate_cell_impedance(initial_circuit, i_start, i_end)
+        Analyze a cell of the circuit and write the result in the instance of
+        the class
+    get_impedance_function_element(element_string, initial_circuit)
+        Calculate the impedance function of a single element, based on the
+        case of constant or non-constant parameter(s)
+    """
+    def __init__(self, circuit_string, impedance_parameters_map=None,
+                 impedance=None, parameters_map=None):
+        """
+        Parameters
+        ----------
+        circuit_string : str
+            circuit string, representing the initial circuit scheme
+        impedance_parameters_map : dict, optional
+            dictionary that correlate each element with a tuple containing
+            its impedance function and parameter(s) (default is None)
+        impedance : function, optional
+            last impedance function calculated, i.e. the impedance of the
+            whole circuit (default is None)
+        parameters_map : dict, optional
+            dictionary containing all the non-constant elements - parameter
+            relationships, put in chronological order during the analysis
+            (default is None)
+        """
+        self.circuit_string = circuit_string
+        self.impedance_parameters_map = impedance_parameters_map
+        self.impedance = impedance
+        self.parameters_map = parameters_map
+
+    def get_impedance_constant_element(self, element_string, const_parameter):
+        """Calculate the impedance function of a constant element in the
+        input string; its parameters will be kept constant in the fit. Based
+        on the element_type, select the proper impedance function.
+        Then the element with its impedance function are added to the
+        impedance_parameters_map attribute of the instance of the class.
+
+        Parameters
+        ----------
+        element_string : str
+            (Constant) element string of the analyzed element
+        const_parameter : int, float or list
+            Parameter of the constant element
+        """
+        if self.impedance_parameters_map is None:
+            self.impedance_parameters_map = {}
+        if element_string.startswith('R'):
+            impedance_element_f = lambda _, f: impedance_resistor(
+                const_parameter, f)
+        if element_string.startswith('C'):
+            impedance_element_f = lambda _, f: impedance_capacitor(
+                const_parameter, f)
+        if element_string.startswith('Q'):
+            impedance_element_f = lambda _, f:impedance_cpe(
+                const_parameter[0], const_parameter[1], f)
+        self.impedance_parameters_map[element_string] = (impedance_element_f,
+                                                         'const')
+
+    def get_impedance_non_const_element(self, element_string, parameter):
+        """Calculate the impedance function of a non-constant element in the
+        input string; its parameters will figure in the fit. Based on the
+        element_type, select the proper impedance function.
+        Then the element with its impedance function and its parameter are
+        added to the impedance_parameters_map attribute of the instance of
+        the class.
+
+        Parameters
+        ----------
+        element_string : str
+            (Non-constant) element string of the analyzed element
+        parameter : int, float or list
+            Parameter of the non-constant element
+        """
+        n_parameter = 0
+        if self.impedance_parameters_map is None:
+            self.impedance_parameters_map = {}
+        else:
+            for element, map_ in self.impedance_parameters_map.items():
+                if not isinstance(map_[1], str):
+                    if element.startswith('Q'):
+                        n_parameter += 2
+                    else:
+                        n_parameter += 1
+        if element_string.startswith('R'):
+            impedance_function_element = lambda p, f: impedance_resistor(
+                p[n_parameter], f)
+            self.impedance_parameters_map[element_string] = (
+                impedance_function_element, parameter)
+        elif element_string.startswith('C'):
+            impedance_function_element = lambda p, f: impedance_capacitor(
+                p[n_parameter], f)
+            self.impedance_parameters_map[element_string] = (
+                impedance_function_element, parameter)
+        elif element_string.startswith('Q'):
+            impedance_function_element = lambda p, f: impedance_cpe(
+                p[n_parameter], p[n_parameter+1], f)
+            self.impedance_parameters_map[element_string] = (
+                impedance_function_element, parameter)
+
+    def get_impedance_element(self, element_string, initial_circuit):
+        """Return the impedance function selecting the three cases: the
+        element has already been analyzed, the element has parameters that
+        will not figure in the fit (constant parameter) or the element has
+        parameters that WILL figure in the fit (non-constant parameter).
+
+        Parameters
+        ----------
+        element_string : str
+            String corresponding to the single element (letter and number)
+        impedance_circuit : list
+            List of impedance functions containing in chronological order each
+            cell analysis (the elements inside a pair of brackets)
+
+        Returns
+        -------
+        impedance_element_f : function
+            Impedance function of the analyzed element
+        """
+        constant_condition = initial_circuit.parameters_map[element_string][1]
+        if constant_condition:
+            constant_parameter = initial_circuit.parameters_map[
+                element_string][0]
+            self.get_impedance_constant_element(element_string,
+                                                constant_parameter)
+        else:
+            parameter = initial_circuit.parameters_map[element_string][0]
+            self.get_impedance_non_const_element(element_string, parameter)
+
+    def generate_cell_impedance(self, initial_circuit, i_start, i_end):
+        """Calculate the impedance function of all the elements inside,
+        defined as the group of elements inside a pair of round or square
+        brackets. During the process, save all the
+        element-impedance_parameter relationshiphs inside the
+        impedance_parameters_map.
+
+        Parameters
+        ----------
+        initial_circuit : Circuit
+            Initial circuit to be analyzed
+        i_start : int
+            Index of circuit_string that corresponds to an opening bracket.
+            Delimits the beginning of the cell to be analyzed
+        i_end : int
+            Index of circuit_string that corresponds to a closing bracket.
+            Delimits the end of the cell to be analyzed
+
+        Returns
+        -------
+        impedance_cell : list
+            List of impedance function of all the elements inside the analyzed
+            cell
+        """
+        impedance_cell = []
+        for i in range(i_start+1, i_end, 2): #Increment of 2 to jump the
+            #numbers of the elements and count only the letters in the string
+            # (one letter for one element)
+            element_string = self.circuit_string[i:i+2]
+            if not element_string.startswith('Z'):
+                self.get_impedance_element(element_string,
+                                                    initial_circuit)
+            impedance_function_element = self.impedance_parameters_map[
+                element_string][0]
+            impedance_cell.append(impedance_function_element)
+        return impedance_cell
+
+    def update_string(self, i_start, i_end, cell_count):
+        """Given the circuit string, the position of the analyzed cell bordes
+        and the number of analyzed cells, update the circuit string
+        substituting the analyzed cell with an equivalent element type 'Z'
+        followed by the corresponding number of number of analyzed cells.
+
+        Parameters
+        ----------
+        circuit_string : str
+            String of the circuit before the last cycle of analysis
+        i_start : int
+            Index of circuit_string that corresponds to an opening bracket.
+            Delimits the beginning of the cell to be analyzed
+        i_end : int
+            Index of circuit_string that corresponds to a closing bracket.
+            Delimits the end of the cell to be analyzed
+        cell_count : int
+            Number of analyzed cells, which corresponds to the number of
+            cycles of analysis
+
+        Returns
+        -------
+        updated_circuit_string : str
+            String of the circuit after the last cycle of analysis
+        """
+        new_element = 'Z' + str(cell_count)
+        updated_string = self.circuit_string.replace(
+            self.circuit_string[i_start:i_end+1], new_element)
+        self.circuit_string = updated_string
+        return new_element
+
+    def get_final_results(self):
+        """Exctract from the impedance_parameters_map attribute the last
+        (thus final) impedance and all the non-constant elements with their
+        parameter. Put the first in the 'impedance' attribute, and the other
+        two in the 'parameters_map' attribute.
+        """
+        self.impedance = list(self.impedance_parameters_map.values())[-1][0]
+        parameters_map = {}
+        for element, parameter in self.impedance_parameters_map.items():
+            if not isinstance(parameter[1], str):
+                parameters_map[element] = parameter[1]
+        self.parameters_map = parameters_map
+
+    def list_parameters(self):
+        """List all the non-constant parameters in the parameters_map as
+        float or integer.
+
+        Returns
+        -------
+        parameters_list : list
+            List of all the non-constant parameters
+        """
+        parameters_list = []
+        for element, parameter in self.parameters_map.items():
+            if element.startswith('Q'):
+                parameters_list.append(parameter[0])
+                parameters_list.append(parameter[1])
+            else:
+                parameters_list.append(parameter)
+        return parameters_list
+
+    def list_elements(self):
+        """List all the non-constant elements strings in the parameters_map.
+        Returns
+        -------
+        elements_list : list
+            List of all the non-constant elements strings
+        """
+        elements_list = []
+        for elements in self.parameters_map.keys():
+            elements_list.append(elements)
+        return elements_list
+
+###########################
+#Impedance definitions
 
 def impedance_resistor(resistance, frequency):
     """Definition of impedance for resistors.
@@ -70,130 +454,8 @@ def impedance_cpe(q_parameter, ideality_factor, frequency):
         q_parameter*(frequency*2*np.pi)**ideality_factor*phase_factor)
     return impedance
 
-def get_impedance_const_input_element(element_type, const_parameter):
-    """Calculate the impedance function of an element in the input string;
-    its parameters will be kept constant in the fit. Based on the
-    element_type, select the proper impedance function.
-
-    Parameters
-    ----------
-    element_type : string
-        String corresponding to the single element type (R, C or Q)
-    const_parameter : list or float
-        Parameter of the element that will not figure in the fit, but
-        contributes to the definition of the impedance function
-
-    Returns
-    -------
-    impedance_element : function
-        Impedance function of the element that will depend only on the
-        frequency
-    """
-    if element_type=='R':
-        impedance_element = lambda _, f: impedance_resistor(const_parameter,
-                                                            f)
-    if element_type=='C':
-        impedance_element = lambda _, f: impedance_capacitor(const_parameter,
-                                                             f)
-    if element_type=='Q':
-        impedance_element = lambda _, f: impedance_cpe(const_parameter[0],
-                                                     const_parameter[1], f)
-    return impedance_element
-
-def get_impedance_input_element(element_type, parameters, parameter):
-    """Calculate the impedance function of an element in the input string;
-    its parameters will figure in the fit. Based on the element_type,
-    select the proper impedance function.
-
-    Parameters
-    ----------
-    element_type : string
-        String corresponding to the single element type (R, C or Q)
-    parameters : list
-        List of parameters of elements (added so far), that will figure in
-        the fit
-    parameter : list or float
-        Parameter(s) of the current element that will figure in the fit, on
-        which depends the definition of the impedance function of the element
-
-    Returns
-    -------
-    impedance_element : function
-        Impedance function that will depend both on the parameter(s) and on
-        the frequency
-    parameters : list
-        List of parameters (float, integer or lists) that will be object of
-        the fit
-    """
-    impedance_element = []
-    if element_type=='R':
-        parameters.append(parameter)
-        i_parameter = len(parameters) - 1
-        impedance_element = lambda p, f: impedance_resistor(p[i_parameter], f)
-    elif element_type=='C':
-        parameters.append(parameter)
-        i_parameter = len(parameters)-1
-        impedance_element = lambda p, f: impedance_capacitor(p[i_parameter],
-                                                             f)
-    elif element_type=='Q':
-        parameters.append(parameter[0])
-        parameters.append(parameter[1])
-        i_parameter = len(parameters)-1
-        impedance_element = lambda p, f: impedance_cpe(p[i_parameter-1],
-                                                     p[i_parameter], f)
-    return impedance_element, parameters
-
-def get_impedance_function_element(element_string, impedance_circuit,
-                                   initial_parameters, parameters_circuit,
-                                   elements_circuit, constant_elements):
-    """Return the impedance function selecting the three cases: the element
-    has already been analyzed, the element has parameters that will not figure
-    in the fit or the element has parameters that WILL figure in the fit.
-
-    Parameters
-    ----------
-    element_string : string
-        String corresponding to the single element (letter and number)
-    impedance_circuit : list
-        List of impedance functions containing in chronological order each
-        cell analysis (the elements inside a pair of brackets)
-    initial_parameters : list
-        List of parameters given by input
-    parameters_circuit : list
-        List of parameters containing all parameters analyzed so far, that
-        will be object of the fit
-    elements_circuit : list
-        List of elements containing all elements analyzed so far, that
-        will be object of the fit, in order of analysis
-    constant_elements : list
-        List of constant elements condition given by input
-
-    Returns
-    -------
-    impedance_element : function
-        Impedance function of the analyzed element
-    parameters_circuit : list
-        List of parameters containing all parameters analyzed so far, that
-        will be object of the fit
-    elements_circuit : list
-        List of elements containing all elements analyzed so far, that will be
-        object of the fit, in order of analysis
-    """
-    i_element = int(element_string[1]) - 1
-    if element_string[0]=='Z':
-        impedance_element = impedance_circuit[i_element]
-    elif constant_elements[i_element]:
-        const_parameter = initial_parameters[i_element]
-        element_type = element_string[0]
-        impedance_element = get_impedance_const_input_element(
-            element_type, const_parameter)
-    else:
-        elements_circuit.append(element_string)
-        parameter = initial_parameters[i_element]
-        element_type = element_string[0]
-        impedance_element, parameters_circuit = get_impedance_input_element(
-            element_type, parameters_circuit, parameter)
-    return impedance_element, parameters_circuit, elements_circuit
+######################################
+#Functions to combine functions
 
 def add(first_function, second_function):
     """Add two functions given by input and return the result.
@@ -272,13 +534,15 @@ def parallel_comb(impedance_cell):
     function_cell = reciprocal(one_over_function_cell)
     return function_cell
 
+#############################
+
 def get_position_opening_bracket(circuit_string, i_end):
     """Given the circuit string and the position of a closing bracket, find
     the corrispective opening bracket
 
     Parameters
     ----------
-    circuit_string : string
+    circuit_string : str
         String of the current circuit
     i_end : int
         Index of circuit_string that corresponds to a closing bracket
@@ -299,144 +563,42 @@ def get_position_opening_bracket(circuit_string, i_end):
     last_opening_bracket_position = opening_bracket_positions[-1]
     return last_opening_bracket_position
 
-def generate_cell_impedance(circuit_string, i_start, i_end, impedance_circuit,
-                            initial_parameters, parameters_circuit,
-                            elements_circuit, constant_elements):
-    """Calculate the impedance function of a cell, defined as the group of
-    elements inside a pair of round or square brackets.
+
+def get_string(string_vector):
+    """From a string vector creates a single string, concatenating each
+    element with a \n as separator.
 
     Parameters
     ----------
-    circuit_string : string
-        String of the current circuit
-    i_start : int
-        Index of circuit_string that corresponds to an opening bracket.
-        Delimits the beginning of the cell to be analyzed
-    i_end : int
-        Index of circuit_string that corresponds to a closing bracket.
-        Delimits the end of the cell to be analyzed
-    impedance_circuit : dict
-        List of impedance functions containing in chronological order each
-        cell analysis (the elements inside a pair of brackets)
-    initial_parameters : list
-        List of parameters given by input
-    parameters_circuit : list
-        List of parameters containing all parameters analyzed so far, that
-        will be object of the fit
-    elements_circuit : list
-        List of elements containing all elements analyzed so far, that
-        will be object of the fit, in order of analysis
-    constant_elements : list
-        List of constant elements condition given by input
+    string_vector : list
+        List of str-type variables
 
     Returns
     -------
-    impedance_cell : function
-        Impedance function of the analyzed element
-    parameters_circuit : list
-        List of parameters containing all parameters analyzed so far, that
-        will be object of the fit
-    elements_circuit : list
-        List of elements containing all elements analyzed so far, that will be
-        object of the fit, in order of analysis
+    string_ : str
+        Concatenated string
     """
-    impedance_cell = []
-    for i in range(i_start+1, i_end, 2): #Increment of 2 to jump the numbers
-        #of the elements and count only the letters in the string (one letter
-        #for one element)
-        element_string = circuit_string[i:i+2]
-        (impedance_element, parameters_circuit,
-         elements_circuit) = get_impedance_function_element(
-            element_string, impedance_circuit, initial_parameters,
-            parameters_circuit, elements_circuit, constant_elements)
-        impedance_cell.append(impedance_element)
-    return impedance_cell, parameters_circuit, elements_circuit
+    string_ = ''
+    new_line = '\n'
+    string_ = new_line.join(string_vector)
+    return string_
 
-def update_string(circuit_string, i_start, i_end, last_impedance_element):
-    """Given the circuit string,  the position of the analyzed cell bordes and
-    the number of cycles of analysis, update the circuit string substituting
-    the analyzed cell with a generic Z followed by the corresponding number
-    of cycle.
+def list_elements_string(circuit_string):
+    """Return the list of input elements (type 'C', 'Q' or 'R' ) of a circuit
+    string.
 
     Parameters
     ----------
-    circuit_string : string
-        String of the circuit before the last cycle of analysis
-    i_start : int
-        Index of circuit_string that corresponds to an opening bracket.
-        Delimits the beginning of the cell to be analyzed
-    i_end : int
-        Index of circuit_string that corresponds to a closing bracket.
-        Delimits the end of the cell to be analyzed
-    last_impedance_element : int
-        Index of the list of impedance, which corresponds to the number of
-        cycles of analysis
+    circuit_string : str
+        String representing the disposition of elements of a circuit
 
     Returns
     -------
-    updated_circuit_string : string
-        String of the circuit after the last cycle of analysis
+    string_elements : str
+        String listing the elements in order of apparition in a circuit string
     """
-    updated_circuit_string = circuit_string.replace(
-        circuit_string[i_start:i_end+1], 'Z'+str(last_impedance_element))
-    return updated_circuit_string
-
-def generate_impedance_function(circuit_string, initial_parameters,
-                                constant_elements):
-    """Given a circuit string, the initial parameters and the constant
-    element conditions, generate an impedance function for the circuit
-
-    Parameters
-    ----------
-    circuit_string : string
-        String of the circuit given by input
-    initial_parameters : list
-        List of parameters given by input
-    constant_elements : list
-        List of constant elements condition given by input
-
-    Returns
-    -------
-    final_impedance_circuit : function
-        Impedance function of the circuit
-    parameters_circuit : list
-        List of parameters (integers, floats or lists) of the elements that
-        compose the circuit and that will figure in the fit
-    elements_circuit : list
-        List of elements (strings) that compose the circuit and that will
-        figure in the fit, in order of analysis
-    """
-    working = 1
-    index = 1 #first element is just a bracket, cannot be an element
-    parameters_circuit = []
-    elements_circuit = []
-    impedance_circuit = []
-    working_count = 0
-    working_limit = 100
-    while working:
-        if (circuit_string[index]==')' or circuit_string[index]==']'):
-            i_start = get_position_opening_bracket(circuit_string, index)
-            (impedance_cell, parameters_circuit,
-             elements_circuit) = generate_cell_impedance(
-                circuit_string, i_start, index, impedance_circuit,
-                initial_parameters, parameters_circuit, elements_circuit,
-                constant_elements)
-            if circuit_string[index]==')':
-                new_impedance = serial_comb(impedance_cell)
-                impedance_circuit.append(new_impedance)
-            else:
-                new_impedance = parallel_comb(impedance_cell)
-                impedance_circuit.append(new_impedance)
-            last_impedance_element = len(impedance_circuit) - 1
-            circuit_string = update_string(circuit_string, i_start, index,
-                                           last_impedance_element)
-            index = 1
-        else:
-            index += 1
-        if index>(len(circuit_string)-1):
-            working = 0
-        working_count += 1
-        if working_count>working_limit:
-            working = 0
-    final_impedance_circuit = impedance_circuit[-1]
-    return (final_impedance_circuit, parameters_circuit, elements_circuit)
+    string_elements = []
+    for i, char in enumerate(circuit_string):
+        if char in {'C', 'Q', 'R'}:
+            string_elements.append(circuit_string[i:i+2])
+    return string_elements

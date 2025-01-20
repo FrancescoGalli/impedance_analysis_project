@@ -1,9 +1,10 @@
 # Impedance Analysis Library
 This repository is for an impedance analysis library written entirely in
-python. In electrochemical spectrospy, the analysis of the impedance sweeping
+python. Before delving into the code aspect, just some words about the physics
+behind the project.\
+In electrochemical spectrospy, the analysis of the impedance sweeping
 the frequency allows to understand the physical/chemical processes of the
-trasmission of electrical signals.
-
+trasmission of electrical signals.\
 The main object is the analysis of impedance vs frequency data. It is
 dedicated to systems that can be schematized using only three types of passive
 elements: resistors, capacitors and constant phase elements.
@@ -21,7 +22,7 @@ physical system.
 The impedance analysis is simply a fitting process of the impedance function
 over the impedance data, and it consists in the minimization of the error
 function:
-$$Error = \sum\frac{|Impedance_{i,\ data} - Impedance_{i,\ function}|}
+$$Error = \sum_{i}\frac{|Impedance_{i,\ data} - Impedance_{i,\ function}|}
     {|Impedance_{i,\ data}|}$$
 where the $Impedance_{i,\ function}$ is an impedance value given by the
 impedance function that describes the equivalent circuit, with the current
@@ -36,42 +37,44 @@ composed of less than six elements (as usually is), this number is rarely hit.
 ## Structure
 The library is divided in 5 modules:
 
-[Generate_data.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_data.py) creates fictitious impedance data with a simulated random noise. To do so,
-the number and values of the frequency points, a circuit diagram and the
-physical description of its elements (i.e. the parameters) must be provided
-by input. With these two specifications the impedance function is created,
-and, according to the frequency points, the impedance complex data are
-calculated. After the generation, a random noise on both real and imaginary
-parts is added to the generated data, using `numpy.random.rand`. The module
-then prints the impedance module and phase vs frequency of the results, and
-saves the graphs in a `.pdf` file and the points in a `.txt` file.
+[Generate_data.py](!!LINK!!) creates fictitious impedance data with a small simulated random noise
+($\sim 1%$). To do so, the number and values of the frequency points, the
+circuit diagram and the physical description of its elements (i.e. the
+parameters) must be set by the user. With these two specifications the
+impedance function is created, and, according to the frequency points, the
+impedance complex data are calculated. After the generation, a random noise
+on both real and imaginary parts is added to the generated data, using
+`numpy.random.rand`. The module then prints the impedance module and phase vs
+frequency of the results, and saves the graphs in a `.pdf` file and the points
+in a `.txt` file.
 
-[Impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/impedance_analysis.py) is dedicated to the analysis (fitting) of the
+[Impedance_analysis.py](!!LINK!!) is dedicated to the analysis (fitting) of the
 impedance data. It reads a .txt file containing the impedance vs frequency
 points. The accepted formats are either frequency, impedance module and phase,
 or frequency and complex impedance. Similarly to the generation module, a
 circuit diagram and the physical description of its elements (i.e. the fitting
-parameters) must be provided by input. In addition each parameter can
-be set as constant, i.e. its parameter value will still contribute to the
-circuit impedance, but will NOT be considered during the fitting process as a
-minimizing parameter.\
-Based on these three inputs, an impedance function
-will be created, and the fit function will try to minimize the error function
-mentioned before, varying the value of the parameters.\
-After the fitting process is complete, the results are printed in the command line
-and both data and fit line of the impedance modulus and phase graphs are
-plotted and saved as `.pdf`.
+parameters) must be set by the user. In addition each element can be set as
+constant, i.e. its parameter will still contribute to the circuit impedance,
+but will NOT be considered during the fitting process as a minimizing
+parameter. The reason behind this is that it happens that, with data in a
+certain range of frequecy, some elements are less relevant than others for the
+impedance trend.\
+Based on these three settings, an impedance function will be created, and the
+fit function will try to minimize the error function mentioned before,
+varying the value of the non-constant parameters.\
+After the fitting process is complete, the results are printed in the command
+line and both data and fit curves of the impedance modulus and phase graphs 
+are plotted and saved as `.pdf`.
 
-[plot_and_save.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py) contains the functions to extract the impedance modulus
+[plot_and_save.py](!!LINK!!) contains the functions to extract the impedance modulus
 and the phase of the complex impedances and to plot the data or the data
 with the fit and the results.
 
-[generate_impedance.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_impedance.py) is the core module that generates an impedance function
-starting from the circuit diagram, the elements parameters (taking into
+[generate_impedance.py](!!LINK!!) is the core module that generates an impedance function
+starting from the circuit diagram and the element parameters (taking into
 account if any parameter is set constant).
 
-[test_impedance.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/test_impedance.py) contains all the tests.
-
+[test_impedance_analysis.py](!!LINK!!) contains all the tests.
 
 ## Installation and usage
 To install the application clone the repository with
