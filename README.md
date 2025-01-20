@@ -37,7 +37,7 @@ composed of less than six elements (as usually is), this number is rarely hit.
 ## Structure
 The library is divided in 5 modules:
 
-[Generate_data.py]https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_data.py creates fictitious impedance data with a small simulated random noise
+[Generate_data.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_data.py) creates fictitious impedance data with a small simulated random noise
 ($\sim 1%$). To do so, the number and values of the frequency points, the
 circuit diagram and the physical description of its elements (i.e. the
 parameters) must be set by the user. With these two specifications the
@@ -48,7 +48,7 @@ on both real and imaginary parts is added to the generated data, using
 frequency of the results, and saves the graphs in a `.pdf` file and the points
 in a `.txt` file.
 
-[Impedance_analysis.py]https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/impedance_analysis.py is dedicated to the analysis (fitting) of the
+[Impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/impedance_analysis.py) is dedicated to the analysis (fitting) of the
 impedance data. It reads a .txt file containing the impedance vs frequency
 points. The accepted formats are either frequency, impedance module and phase,
 or frequency and complex impedance. Similarly to the generation module, a
@@ -66,15 +66,15 @@ After the fitting process is complete, the results are printed in the command
 line and both data and fit curves of the impedance modulus and phase graphs 
 are plotted and saved as `.pdf`.
 
-[plot_and_save.py]https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py contains the functions to extract the impedance modulus
+[plot_and_save.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py) contains the functions to extract the impedance modulus
 and the phase of the complex impedances and to plot the data or the data
 with the fit and the results.
 
-[generate_impedance.py]https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_impedance.py is the core module that generates an impedance function
+[generate_impedance.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_impedance.py) is the core module that generates an impedance function
 starting from the circuit diagram and the element parameters (taking into
 account if any parameter is set constant).
 
-[test_impedance_analysis.py]https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/test_impedance.py contains all the tests.
+[test_impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/test_impedance.py) contains all the tests.
 
 ## Installation and usage
 To install the application clone the repository with
