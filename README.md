@@ -33,6 +33,36 @@ where the numerical method `Nelder-Mead` has proven to be the best one among
 the options. A maximum iterations of 1000 has been set, but with circuits
 composed of less than six elements (as usually is), this number is rarely hit.
 
+## Installation and usage
+To install the application clone the repository with
+```
+git clone https://github.com/FrancescoGalli/impedance_analysis_project.git
+```
+
+To use the library, either to generate or to analyze the data, the user has
+to modify the appropriate module to set the input information (in
+`Generate_data.py` or in `Impedance_analysis.py`, respectively). This regards
+the setting functions (placed at the top of the file) of the circuit string,
+the parameters, and the data file name for both files, while the range and
+number of points of the frequency only for the generation, and the constat
+elements conditions for the analysis.\
+Then the user has to run the modified file.
+
+## Requirements
+The library is entirely written and tested using `python 3.9.12`, but should
+work with any older version of `python 3`. The running code relies on the
+following standard libraries:
+- `csv`
+- `sys`
+- `os.path`
+
+And on the following scientific libraries:
+- `numpy`
+- `scipy.optimize`
+- `matplotlib.pyplot`
+
+All the code, except for the plotting and saving functions are tested using
+`inspect`, `pytest` and `hypothesis` libraries.
 
 ## Structure
 The library is divided in 5 modules:
@@ -75,34 +105,3 @@ starting from the circuit diagram and the element parameters (taking into
 account if any parameter is set constant).
 
 [test_impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/test_impedance.py) contains all the tests.
-
-## Installation and usage
-To install the application clone the repository with
-```
-git clone https://github.com/FrancescoGalli/impedance_analysis_project.git
-```
-
-To use the library, either to generate or to analyze the data, the user has
-to modify the appropriate module to set the input information (in
-`Generate_data.py` or in `Impedance_analysis.py`, respectively). This regards
-the setting functions (placed at the top of the file) of the circuit string,
-the parameters, and the data file name for both files, while the range and
-number of points of the frequency only for the generation, and the constat
-elements conditions for the analysis.\
-Then the user has to run the modified file.
-
-## Requirements
-The library is entirely written and tested using `python 3.9.12`, but should
-work with any older version of `python 3`. The running code relies on the
-following standard libraries:
-- `csv`
-- `sys`
-- `os.path`
-
-And on the following scientific libraries:
-- `numpy`
-- `scipy.optimize`
-- `matplotlib.pyplot`
-
-All the code, except for the plotting and saving functions are tested using
-`inspect`, `pytest` and `hypothesis` libraries.
