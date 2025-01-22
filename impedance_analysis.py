@@ -214,9 +214,12 @@ def bounds_definitions(elements):
             bounds_list.append(r_bound)
         elif element.startswith('C'):
             bounds_list.append(c_bound)
-        else:
+        elif element.startswith('Q'):
             bounds_list.append(q_bound)
             bounds_list.append(n_bound)
+        else:
+            raise Exception('FatalError: Invalid initial parameter name for '
+                            + 'the fit bounds')
     return bounds_list
 
 def fit(frequency_array, impedance_data_vector, analyzed_circuit):
@@ -304,18 +307,21 @@ def get_optimized_parameters_info(element, optimized_parameter):
     element_info : str
         String containing the aforementioned information
     """
-
-    if element.startswith('Q'):
-        element_info = (
-            element + ': ' + str(round(optimized_parameter[0], 11))
-            + ', ' + str(round(optimized_parameter[1], 3)))
-    else:
-        if element.startswith('R'):
-            round_number = 3
-        else:
-            round_number = 11
+    low_precision = 3
+    high_precision = 11
+    if element.startswith('R'):
         element_info = (element + ': ' + str(round(optimized_parameter,
-                                                   round_number)))
+                                                   low_precision)))
+    elif element.startswith('C'):
+        element_info = (element + ': ' + str(round(optimized_parameter,
+                                                   high_precision)))
+    elif element.startswith('Q'):
+        element_info = (
+            element + ': ' + str(round(optimized_parameter[0], high_precision))
+            + ', ' + str(round(optimized_parameter[1], low_precision)))
+    else:
+        raise Exception('FatalError: Invalid optmized parameter name to '
+                        + 'exctract info')
     return element_info
 
 def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
