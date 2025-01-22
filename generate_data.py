@@ -12,17 +12,17 @@ file, with the complex impedance format.
 
 import numpy as np
 
-from generate_impedance import Circuit, list_elements_string
+from generate_impedance import Circuit, list_elements_circuit
 from plot_and_save import plot_data, save_data
 
 
 #####################################
 #Input functions, free to edit
 
-def generate_circuit_string_data():
-    """Generate a circuit string for the data generation."""
-    circuit_string_data = '(R1C2[R3Q4])'
-    return circuit_string_data
+def generate_circuit_diagram_data():
+    """Generate a circuit diagram for the data generation."""
+    circuit_diagram_data = '(R1C2[R3Q4])'
+    return circuit_diagram_data
 
 
 def generate_parameters_data():
@@ -78,14 +78,14 @@ def generate_constant_elements_data(parameters_data):
     constant_elements_data = [1] * parameters_data_length
     return constant_elements_data
 
-def generate_circuit_data(circuit_string_data, parameters_data):
-    """Build the Circuit instance based on the circuit string and parameters
+def generate_circuit_data(circuit_diagram_data, parameters_data):
+    """Build the Circuit instance based on the circuit diagram and parameters
     input data.
 
     Parameters
     ----------
-    circuit_string_data : str
-        Circuit string given by input
+    circuit_diagram_data : str
+        Circuit diagram given by input
     parameters_data : list
         List of the parameters of the circuit's elements given by input
 
@@ -97,10 +97,10 @@ def generate_circuit_data(circuit_string_data, parameters_data):
     constant_elements_data = generate_constant_elements_data(
         parameters_data)
     parameters = {}
-    elements = list_elements_string(circuit_string_data)
+    elements = list_elements_circuit(circuit_diagram_data)
     for i, element in enumerate(elements):
         parameters[element] = (parameters_data[i], constant_elements_data[i])
-    initial_circuit_data = Circuit(circuit_string_data, parameters)
+    initial_circuit_data = Circuit(circuit_diagram_data, parameters)
     return initial_circuit_data
 
 ############################
@@ -152,9 +152,9 @@ def simulate_noise(impedance_signal):
 
 
 if __name__=="__main__":
-    CIRCUIT_STRING_DATA = generate_circuit_string_data()
+    CIRCUIT_DIAGRAM_DATA = generate_circuit_diagram_data()
     parameters_data = generate_parameters_data()
-    initial_circuit_data = generate_circuit_data(CIRCUIT_STRING_DATA,
+    initial_circuit_data = generate_circuit_data(CIRCUIT_DIAGRAM_DATA,
                                                  parameters_data)
     analyzed_circuit_data = initial_circuit_data.generate_analyzed_circuit()
     impedance_function = analyzed_circuit_data.impedance
