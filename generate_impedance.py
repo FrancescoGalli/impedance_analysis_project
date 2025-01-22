@@ -197,15 +197,18 @@ class AnalisysCircuit:
         """
         if self.impedance_parameters_map is None:
             self.impedance_parameters_map = {}
-        if element_name.startswith('R'):
+        elif element_name.startswith('R'):
             impedance_element_f = lambda _, f: impedance_resistor(
                 const_parameter, f)
-        if element_name.startswith('C'):
+        elif element_name.startswith('C'):
             impedance_element_f = lambda _, f: impedance_capacitor(
                 const_parameter, f)
-        if element_name.startswith('Q'):
+        elif element_name.startswith('Q'):
             impedance_element_f = lambda _, f:impedance_cpe(
                 const_parameter[0], const_parameter[1], f)
+        else:
+            raise Exception('FatalError: Invalid constant parameter name for '
+                            + 'the impedance function')
         self.impedance_parameters_map[element_name] = (impedance_element_f,
                                                          'const')
 
@@ -249,6 +252,9 @@ class AnalisysCircuit:
                 p[n_parameter], p[n_parameter+1], f)
             self.impedance_parameters_map[element_name] = (
                 impedance_function_element, parameter)
+        else:
+            raise Exception('FatalError: Invalid non-constant parameter name '
+                            + 'for the impedance function')
 
     def set_impedance_element(self, element_name, initial_circuit):
         """Return the impedance function selecting the three cases: the
