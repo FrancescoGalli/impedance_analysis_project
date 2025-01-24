@@ -70,11 +70,12 @@ The library is divided in 5 modules:
 [Generate_data.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_data.py) creates fictitious impedance data with a small simulated random noise
 ($\sim 1%$). To do so, the number and values of the frequency points, the
 circuit diagram and the physical description of its elements (i.e. the
-parameters) must be set by the user. With these two specifications the
-impedance function is created, and, according to the frequency points, the
-impedance complex data are calculated. After the generation, a random noise
-on both real and imaginary parts is added to the generated data, using
-`numpy.random.rand`. The module then prints the impedance module and phase vs
+parameters) must be set by the user through a configuration file. With these
+two specifications the impedance function is created, and, according to the
+frequency points, the impedance complex data are calculated. After the
+generation, a random noise on both real and imaginary parts is added to the
+generated data, using `numpy.random.rand` and a seed specified in the
+configuration file. The module then prints the impedance module and phase vs
 frequency of the results, and saves the graphs in a `.pdf` file and the points
 in a `.txt` file.
 
@@ -89,19 +90,20 @@ but will NOT be considered during the fitting process as a minimizing
 parameter. The reason behind this is that it happens that, with data in a
 certain range of frequecy, some elements are less relevant than others for the
 impedance trend.\
-Based on these three settings, an impedance function will be created, and the
-fit function will try to minimize the error function mentioned before,
-varying the value of the non-constant parameters.\
+Based on these three settings, (again, written in a configuration file) an
+impedance function will be created, and the fit function will try to minimize
+the error function mentioned before, varying the value of the non-constant
+parameters.\
 After the fitting process is complete, the results are printed in the command
 line and both data and fit curves of the impedance modulus and phase graphs 
 are plotted and saved as `.pdf`.
 
-[plot_and_save.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py) contains the functions to extract the impedance modulus
-and the phase of the complex impedances and to plot the data or the data
-with the fit and the results.
-
 [generate_impedance.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_impedance.py) is the core module that generates an impedance function
 starting from the circuit diagram and the element parameters (taking into
 account if any parameter is set constant).
+
+[plot_and_save.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py) contains the functions to extract the impedance modulus
+and the phase of the complex impedances and to plot the data or the data
+with the fit and the results.
 
 [test_impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/test_impedance.py) contains all the tests.

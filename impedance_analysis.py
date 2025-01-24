@@ -16,6 +16,7 @@ and fit.
 
 import os.path
 import sys
+import configparser
 from csv import reader
 
 import numpy as np
@@ -25,39 +26,94 @@ from generate_impedance import Circuit, get_string, list_elements_circuit
 from plot_and_save import plot_data, plot_fit
 
 
-#####################################
-#Input functions, free to edit
+#######################
+#Input functions
 
-def generate_circuit_string_fit():
-    """Return the circuit diagram for the fit."""
-    circuit_diagram_fit = '(R1C2[R3Q4])'
+def read_input_circuit_diagram_fit(config):
+    """Read the circuit diagram specified in the configuration file for the
+    fit.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Parser object with the information inside the configuration file
+
+    Returns
+    -------
+    circuit_diagram_fit : str
+        Circuit diagram given in the configuration file
+    """
+    circuit_diagram_fit = config.get('Circuit','diagram')
     return circuit_diagram_fit
 
-def generate_circuit_parameters_fit():
-    """Return the initial parameters for the fit in standard units."""
-    parameter_1 = 7000
-    parameter_2 = 8e-6
-    parameter_3 = 10000
-    parameter_4 = ([0.07e-6, 0.7])
-    parameters_fit = ([parameter_1, parameter_2, parameter_3, parameter_4])
+def read_input_parameters_fit(config):
+    """Read the parameters specified in the configuration file for the
+    fit.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Parser object with the information inside the configuration file
+
+    Returns
+    -------
+    parameters_fit : dict
+        Parameters given in the configuration file
+    """
+    parameters_fit = {}
+    for parameter_name in config['Parameters']:
+        string_parameter_name = (str(parameter_name)).upper()
+        if string_parameter_name.startswith('Q'):
+            string_list = config.get('Parameters',
+                                     string_parameter_name).split()
+            parameters_fit[string_parameter_name] = [float(i) for i in
+                                                        string_list]
+        else:
+            parameters_fit[string_parameter_name] = config.getfloat(
+                'Parameters', string_parameter_name)
     return parameters_fit
 
-def generate_constant_elements_fit():
-    """Return the constant elements condition for the fit."""
-    constant_elements_fit = ([0, 0, 1, 0])
+def read_input_constant_parameter_configurations_fit(config):
+    """Read the constant conditions specified in the configuration file for
+    the fit.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Parser object with the information inside the configuration file
+
+    Returns
+    -------
+    constant_elements_fit : dict
+        Constant conditions for the fit given in the configuration file
+    """
+    constant_elements_fit = {}
+    for parameter_name in config['Constant_parameter_conditions']:
+        string_parameter_name = (str(parameter_name)).upper()
+        constant_elements_fit[string_parameter_name] = config.getint(
+            'Constant_parameter_conditions', string_parameter_name)
     return constant_elements_fit
 
-def get_file_name():
-    """Sets the data file name from which the data are read."""
-    file_name = 'data_impedance'
+def read_input_file_name(config):
+    """Read the file name, from where the data will be read, specified in the
+    configuration file for the fit.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Parser object with the information inside the configuration file
+
+    Returns
+    -------
+    file_name : str
+        Name of the input file
+    """
+    file_name = config.get('File', 'file_name')
     file_name += '.txt'
     return file_name
 
-#No modifications below this line
-##############################################################################
-
-###############################
-#Setting-up functions
+############################
+#Input data manipulation
 
 def generate_circuit_fit(circuit_diagram_fit, parameters_fit,
                          constant_elements_fit, error=None):
@@ -68,7 +124,7 @@ def generate_circuit_fit(circuit_diagram_fit, parameters_fit,
     ----------
     circuit_diagram_data : str
         Circuit diagram given by input
-    parameters_data : list
+    parameters_fit : list
         List of the parameters of the circuit's elements given by input
     constant_elements_data : list
         List of constant elements conditions given by input
@@ -83,8 +139,15 @@ def generate_circuit_fit(circuit_diagram_fit, parameters_fit,
     """
     parameters = {}
     elements = list_elements_circuit(circuit_diagram_fit)
-    for i, element in enumerate(elements):
-        parameters[element] = (parameters_fit[i], constant_elements_fit[i])
+    if set(elements)!=set(parameters_fit.keys()):
+        raise Exception('InputError: Mismatch between the elements in the '
+                        + 'diagram and the element names of the parameters')
+    elif set(elements)!=set(constant_elements_fit.keys()):
+        raise Exception('InputError: Mismatch between the elements in the '
+                        + 'diagram and the element names of the parameters')
+    for element in elements:
+        parameters[element] = (parameters_fit[element],
+                               constant_elements_fit[element])
     initial_circuit_fit = Circuit(circuit_diagram_fit, parameters, error)
     return initial_circuit_fit
 
@@ -366,17 +429,21 @@ def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
 
 
 if __name__=="__main__":
-    FILE_NAME = get_file_name()
+    config = configparser.ConfigParser()
+    config.read('config_analysis.ini')
+
+    FILE_NAME = read_input_file_name(config)
     print('\nReading data . . . ')
     frequency, impedance_data = read_data(FILE_NAME)
     plot_data(frequency, impedance_data)
 
-    CIRCUIT_STRING_FIT = generate_circuit_string_fit()
-    parameters_fit = generate_circuit_parameters_fit()
-    constant_elements_fit = generate_constant_elements_fit()
+    CIRCUIT_DIAGRAM_FIT = read_input_circuit_diagram_fit(config)
+    parameters_fit = read_input_parameters_fit(config)
+    constant_elements_fit = read_input_constant_parameter_configurations_fit(
+        config)
 
     initial_circuit_fit = generate_circuit_fit(
-        CIRCUIT_STRING_FIT, parameters_fit, constant_elements_fit)
+        CIRCUIT_DIAGRAM_FIT, parameters_fit, constant_elements_fit)
     analyzed_circuit_fit = initial_circuit_fit.generate_analyzed_circuit()
     impedance_function = analyzed_circuit_fit.impedance
     initials_parameters = analyzed_circuit_fit.list_parameters()

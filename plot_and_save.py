@@ -103,6 +103,10 @@ def save_data(file_name, number_of_columns, frequency, impedance):
         header_text = 'Frequency(Hz)    Modulus(Ohm)    Phase(deg)'
         np.savetxt(file_name, np.c_[frequency, modulus,phase_vector],
                    delimiter=';', header=header_text, comments='%')
+    else:
+        raise Exception('InputError: Invalid format for saving data. It must '
+                        + 'be 2 for complex impedance or 3 for modulus and '
+                        + 'phase')
 
 def get_box_coordinates(x_vector, y_vector):
     """Return the box position in log-log scale graph.
