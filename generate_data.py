@@ -88,6 +88,23 @@ def read_input_frequencies(config):
     frequency = 10.**log_frequency
     return frequency
 
+def read_input_seed(config):
+    """Read the seed for the pseudo-rsndom noise generation name, specified in
+    the configuration file for the generation.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Parser object with the information inside the configuration file
+
+    Returns
+    -------
+    seed_number : int
+        Seed for the psudo-random noise generation
+    """
+    seed_number = config.getint('Noise', 'seed')
+    return seed_number
+
 def read_output_file_name(config):
     """Read the file name, where the data will be written, specified in the
     configuration file for the generation.
@@ -177,12 +194,14 @@ def generate_circuit_data(circuit_diagram_data, parameters_data):
 ############################
 #Noise simulation
 
-def generate_random_error_component(signal_length):
+def generate_random_error_component(seed_number, signal_length):
     """Generate a random array of numbers between 0 and 1 of length
     signal_length.
 
     Parameters
     ----------
+    seed_number : int
+        Seed for the psudo-random noise generation
     signal_length : int
         Length of the generated signal
 
@@ -193,16 +212,19 @@ def generate_random_error_component(signal_length):
         parameters list. During the data generation both 0 and 1 have the same
         effect, thus this array is set to contain only 1 (faster process).
     """
+    np.random.seed(seed_number)
     random_error_component = np.random.uniform(-0.5, 0.5, signal_length)
     return random_error_component
 
-def simulate_noise(impedance_signal):
+def simulate_noise(seed_number, impedance_signal):
     """For each of the real and imaginary part of the signal, add a uniform
     probability distribution noise between 0 and 1%/np.sqrt(2) of the
     impedance to the signal.
 
     Parameters
     ----------
+    seed_number : int
+        Seed for the psudo-random noise generation
     impedance_signal : array
         Impedances given by the generated impedance function of the circuit
 
@@ -213,8 +235,10 @@ def simulate_noise(impedance_signal):
     """
     signal_length = len(impedance_signal)
     noise_factor = 0.01/np.sqrt(2)
-    real_part_error = generate_random_error_component(signal_length)
-    imaginary_part_error = generate_random_error_component(signal_length)
+    real_part_error = generate_random_error_component(seed_number,
+                                                      signal_length)
+    imaginary_part_error = generate_random_error_component(seed_number+1,
+                                                           signal_length)
     noise = noise_factor*impedance_signal * (real_part_error
                                           + 1j*imaginary_part_error)
     impedance_data = impedance_signal + noise
@@ -236,7 +260,8 @@ if __name__=="__main__":
     frequency = read_input_frequencies(config)
     final_parameters = analyzed_circuit_data.list_parameters()
     impedance_signal = impedance_function(final_parameters, frequency)
-    impedance_data = simulate_noise(impedance_signal)
+    seed_number = read_input_seed(config)
+    impedance_data = simulate_noise(seed_number, impedance_signal)
 
     plot_data(frequency, impedance_data)
     FILE_NAME = read_output_file_name(config)
