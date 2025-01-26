@@ -13,7 +13,7 @@ file, with the complex impedance format.
 import numpy as np
 import configparser
 
-from generate_impedance import Circuit, list_elements_circuit
+from generate_impedance import generate_circuit
 from plot_and_save import plot_data, save_data
 
 
@@ -84,7 +84,7 @@ def read_input_frequencies(config):
                                       'upper_order_of_magnitude')
     number_of_points = config.getint('Frequencies', 'number_of_points')
     log_frequency = np.linspace(lower_limit_oom, upper_limit_oom,
-                            number_of_points)
+                                number_of_points)
     frequency = 10.**log_frequency
     return frequency
 
@@ -149,47 +149,17 @@ def generate_constant_elements_data(parameters_data):
 
     Parameters
     ----------
-    parameters_data : list
-        List of the parameters of the circuit's elemetns given by input
+    parameters_data : dict
+        Dictionary of the parameters of the circuit's elements given by input
 
     Returns
     -------
-    constant_elements_data : list
-        List of constant elements conditions, all set to 1
+    constant_elements_data : dict
+        Dictionary of constant elements conditions, all set to 1
     """
-    parameters_data_length = len(parameters_data)
-    constant_elements_data = [1] * parameters_data_length
+    elements = list(parameters_data.keys())
+    constant_elements_data = dict.fromkeys(elements, 1)
     return constant_elements_data
-
-def generate_circuit_data(circuit_diagram_data, parameters_data):
-    """Build the Circuit instance based on the circuit diagram and parameters
-    input data.
-
-    Parameters
-    ----------
-    circuit_diagram_data : str
-        Circuit diagram given by input
-    parameters_data : list
-        List of the parameters of the circuit's elements given by input
-
-    Returns
-    -------
-    initial_circuit_data : Circuit
-        Circuit object for the input data
-    """
-    constant_elements_data = generate_constant_elements_data(
-        parameters_data)
-    parameters = {}
-    elements = list_elements_circuit(circuit_diagram_data)
-    if set(elements)!=set(parameters_data.keys()):
-        raise Exception('InputError: Mismatch between the elements in the '
-                        + 'diagram and the element names of the parameters'+
-                        set(elements) + set(parameters_data.keys()))
-    for i, element in enumerate(elements):
-        parameters[element] = (parameters_data[element],
-                               constant_elements_data[i])
-    initial_circuit_data = Circuit(circuit_diagram_data, parameters)
-    return initial_circuit_data
 
 ############################
 #Noise simulation
@@ -252,8 +222,10 @@ if __name__=="__main__":
 
     CIRCUIT_DIAGRAM_DATA = read_input_circuit_diagram_data(config)
     parameters_data = read_input_parameters_data(config)
-    initial_circuit_data = generate_circuit_data(CIRCUIT_DIAGRAM_DATA,
-                                                 parameters_data)
+    constant_elements_data = generate_constant_elements_data(parameters_data)
+    initial_circuit_data = generate_circuit(CIRCUIT_DIAGRAM_DATA,
+                                            parameters_data,
+                                            constant_elements_data)
     analyzed_circuit_data = initial_circuit_data.generate_analyzed_circuit()
     impedance_function = analyzed_circuit_data.impedance
 

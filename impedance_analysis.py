@@ -22,7 +22,7 @@ from csv import reader
 import numpy as np
 from scipy.optimize import minimize
 
-from generate_impedance import Circuit, get_string, list_elements_circuit
+from generate_impedance import generate_circuit, get_string
 from plot_and_save import plot_data, plot_fit
 
 
@@ -112,44 +112,6 @@ def read_input_file_name(config):
     file_name += '.txt'
     return file_name
 
-############################
-#Input data manipulation
-
-def generate_circuit_fit(circuit_diagram_fit, parameters_fit,
-                         constant_elements_fit, error=None):
-    """Build the Circuit instance based on the circuit string and parameters
-    input data.
-
-    Parameters
-    ----------
-    circuit_diagram_data : str
-        Circuit diagram given by input
-    parameters_fit : list
-        List of the parameters of the circuit's elements given by input
-    constant_elements_data : list
-        List of constant elements conditions given by input
-    error : int or float, optional
-        Error based on the impedance function, data and parameters (default
-        is None)
-
-    Returns
-    -------
-    initial_circuit_fit : Circuit
-        Circuit object for the input data for the fit
-    """
-    parameters = {}
-    elements = list_elements_circuit(circuit_diagram_fit)
-    if set(elements)!=set(parameters_fit.keys()):
-        raise Exception('InputError: Mismatch between the elements in the '
-                        + 'diagram and the element names of the parameters')
-    elif set(elements)!=set(constant_elements_fit.keys()):
-        raise Exception('InputError: Mismatch between the elements in the '
-                        + 'diagram and the element names of the parameters')
-    for element in elements:
-        parameters[element] = (parameters_fit[element],
-                               constant_elements_fit[element])
-    initial_circuit_fit = Circuit(circuit_diagram_fit, parameters, error)
-    return initial_circuit_fit
 
 
 ############################
@@ -442,7 +404,7 @@ if __name__=="__main__":
     constant_elements_fit = read_input_constant_parameter_configurations_fit(
         config)
 
-    initial_circuit_fit = generate_circuit_fit(
+    initial_circuit_fit = generate_circuit(
         CIRCUIT_DIAGRAM_FIT, parameters_fit, constant_elements_fit)
     analyzed_circuit_fit = initial_circuit_fit.generate_analyzed_circuit()
     impedance_function = analyzed_circuit_fit.impedance

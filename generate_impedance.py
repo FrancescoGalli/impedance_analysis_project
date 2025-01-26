@@ -20,6 +20,46 @@ instance of the AnalysisCircuit class.
 
 import numpy as np
 
+#############################
+
+def generate_circuit(circuit_diagram, parameters, constant_conditions,
+                     error=None):
+    """Build the Circuit instance based on the circuit string and parameters
+    input data.
+
+    Parameters
+    ----------
+    circuit_diagram : str
+        Diagram of the circuit
+    parameters : dict
+        Dictionary of element names and parameters of the circuit given by
+        input
+    constant_conditions : dict
+        Dictionary of constant element conditions given by input
+    error : int or float, optional
+        Error based on the impedance function, data and parameters (default
+        is None)
+
+    Returns
+    -------
+    initial_circuit_fit : Circuit
+        Circuit object for the input data for the fit
+    """
+    parameters_map = {}
+    elements = list_elements_circuit(circuit_diagram)
+    if set(elements)!=set(parameters.keys()):
+        raise Exception('InputError: Mismatch between the elements in the '
+                        + 'diagram and the element names of the parameters')
+    elif set(elements)!=set(parameters.keys()):
+        raise Exception('InputError: Mismatch between the elements in the '
+                        + 'diagram and the element names of the parameters')
+    for element in elements:
+        parameters_map[element] = (parameters[element],
+                                   constant_conditions[element])
+    initial_circuit = Circuit(circuit_diagram, parameters_map, error)
+    return initial_circuit
+
+############################
 
 class Circuit:
     """
