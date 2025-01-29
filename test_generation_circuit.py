@@ -12,47 +12,6 @@ from generate_data import generate_constant_elements_data
 
 #Tests for the circuit diagram
 
-def same_number_of_brackets(circuit_diagram):
-    """Given a circuit diagram, return if the count of open brackets is the
-    same of close brackets. Used for testing.
-
-    Parameters
-    ----------
-    circuit_diagram : str
-        String of the circuit given by input
-
-    Returns
-    -------
-    equality_count : bool
-        Boolean of the equality count condition
-    """
-    equality_count = (
-        circuit_diagram.count('(')==circuit_diagram.count(')')
-        and circuit_diagram.count('[')==circuit_diagram.count(']'))
-    return equality_count
-
-def generate_example_number_of_brackets():
-    strings = (['()', '([])', '[()[()]]', '()]'])
-    return strings
-
-@pytest.fixture
-def example_number_of_brackets():
-    return generate_example_number_of_brackets()
-
-def test_same_number_of_brackets(example_number_of_brackets):
-    """Check that the help function to test if a string has the same number of
-    brackets for each type works.
-
-    WHEN: the circuit diagram validity is tested
-    THEN: the circuit diagram has the same number of brackets for each type
-    """
-    #Only the last example is incorrect
-    for string_ in example_number_of_brackets:
-        assert same_number_of_brackets(string_), (
-            'StructuralError: inconsistent number of open and close brackets in '
-            + '\'' + string_ + '\' in same_number_of_brackets()')
-
-
 def consistency_brackets(circuit_diagram):
     """Given a circuit diagram, return if there is a bracket incongruence.
     Used for testing.
@@ -69,43 +28,52 @@ def consistency_brackets(circuit_diagram):
     wrong_brackets_index : bool
         Index in the string of all the aforementioned brackets
     """
-    wrong_brackets = []
+    wrong_brackets = ''
     wrong_brackets_index = ''
-    position_of_brackets = [i for i, _ in enumerate(circuit_diagram)
-                            if (circuit_diagram.startswith(')', i)
-                                or circuit_diagram.startswith(']', i))]
-    cut_parameter = 0
-    for _ in position_of_brackets:
-        for i, char_i in enumerate(circuit_diagram):
-            if char_i in (')', ']'):
-                if char_i==')':
-                    bracket = '('
-                    wrong_bracket = '['
-                if char_i==']':
-                    bracket = '['
-                    wrong_bracket = '('
-                found = False
-                analyzed_string = circuit_diagram[:i]
-                for j, _ in enumerate(analyzed_string):
-                    bracket_index = len(analyzed_string) - 1 - j
-                    if (circuit_diagram[bracket_index]==bracket
-                        and not found):
-                        found = True
-                        relative_index_wrong_bracket = analyzed_string[
-                            bracket_index+1:].find(wrong_bracket)
-                        if relative_index_wrong_bracket!=-1:
-                            wrong_brackets_index += str(
-                                relative_index_wrong_bracket + bracket_index
-                                + 1 + cut_parameter)
-                            wrong_brackets.append(wrong_bracket)
-                            circuit_diagram = (
-                                circuit_diagram[:bracket_index]
-                                + circuit_diagram[bracket_index+1:i]
-                                + circuit_diagram[i+1:])
-                            cut_parameter += 2
-                            break
-                if found:
-                    break
+     
+    equality_count = (
+        circuit_diagram.count('(')==circuit_diagram.count(')')
+        and circuit_diagram.count('[')==circuit_diagram.count(']'))
+    if not equality_count:
+        error_msg = 'number of brackets'
+        wrong_brackets += error_msg
+    else:
+        position_of_brackets = [i for i, _ in enumerate(circuit_diagram)
+                                if (circuit_diagram.startswith(')', i)
+                                    or circuit_diagram.startswith(']', i))]
+        cut_parameter = 0
+        for _ in position_of_brackets:
+            for i, char_i in enumerate(circuit_diagram):
+                if char_i in (')', ']'):
+                    if char_i==')':
+                        bracket = '('
+                        wrong_bracket = '['
+                    if char_i==']':
+                        bracket = '['
+                        wrong_bracket = '('
+                    found = False
+                    analyzed_string = circuit_diagram[:i]
+                    for j, _ in enumerate(analyzed_string):
+                        bracket_index = len(analyzed_string) - 1 - j
+                        if (circuit_diagram[bracket_index]==bracket
+                            and not found):
+                            found = True
+                            relative_index_wrong_bracket = analyzed_string[
+                                bracket_index+1:].find(wrong_bracket)
+                            if relative_index_wrong_bracket!=-1:
+                                wrong_brackets_index += str(
+                                    relative_index_wrong_bracket
+                                    + bracket_index + 1 + cut_parameter)
+                                wrong_brackets += ('\'' + str(wrong_bracket)
+                                                   + '\'')
+                                circuit_diagram = (
+                                    circuit_diagram[:bracket_index]
+                                    + circuit_diagram[bracket_index+1:i]
+                                    + circuit_diagram[i+1:])
+                                cut_parameter += 2
+                                break
+                    if found:
+                        break
     return wrong_brackets, wrong_brackets_index
 
 def generate_example_consistency_brackets():
@@ -120,7 +88,7 @@ def test_consistency_brackets(example_consistency_brackets):
     """Check that the help function to test if a string has brackets
     consistency works.
 
-    GIVEN: the circuit diagram has the same number of brackets for each type
+    GIVEN: the circuit diagram is a string
     WHEN: the circuit diagram validity is tested
     THEN: the circuit diagram has brackets consistency
     """
@@ -129,8 +97,8 @@ def test_consistency_brackets(example_consistency_brackets):
         wrong_brackets, wrong_brackets_index = consistency_brackets(
             string_)
         assert not wrong_brackets, (
-            'StructuralError: inconsistent \'' + str(wrong_brackets)
-            + '\' at ' + wrong_brackets_index + ': ' + string_ + ' in '
+            'StructuralError: inconsistent ' + str(wrong_brackets)
+            + ' at ' + wrong_brackets_index + ': ' + string_ + ' from '
             + 'consistency_brackets()')
 
 
@@ -344,8 +312,7 @@ def test_inconsistent_numbers(example_diagrams_consistency_numbers):
 
 
 def generate_example_circuit_diagrams():
-    example_circuit_diagrams = (['(R1)', '(R1C2)', '(R1C2[R3Q4])',
-                                      '(R1Ce)'])
+    example_circuit_diagrams = (['(R1)', '(R1C2)', '(R1C2[R3Q4])', '(R1Ce)'])
     return example_circuit_diagrams
 
 @pytest.fixture
@@ -390,7 +357,7 @@ def example_initial_circuits():
     return generate_example_initial_circuits()
 
 def test_initial_circuit_circuit_diagram(example_initial_circuits,
-                                              example_circuit_diagrams):
+                                         example_circuit_diagrams):
     """Check if the circuit diagram inside the Circuit object created by
     the generate_circuit() has a valid circuit diagram. A circuit
     diagram is made of elements (a letter among {'R', 'C', 'Q'} followed by a
@@ -423,9 +390,6 @@ def test_initial_circuit_circuit_diagram(example_initial_circuits,
         assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(
             ']')), (
             'StructuralError: no final close bracket detected' + caller)
-        assert same_number_of_brackets(circuit_diagram), (
-            'StructuralError: inconsistent number of open and close brackets '
-            + 'in \'' + circuit_diagram + '\' in ' + caller)
         wrong_brackets, wrong_brackets_index = consistency_brackets(
             circuit_diagram)
         assert not wrong_brackets, (
