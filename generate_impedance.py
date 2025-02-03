@@ -237,7 +237,7 @@ class AnalisysCircuit:
         """
         if self.impedance_parameters_map is None:
             self.impedance_parameters_map = {}
-        elif element_name.startswith('R'):
+        if element_name.startswith('R'):
             impedance_element_f = lambda _, f: impedance_resistor(
                 const_parameter, f)
         elif element_name.startswith('C'):
@@ -250,7 +250,7 @@ class AnalisysCircuit:
             raise Exception('FatalError: Invalid constant parameter name for '
                             + 'the impedance function')
         self.impedance_parameters_map[element_name] = (impedance_element_f,
-                                                         'const')
+                                                       'const')
 
     def set_impedance_non_const_element(self, element_name, parameter):
         """Calculate the impedance function of a non-constant element in the
@@ -306,14 +306,8 @@ class AnalisysCircuit:
         ----------
         element_name : str
             String corresponding to the single element (letter and number)
-        impedance_circuit : list
-            List of impedance functions containing in chronological order each
-            cell analysis (the elements inside a pair of brackets)
-
-        Returns
-        -------
-        impedance_element_f : function
-            Impedance function of the analyzed element
+        initial_circuit : Circuit
+            Input circuit object to be analyzed
         """
         constant_condition = initial_circuit.parameters_map[element_name][1]
         if constant_condition:
@@ -355,8 +349,7 @@ class AnalisysCircuit:
             # (one letter for one element)
             element_name = self.circuit_diagram[i:i+2]
             if not element_name.startswith('Z'):
-                self.set_impedance_element(element_name,
-                                                    initial_circuit)
+                self.set_impedance_element(element_name, initial_circuit)
             impedance_function_element = self.impedance_parameters_map[
                 element_name][0]
             impedance_cell.append(impedance_function_element)
@@ -370,8 +363,6 @@ class AnalisysCircuit:
 
         Parameters
         ----------
-        circuit_diagram : str
-            Diagram of the circuit before the last cycle of analysis
         i_start : int
             Index of circuit_diagram that corresponds to an opening bracket.
             Delimits the beginning of the cell to be analyzed
@@ -536,8 +527,8 @@ def serial_comb(impedance_cell):
         Equivalent function of the serial comb of the cell
     """
     function_cell = lambda *_: 0
-    for i, _ in enumerate(impedance_cell):
-        function_cell = add(function_cell, impedance_cell[i])
+    for function_ in impedance_cell:
+        function_cell = add(function_cell, function_)
     return function_cell
 
 def reciprocal(function_):
@@ -606,7 +597,11 @@ def get_position_opening_bracket(circuit_diagram, i_end):
     opening_bracket_positions = [
         i for i, _ in enumerate(circuit_diagram[:i_end])
         if circuit_diagram.startswith(opening_bracket, i)]
-    last_opening_bracket_position = opening_bracket_positions[-1]
+    if opening_bracket_positions:
+        last_opening_bracket_position = opening_bracket_positions[-1]
+    else:
+        raise Exception('StructuralError: Impossible to find the opening '
+                        + 'bracket. Possible brackets inconsistency')
     return last_opening_bracket_position
 
 
