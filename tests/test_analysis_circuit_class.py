@@ -10,9 +10,12 @@ Note: of all the group of examples, only the fourth one is meant to fail
 import inspect
 import pytest
 
+import sys
+from pathlib import Path
+sys.path.append(str(Path.cwd().parent)) 
+
 from generate_impedance import AnalisysCircuit
 from generate_impedance import generate_circuit, add, list_elements_circuit
-
 
 
 def wrong_tuples_impedance_parameters_map(impedance_parameters_map):
@@ -38,11 +41,14 @@ def wrong_tuples_impedance_parameters_map(impedance_parameters_map):
     return wrong_tuples
 
 def generate_example_impedance_map_tuples():
+    """Generate examples for the tuples of the impedance_parameters map test.
+    Only the last one is incorrect.
+    """
     function_ = lambda x, y: 1000.
-    impedance_maps = ([{'R1': (function_, 'const')},
-                       {'R1': (function_, 1000.)},
-                       {'R1': (function_, 1000.), 'R2': (function_, 'const')},
-                       {'R1': 1000.}])
+    impedance_maps = [{'R1': (function_, 'const')},
+                      {'R1': (function_, 1000.)},
+                      {'R1': (function_, 1000.), 'R2': (function_, 'const')},
+                      {'R1': 1000.}]
     return impedance_maps
 
 @pytest.fixture
@@ -88,11 +94,14 @@ def wrong_function_impedance_parameters_map(impedance_parameters_map):
     return wrong_functions
 
 def generate_example_impedance_map_function():
+    """Generate examples for the impedance of the impedance_parameters map
+    test. Only the last one is incorrect.
+    """
     function_ = lambda x, y: 1000.
-    impedance_maps = ([{'R1': (function_, 'const')},
-                       {'R1': (function_, 1000.)},
-                       {'R1': (function_, 1000.), 'R2': (function_, 'const')},
-                       {'R1': ('x', 1000.)}])
+    impedance_maps = [{'R1': (function_, 'const')},
+                      {'R1': (function_, 1000.)},
+                      {'R1': (function_, 1000.), 'R2': (function_, 'const')},
+                      {'R1': ('x', 1000.)}]
     return impedance_maps
 
 @pytest.fixture
@@ -101,8 +110,8 @@ def example_impedance_map_function():
 
 def test_wrong_function_impedance_parameters_map(
         example_impedance_map_function):
-    """Check that the function to find dictionaries that have not a function as
-    the first element of the tuple works.
+    """Check that the function to find dictionaries that have not a function
+    as the first element of the tuple works.
 
     GIVEN: a valid list of impedance_parameters_map of input parameters.
     WHEN: the setting of a impedance_parameters_map is tested
@@ -111,9 +120,9 @@ def test_wrong_function_impedance_parameters_map(
     for impedance_map in example_impedance_map_function:
         wrong_functions = wrong_function_impedance_parameters_map(
             impedance_map)
-    assert not wrong_functions, (
-        'TypeError for element type(s) ' + ' \'' + wrong_functions
-        + '\'. Its first element of the tuple must be a function')
+        assert not wrong_functions, (
+            'TypeError for element type(s) ' + ' \'' + wrong_functions
+            + '\'. Its first element of the tuple must be a function')
 
 
 def wrong_parameter_impedance_parameters_map_const(element_name_list,
@@ -147,12 +156,17 @@ def wrong_parameter_impedance_parameters_map_const(element_name_list,
     return wrong_parameters
 
 def generate_example_impedance_map_const():
+    """Generate examples of impedance_parameters map for the 'const' string
+    of the impedance_parameters map test. Only the last one is incorrect.
+    """
     function_r = lambda x, y: 1000.
     function_c = lambda x, y: 1/(x*y)
-    impedance_maps = ([{'R1': (function_r, 'const'), 'C2': (function_c, 'const')},
-                       {'C1': (function_c, 1e-6)},
-                       {'R1': (function_r, 1000.), 'C2': (function_c, 'const')},
-                       {'C1': (function_c, 1e-6)}])
+    impedance_maps = [{'R1': (function_r, 'const'),
+                       'C2': (function_c, 'const')},
+                      {'C1': (function_c, 1e-6)},
+                      {'R1': (function_r, 1000.),
+                       'C2': (function_c, 'const')},
+                      {'C1': (function_c, 1e-6)}]
     return impedance_maps
 
 @pytest.fixture
@@ -160,7 +174,10 @@ def example_impedance_map_const():
     return generate_example_impedance_map_const()
 
 def generate_example_element_names():
-    element_names = ([['R1', 'C2'], [], ['C2'], ['C1']])
+    """Generate examples of element names for the 'const' string of the
+    impedance_parameters map test. Only the last one is incorrect.
+    """
+    element_names = [['R1', 'C2'], [], ['C2'], ['C1']]
     return element_names
 
 @pytest.fixture
@@ -180,9 +197,10 @@ def test_wrong_parameter_impedance_parameters_map_const(
     for i, impedance_map in enumerate(example_impedance_map_const):
         wrong_parameters = wrong_parameter_impedance_parameters_map_const(
             example_element_names[i], impedance_map)
-    assert not wrong_parameters, (
-        'TypeError for element type(s)' + ' \'' + wrong_parameters
-        + '\'. Its second element of the tuple must be a \'const\' string')
+        assert not wrong_parameters, (
+            'TypeError for element type(s)' + ' \'' + wrong_parameters
+            + '\'. Its second element of the tuple must be a \'const\' '
+            + 'string')
 
 def generate_example_set_impedance_constants():
     """Generate a possible list of analyzed circuits with a constat element
@@ -204,9 +222,9 @@ def example_set_impedance_constants():
 
 def generate_example_names_set_impedance_constants():
     """Generate the list of the element names for the example of the analyzed 
-    circuits with a constat element.
+    circuits with a constant element.
     """
-    example_names = ([['R1'], ['Q1'], ['C2']])
+    example_names = [['R1'], ['Q1'], ['C2']]
     return example_names
 
 @pytest.fixture
@@ -284,12 +302,15 @@ def wrong_parameter_impedance_parameters_map_non_constant(
     return wrong_parameters
 
 def generate_example_impedance_map_non_const():
+    """Generate examples of impedance_parameters map for the non constant
+    impedance_parameters map test. Only the last one is incorrect.
+    """
     function_r = lambda x, y: 1000.
     function_c = lambda x, y: 1/(x*y)
-    impedance_maps = ([{'R1': (function_r, 1000.), 'C2': (function_c, 1e-6)},
-                       {'C1': (function_c, 2e-6)},
-                       {'R1': (function_r, 2000.)},
-                       {'C1': (function_c, 'const')}])
+    impedance_maps = [{'R1': (function_r, 1000.), 'C2': (function_c, 1e-6)},
+                      {'C1': (function_c, 2e-6)},
+                      {'R1': (function_r, 2000.)},
+                      {'C1': (function_c, 'const')}]
     return impedance_maps
 
 @pytest.fixture
@@ -297,7 +318,10 @@ def example_impedance_map_non_const():
     return generate_example_impedance_map_non_const()
 
 def generate_example_element_names_non_const():
-    element_names = ([['R1', 'C2'], ['C1'], ['R1'], ['C1']])
+    """Generate examples of elements for the non constant impedance_parameters
+    map test. Only the last one is incorrect.
+    """
+    element_names = [['R1', 'C2'], ['C1'], ['R1'], ['C1']]
     return element_names
 
 @pytest.fixture
@@ -305,7 +329,10 @@ def example_element_names_non_const():
     return generate_example_element_names_non_const()
 
 def generate_example_parameters_non_const():
-    parameters = ([[1000., 1e-6], [2e-6], [2000.], [1e-6]])
+    """Generate examples of parameters for the impedance_parameters
+    map test. Only the last one is incorrect.
+    """
+    parameters = [[1000., 1e-6], [2e-6], [2000.], [1e-6]]
     return parameters
 
 @pytest.fixture
@@ -333,9 +360,8 @@ def test_wrong_parameter_impedance_parameters_map_non_const(
 
 
 def generate_example_set_impedance_non_constants():
-    """Generate a possible list of analyzed circuits with a non-constat
-    element analysis.
-    """
+    """Generate examples ofanalyzed circuits for the set_element_non_const
+    test. """
     first_example = AnalisysCircuit('(R1)')
     first_example.set_impedance_non_const_element('R1', 1000.0)
     second_example = AnalisysCircuit('(Q1)')
@@ -354,7 +380,7 @@ def generate_example_names_set_impedance_non_constants():
     """Generate the list of the element names for the example of the analyzed 
     circuits with a constat element.
     """
-    example_names = ([['R1'], ['Q1'], ['C2']])
+    example_names = [['R1'], ['Q1'], ['C2']]
     return example_names
 
 @pytest.fixture
@@ -365,14 +391,14 @@ def generate_example_parameters_set_impedance_non_constants():
     """Generate the list of the element names for the example of the analyzed 
     circuits with a constat element.
     """
-    example_names = ([[1000.0], [([1e-6, 0.3])], [1e-6]])
+    example_names = [[1000.0], [([1e-6, 0.3])], [1e-6]]
     return example_names
 
 @pytest.fixture
 def example_parameters_set_impedance_non_constants():
     return generate_example_parameters_set_impedance_non_constants()
 
-def test_get_impedance_non_const_element(
+def test_set_impedance_non_const_element(
         example_names_set_impedance_non_constants,
         example_parameters_set_impedance_non_constants,
         example_set_impedance_non_constants):
@@ -414,6 +440,7 @@ def test_get_impedance_non_const_element(
             'TypeError for element type(s)' + ' \'' + wrong_parameters
             + '\'. Its second element of the tuple must be a \'const\' string')
 
+
 def wrong_parameter_impedance_parameters_map(
         input_parameters, constant_conditions, impedance_parameters_map):
     """Find for which element the impedance-parameter map of the
@@ -450,12 +477,16 @@ def wrong_parameter_impedance_parameters_map(
     return wrong_parameters
 
 def generate_example_impedance_map_set_impedance():
+    """Generate examples of impedance_parameters maps for the wrong parameters
+    impedance_parameters map test. Only the last one is incorrect.
+    """
     function_r = lambda x, y: y
     function_c = lambda x, y: 1/(x*y)
-    impedance_maps = ([{'R1': (function_r, 1000.), 'C2': (function_c, 'const')},
-                       {'C1': (function_c, 2e-6)},
-                       {'R1': (function_r, 'const')},
-                       {'R1': (function_r, 2000.)}])
+    impedance_maps = [{'R1': (function_r, 1000.),
+                       'C2': (function_c, 'const')},
+                      {'C1': (function_c, 2e-6)},
+                      {'R1': (function_r, 'const')},
+                      {'R1': (function_r, 2000.)}]
     return impedance_maps
 
 @pytest.fixture
@@ -463,8 +494,11 @@ def example_impedance_map_set_impedance():
     return generate_example_impedance_map_set_impedance()
 
 def generate_example_parameters_set_impedance():
-    parameters = ([{'R1': 1000., 'C2': 1e-6}, {'C1': 2e-6}, {'R1': 1000.},
-                   {'R1': 2000.}])
+    """Generate examples of elements for the non constant impedance_parameters
+    map test. Only the last one is incorrect.
+    """
+    parameters = [{'R1': 1000., 'C2': 1e-6}, {'C1': 2e-6}, {'R1': 1000.},
+                  {'R1': 2000.}]
     return parameters
 
 @pytest.fixture
@@ -472,7 +506,10 @@ def example_parameters_set_impedance():
     return generate_example_parameters_set_impedance()
 
 def generate_examples_constant_conditions_set_impedance():
-    constant_conditions = ([[0, 1], [0], [1], [1]])
+    """Generate examples of constant conditions for the set_impedance test.
+    Only the last one is incorrect.
+    """
+    constant_conditions = [[0, 1], [0], [1], [1]]
     return constant_conditions
 
 @pytest.fixture
@@ -503,10 +540,12 @@ def test_wrong_parameter_impedance_parameters_map(
 
 
 def generate_circuit_diagram_set_impedance():
+    """Generate an example of a circuit diagram for the set_impedance test."""
     circuit_diagram = '(R1C2)'
     return circuit_diagram
 
 def generate_parameters_set_impedance():
+    """Generate an example of parameters for the set_impedance test."""
     parameters = {'R1': 10.0, 'C2': 3e-6}
     return parameters
 
@@ -516,7 +555,7 @@ def parameters_set_impedance():
 
 def generate_examples_circuit_set_impedance():
     """Generate an examples of circuits with both constant and non-constant
-    elemnets.
+    elements for the set_impedance test.
     """
     circuit_diagram = generate_circuit_diagram_set_impedance()
     parameters = generate_parameters_set_impedance()
@@ -532,7 +571,7 @@ def generate_examples_circuit_set_impedance():
     constant_conditions = {'R1': 0, 'C2': 0}
     third_circuit = generate_circuit(circuit_diagram, parameters,
                                      constant_conditions)
-    example_circuits = ([first_circuit, second_circuit, third_circuit])
+    example_circuits = [first_circuit, second_circuit, third_circuit]
     return example_circuits
 
 def generate_examples_constant_conditions():
@@ -561,7 +600,7 @@ def generate_examples_analized_circuit_set_impedance():
 def examples_analysis_circuit_set_impedance():
     return generate_examples_analized_circuit_set_impedance()
 
-def test_get_impedance(parameters_set_impedance, examples_constant_conditions,
+def test_set_impedance(parameters_set_impedance, examples_constant_conditions,
                        examples_analysis_circuit_set_impedance):
     """Check that set_impedance() sets the correct analysis on the
     AnalysisCircuit instance.
@@ -618,14 +657,17 @@ def wrong_impedance_generate_cell_impedance(impedance_cell):
     return wrong_functions_index
 
 def generate_examples_impedance_cell_help():
+    """Generate examples of impedance cells for the wrong impedance test.
+    Only the last one is incorrect.
+    """
     function_r = lambda x, y : y
     function_c = lambda x, y : 1/(x*y)
-    first_example = ([function_r])
-    second_example = ([function_c])
-    third_example = ([function_c, function_r])
-    fourth_example = ([1000.])
-    impedance_cells = ([first_example, second_example, third_example,
-                        fourth_example])
+    first_example = [function_r]
+    second_example = [function_c]
+    third_example = [function_c, function_r]
+    fourth_example = [1000.]
+    impedance_cells = [first_example, second_example, third_example,
+                        fourth_example]
     return impedance_cells
 
 @pytest.fixture
@@ -670,14 +712,17 @@ def circuit_string_impedance_cell_same_length(cell_string, impedance_cell):
     return equality_condition
 
 def generate_examples_circuit_diagram_help():
-    circuit_diagrams = (['(R1)', '(C1)', '[R1C2]', '(R1C2)'])
+    """Generate examples of impedance cells for the diagram cell same length
+    test. Only the last one is incorrect.
+    """
+    circuit_diagrams = ['(R1)', '(C1)', '[R1C2]', '(R1C2)']
     return circuit_diagrams
 
 @pytest.fixture
 def examples_circuit_diagram_help():
     return generate_examples_circuit_diagram_help()
 
-def test_circuit_string_impedance_cell_same_length(
+def test_circuit_diagram_impedance_cell_same_length(
         examples_circuit_diagram_help, examples_impedance_cell_help):
     """Check that the function to find element of a list thta are not
     functions  works.
@@ -694,10 +739,9 @@ def test_circuit_string_impedance_cell_same_length(
             + 'must be the same of the number of the element of the cell')
 
 
-
 def generate_example_impedance_cells():
     """Generate an examples of circuits with both constant and non-constant
-    elemnets.
+    elements for the impedance cell impedance test.
     """
     circuit_diagram_1 = '(R1)'
     parameters_1 = {'R1': 100.}
@@ -726,19 +770,17 @@ def generate_example_impedance_cells():
     impedance_cell_3 = analyzed_second_circuit.generate_cell_impedance(
         third_circuit, i_start=5, i_end=10)
     
-    example_impedance_cells = ([impedance_cell_1, impedance_cell_2,
-                                impedance_cell_3])
+    example_impedance_cells = [impedance_cell_1, impedance_cell_2,
+                                impedance_cell_3]
     return example_impedance_cells
-
-generate_example_impedance_cells()
 
 @pytest.fixture
 def example_impedance_cells():
     return generate_example_impedance_cells()
 
 def generate_examples_circuit_cell_diagram():
-    """Generate an index of the end of the cell."""
-    circuit_cell_diagrams = (['(R1)', '(R1C2)', '[R3Q4]'])
+    """Generate an index of the end of the cell for the impedance cell tests."""
+    circuit_cell_diagrams = ['(R1)', '(R1C2)', '[R3Q4]']
     return circuit_cell_diagrams
 
 @pytest.fixture
@@ -769,7 +811,7 @@ def test_impedance_list_cell_impedance(examples_circuit_cell_diagram,
             + '\'. The output must contain ony funtions')
 
         assert circuit_string_impedance_cell_same_length(circuit_cell,
-                                                        impedance_cell), (
+                                                         impedance_cell), (
             'StructuralError in output of ' + caller + ' with cell '
             + circuit_cell + '. The length of the output must be the same of '
             + 'the number of the element of the cell')
@@ -840,6 +882,9 @@ def consistency_brackets(circuit_diagram):
     return wrong_brackets, wrong_brackets_index
 
 def generate_example_consistency_brackets():
+    """Generate examples for the consistency brackets test. Only the last one
+    is incorrect.
+    """
     strings = (['()', '([])', '[()[()]]', '[(])'])
     return strings
 
@@ -855,7 +900,6 @@ def test_consistency_brackets(example_consistency_brackets):
     WHEN: the updated circuit diagram validity is tested
     THEN: the updated circuit diagram has brackets consistency
     """
-    #Only the last example is incorrect
     for string_ in example_consistency_brackets:
         wrong_brackets, wrong_brackets_index = consistency_brackets(
             string_)
@@ -893,6 +937,9 @@ def invalid_characters_updated_diagram(circuit_diagram):
     return wrong_characters, wrong_characters_index
 
 def generate_example_invalid_character_update():
+    """Generate examples for the invalid characters test. Only the last one
+    is incorrect.
+    """
     strings = (['(R1)', 'Q2(Z2CC])', '[(R1Q2)[C3(R4Q5)]]', '([Q1R2]S3)'])
     return strings
 
@@ -908,7 +955,6 @@ def test_invalid_characters_updated_diagram(example_invalid_character_update):
     WHEN: the updated circuit diagram validity is tested
     THEN: the updated circuit diagram has only valid characters
     """
-    #Only the last example is incorrect
     for string_ in example_invalid_character_update:
         (wrong_characters,
         wrong_characters_index) = invalid_characters_updated_diagram(
@@ -955,6 +1001,9 @@ def inconsistent_elements_updated_diagram(circuit_diagram):
     return wrong_elements, wrong_element_index
 
 def generate_example_inconsistent_elements_updated():
+    """Generate examples for the invalid element test. Only the last one
+    is incorrect.
+    """
     strings = (['(R1)', 'Q1(Z2C3])', '[(R1Q2)[C3(R4Q5)]]', '([Q1R]S3)'])
     return strings
 
@@ -971,7 +1020,6 @@ def test_invalid_characters_updated(
     WHEN: the updated circuit diagram validity is tested
     THEN: the updated circuit diagram has only valid elements
     """
-    #Only the last example is incorrect
     for string_ in example_inconsistent_elements_updated:
         (wrong_elements,
         wrong_element_index) = inconsistent_elements_updated_diagram(
@@ -983,8 +1031,9 @@ def test_invalid_characters_updated(
             + 'letter followed by a natural number')
                      
 def generate_example_updated_diagram():
-    """Generate the updated circuit diagram given the previous circuit diagram
-    and the start and end of the analyzed cell.
+    """Generate examples of the updated circuit diagram given the previous
+    circuit diagram and the start and end of the analyzed cell, for the update
+    diagram test.
     """
     circuit_diagrams = (['(R1)', '(Q1[Z2C3])', '[(R1Q2)[C3(R4Q5)]]',
                         '([Q1R]S3)'])
@@ -1040,7 +1089,7 @@ def test_update_diagram_valid_diagram(example_updated_diagram):
 
 def generate_example_new_element():
     """Generate the updated circuit diagram given the previous circuit string
-    and the start and end of the analyzed cell.
+    and the start and end of the analyzed cell, for the update diagram test.
     """
     circuit_diagrams = (['(R1)', '(Q1[Z2C3])', '[(R1Q2)[C3(R4Q5)]]',
                         '([Q1R2]R3)'])
@@ -1086,7 +1135,10 @@ def test_update_diagram_new_element(example_new_element):
 
 
 def generate_analyzed_circuit_final_results():
-    """Generate an analyzed circuit with the final results attribuyes set."""
+    """Generate examples of analyzed circuit with the final results
+    attributes set, for the get_final_results test. Only the last one is
+    incorrect.
+    """
     function_r = lambda x, y: y
     function_c = lambda x, y: 1/(x*y)
     first_impedance_map = {'R1': (function_r, 1000.)}
@@ -1108,7 +1160,9 @@ def generate_analyzed_circuit_final_results():
     return examples_analyzed_circuit_final_results
 
 def generate_examples_final_impedance():
-    """Generate examples of final impedances of analyzed circuits."""
+    """Generate examples of the final impedance for the get_final_results
+    test. Only the last one is incorrect.
+    """
     examples_final_impedance = []
     analyzed_circuits = generate_analyzed_circuit_final_results()
     for circuit_ in analyzed_circuits:
@@ -1159,7 +1213,9 @@ def wrong_match_element_initial_circuit_final_parameters(final_parameters_map,
     return wrong_elements
 
 def generate_examples_final_parameters_map_wrong_match():
-    """m"""
+    """Generate examples of final parameters, for the wrong match test.
+    Only the last one is incorrect.
+    """
     example_final_parameters_map_wrong_match = [
         {'R1': 1000.}, {'C1': 1e-6}, {'C1': 1e-6, 'R2': 100.},
         {'R1': 200.}]
@@ -1170,7 +1226,9 @@ def example_final_parameters_map_wrong_match():
     return generate_examples_final_parameters_map_wrong_match()
 
 def generate_examples_input_parameters_wrong_match_element():
-    """m"""
+    """Generate examples of input parameters, for the wrong match test.
+    Only the last one is incorrect.
+    """
     example_input_parameters_map_wrong_match = [
         {'R1': (1000., 0)}, {'C1': (1e-6, 0), 'Q2': ([1e-5, 0.76], 1)},
         {'C1': (1e-6, 0), 'R2': (100., 0)},
@@ -1228,7 +1286,9 @@ def wrong_match_parameter_initial_circuit_final_parameters(
     return wrong_parameters
 
 def generate_examples_input_parameters_wrong_match_value():
-    """m"""
+    """Generate examples of input parameters, for the get_final_results test.
+    Only the last one is incorrect.
+    """
     example_input_parameters_map_wrong_match = [
         {'R1': (1000., 0)}, {'C1': (1e-6, 0), 'Q2': ([1e-5, 0.76], 1)},
         {'C1': (1e-6, 0), 'R2': (100., 0)}, {'R1': (300., 0)}]
@@ -1260,7 +1320,9 @@ def test_wrong_match_parameter_initial_circuit_final_parameters(
 
 
 def generate_example_final_parameters_map():
-    """Generate examples of final parameters_maps of analyzed circuits."""
+    """Generate examples of final parameters_maps, for the get_final_results
+    test. Only the last one is incorrect.
+    """
     examples_final_parameters_map = []
     analyzed_circuits = generate_analyzed_circuit_final_results()
     for circuit_ in analyzed_circuits:
@@ -1273,7 +1335,8 @@ def example_final_parameters_map():
     return generate_example_final_parameters_map()
 
 def generate_example_input_parameters():
-    """Generate examples of final parameters_maps of analyzed circuits."""
+    """Generate examples of final parameters_maps of analyzed circuits, for
+    the get_final_results test. Only the last one is incorrect."""
     examples_input_parameters = [{'R1': (1000., 0)}, {'C1': (1e-6, 0)}, 
                                  {'R1': (2000., 0), 'C2': (1e-6, 0)},
                                  {'R1': (100., 0)}]
@@ -1333,7 +1396,9 @@ def wrong_match_element_final_parameters_list_elements(final_elements_list,
     return wrong_elements
 
 def generate_example_final_elements_list_wrong_match():
-    """Generate examples of final element lists of analyzed circuits."""
+    """Generate correct examples of final element lists of analyzed circuits,
+    for the final_elements_list test.
+    """
     example_final_elements_list = [['R1'], ['C1'], ['R1', 'C2'], []]
     return example_final_elements_list
 
@@ -1363,7 +1428,7 @@ def test_wrong_match_element_final_parameters_list_elements(
 
 def generate_example_final_elements_list():
     """Generate examples of final elements list out of the final
-    parameters_map.
+    parameters_map,  for the final_elements_list test.
     """
     final_elements_lists = []
     analyzed_circuits = generate_analyzed_circuit_final_results()
@@ -1376,7 +1441,9 @@ def example_final_elements_list():
     return generate_example_final_elements_list()
 
 def generate_example_final_parameters_map_element_list():
-    """Generate examples of final parameters_maps."""
+    """Generate correct examples of final parameters lists of
+    analyzed circuits, for the list_elements test.
+    """
     example_final_parameters = [{'R1': 1000.}, {'C1': 1e-6},
                                 {'R1': 2000., 'C2': 1e-6},
                                 {'C1': 2e-6}]
@@ -1442,7 +1509,9 @@ def wrong_match_parameter_final_parameters_list_parameters(
     return wrong_parameters
 
 def generate_example_final_parameters_list_wrong_match():
-    """Generate examples of final parameters lists of analyzed circuits."""
+    """Generate examples of final parameters lists of analyzed circuits, for
+    the final_parameters_list test.
+    """
     example_final_parameters_list = [[100.], [1e-6], [2000., 1e-6], [10000.]]
     return example_final_parameters_list
 
@@ -1471,7 +1540,9 @@ def test_wrong_match_parameters_final_parameters_list_elements(
 
 
 def generate_example_final_parameters_map_parameters_list():
-    """Generate examples of final parameters_maps."""
+    """Generate correct examples of final parameters lists of
+    analyzed circuits, for the list_parameters test.
+    """
     example_final_parameters = [{'R1': 1000.}, {'C1': 1e-6},
                                 {'R1': 2000., 'C2': 1e-6},
                                 {'R1': 10000.}]
@@ -1483,7 +1554,7 @@ def example_final_parameters_map_parameters_list():
 
 def generate_example_final_parameters_list():
     """Generate examples of final parameters list out of the final
-    parameters_map.
+    parameters_map, for the list_parameters test.
     """
     final_parameters_lists = []
     analyzed_circuits = generate_analyzed_circuit_final_results()
