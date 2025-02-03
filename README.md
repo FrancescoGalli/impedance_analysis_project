@@ -95,14 +95,14 @@ impedance function will be created, and the fit function will try to minimize
 the error function mentioned before, varying the value of the non-constant
 parameters.\
 After the fitting process is complete, the results are printed in the command
-line and both data and fit curves of the impedance modulus and phase graphs 
+line and both data and fit curves of the impedance amplitude and phase graphs 
 are plotted and saved as `.pdf`.
 
 [generate_impedance.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/generate_impedance.py) is the core module that generates an impedance function
 starting from the circuit diagram and the element parameters (taking into
 account if any parameter is set constant).
 
-[plot_and_save.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py) contains the functions to extract the impedance modulus
+[plot_and_save.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/plot_and_save.py) contains the functions to extract the impedance amplitude
 and the phase of the complex impedances and to plot the data or the data
 with the fit and the results.
 

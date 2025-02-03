@@ -1,4 +1,4 @@
-"""This module contains the functions to plot data (extracting the modulus and
+"""This module contains the functions to plot data (extracting the amplitude and
 the phase of the impedance) or data and fit togheter, and saves the plots in a
 .pdf file. In addition, it contains a function to save data in a .txt filey.
 """
@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 OHM_CHARACTER_UNICODE = u'\u03A9'
 
-def get_modulus(impedance):
-    """Given a complex vector, return its modulus.
+def get_amplitude(impedance):
+    """Given a complex vector, return its amplitude.
     
     Parameters
     ----------
@@ -18,11 +18,11 @@ def get_modulus(impedance):
 
     Returns
     -------
-    modulus : array
-        Array containing the correspondant impedance modulus
+    amplitude : array
+        Array containing the correspondant impedance amplitude
     """
-    modulus = abs(impedance)
-    return modulus
+    amplitude = abs(impedance)
+    return amplitude
 
 def get_phase(impedance):
     """Given a complex vector, return its phase in deg.
@@ -34,14 +34,14 @@ def get_phase(impedance):
 
     Returns
     -------
-    modulus : array
+    amplitude : array
         Array containing the correspondant impedance phase
     """
     phase_vector = np.angle(impedance) * 180/np.pi
     return phase_vector
 
 def plot_data(frequency, impedance):
-    """Plot in two subfigures the impedance modulus and the phase as a
+    """Plot in two subfigures the impedance amplitude and the phase as a
     function of the frequency. Saves the graphs in a .pdf file.
 
     Parameters
@@ -51,15 +51,15 @@ def plot_data(frequency, impedance):
     impedance : array
         Array containing the data impedances
     """
-    _, (modulus, phase) = plt.subplots(ncols=2, figsize=(12, 5.5))
-    modulus_data = get_modulus(impedance)
-    modulus.set_title('Modulus', fontsize=12)
-    modulus.set_xlabel('Frequency(Hz)')
-    modulus.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
-    min_y_mod = min(modulus_data)/2
-    max_y_mod = max(modulus_data)*2
-    modulus.set_ylim(min_y_mod, max_y_mod)
-    modulus.loglog(frequency, modulus_data, color='blue', linestyle='-',
+    _, (amplitude, phase) = plt.subplots(ncols=2, figsize=(12, 5.5))
+    amplitude_data = get_amplitude(impedance)
+    amplitude.set_title('Modulus', fontsize=12)
+    amplitude.set_xlabel('Frequency(Hz)')
+    amplitude.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
+    min_y_mod = min(amplitude_data)/2
+    max_y_mod = max(amplitude_data)*2
+    amplitude.set_ylim(min_y_mod, max_y_mod)
+    amplitude.loglog(frequency, amplitude_data, color='blue', linestyle='-',
                    marker='o')
     phase_data = get_phase(impedance)
     phase.set_title('Phase', fontsize=12)
@@ -80,7 +80,7 @@ def plot_data(frequency, impedance):
 def save_data(file_name, number_of_columns, frequency, impedance):
     """Save the data in a .txt file with as header the name of the
     quantities. The two formats avaible are two-column (complex frequence
-    and impedance) or three-column (frequence, modulus and phase).
+    and impedance) or three-column (frequence, amplitude and phase).
 
     Parameters
     ----------
@@ -98,14 +98,14 @@ def save_data(file_name, number_of_columns, frequency, impedance):
         np.savetxt(file_name, np.c_[frequency, impedance], delimiter=';',
                    header=header_text, comments='%')
     elif number_of_columns==3:
-        modulus = get_modulus(impedance)
+        amplitude = get_amplitude(impedance)
         phase_vector = get_phase(impedance)
         header_text = 'Frequency(Hz)    Modulus(Ohm)    Phase(deg)'
-        np.savetxt(file_name, np.c_[frequency, modulus,phase_vector],
+        np.savetxt(file_name, np.c_[frequency, amplitude,phase_vector],
                    delimiter=';', header=header_text, comments='%')
     else:
         raise Exception('InputError: Invalid format for saving data. It must '
-                        + 'be 2 for complex impedance or 3 for modulus and '
+                        + 'be 2 for complex impedance or 3 for amplitude and '
                         + 'phase')
 
 def get_box_coordinates(x_vector, y_vector):
@@ -135,9 +135,9 @@ def get_box_coordinates(x_vector, y_vector):
 
 def plot_fit(frequency, impedance_data_vector, impedance_fit,
              result_info):
-    """Plot in two subfigures the impedance modulus and the phase as a
+    """Plot in two subfigures the impedance amplitude and the phase as a
     function of the frequency. Superimposed to the data the fit curve is
-    plotted as well (in red). In the modulus graph, draw a box containing the
+    plotted as well (in red). In the amplitude graph, draw a box containing the
     value of the fitted parameters. Saves the graphs in a .pdf file.
 
     Parameters
@@ -153,23 +153,23 @@ def plot_fit(frequency, impedance_data_vector, impedance_fit,
         Constant parameters are present as well, with a '(constant)' just
         after their values
     """
-    _, (modulus, phase) = plt.subplots(ncols=2, figsize=(12, 5.5))
-    modulus_data = get_modulus(impedance_data_vector)
-    modulus_fit_vector = get_modulus(impedance_fit)
-    modulus.set_title('Modulus', fontsize=18)
-    modulus.set_xlabel('Frequency(Hz)')
-    modulus.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
-    min_y_mod = min(modulus_data)/2
-    max_y_mod = max(modulus_data)*2
-    modulus.set_ylim(min_y_mod, max_y_mod)
-    modulus.loglog(frequency, modulus_data, label='Data', color='blue',
+    _, (amplitude, phase) = plt.subplots(ncols=2, figsize=(12, 5.5))
+    amplitude_data = get_amplitude(impedance_data_vector)
+    amplitude_fit_vector = get_amplitude(impedance_fit)
+    amplitude.set_title('Modulus', fontsize=18)
+    amplitude.set_xlabel('Frequency(Hz)')
+    amplitude.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
+    min_y_mod = min(amplitude_data)/2
+    max_y_mod = max(amplitude_data)*2
+    amplitude.set_ylim(min_y_mod, max_y_mod)
+    amplitude.loglog(frequency, amplitude_data, label='Data', color='blue',
                    marker='o')
-    modulus.loglog(frequency, modulus_fit_vector, label='Fit', color='red',
+    amplitude.loglog(frequency, amplitude_fit_vector, label='Fit', color='red',
                    linestyle='-')
-    modulus.legend()
-    box_x, box_y = get_box_coordinates(frequency, modulus_data)
+    amplitude.legend()
+    box_x, box_y = get_box_coordinates(frequency, amplitude_data)
     result_info = 'Fit parameters:\n' + result_info
-    modulus.text(box_x, box_y, result_info, fontsize=11, bbox=dict(
+    amplitude.text(box_x, box_y, result_info, fontsize=11, bbox=dict(
         fill=False, edgecolor='black', linewidth=2))
     phase_data = get_phase(impedance_data_vector)
     phase_fit_vector = get_phase(impedance_fit)
