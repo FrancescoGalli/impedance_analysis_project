@@ -6,6 +6,10 @@ generate_constant_elements_data() from the generate_data.py module.
 
 import pytest
 
+import sys
+from pathlib import Path
+sys.path.append(str(Path.cwd().parent)) 
+
 from generate_impedance import generate_circuit, Circuit
 from generate_data import generate_constant_elements_data
 
@@ -77,6 +81,9 @@ def consistency_brackets(circuit_diagram):
     return wrong_brackets, wrong_brackets_index
 
 def generate_example_consistency_brackets():
+    """Generate examples for the consistency brackets test. Only the last one
+    is incorrect.
+    """
     strings = (['()', '([])', '[()[()]]', '[(])'])
     return strings
 
@@ -92,7 +99,6 @@ def test_consistency_brackets(example_consistency_brackets):
     WHEN: the circuit diagram validity is tested
     THEN: the circuit diagram has brackets consistency
     """
-    #Only the last example is incorrect
     for string_ in example_consistency_brackets:
         wrong_brackets, wrong_brackets_index = consistency_brackets(
             string_)
@@ -124,6 +130,9 @@ def list_element_types(circuit_diagram):
     return elements_types
 
 def generate_example_diagrams_list():
+    """Generate examples for the elements listing test. Only the last one
+    is incorrect.
+    """
     diagrams = (['(R1)', '([R1C2]R3)', '[C1Q2]', '(R1F3)'])
     return diagrams
 
@@ -131,20 +140,30 @@ def generate_example_diagrams_list():
 def example_diagrams_list():
     return generate_example_diagrams_list()
 
-def test_list_element_types(example_diagrams_list):
+def generate_example_correct_listing():
+    """Generate the correct outcomes for the elements listing. Oly the last one
+    is incorrect.
+    """
+    correct_listing = ([['R'], ['R','C','R'], ['C', 'Q'], ['R', 'F']])
+    return correct_listing
+
+@pytest.fixture
+def example_correct_listing():
+    return generate_example_correct_listing()
+
+def test_list_element_types(example_diagrams_list, example_correct_listing):
     """Check that the help function to list the elments in a diagram works.
 
     GIVEN: the circuit diagram is a string
     WHEN: the circuit diagram validity is tested
     THEN: the elements of the circuit diagram are listed correctly
     """
-    #Only the last example is incorrect
-    correct_listing = ([['R'], ['R','C','R'], ['C', 'Q'], ['R', 'F']])
     for i, string_ in enumerate(example_diagrams_list):
         listing = list_element_types(string_)
-        assert listing==correct_listing[i], (
+        assert listing==example_correct_listing[i], (
             'Listing error: element listing of \'' + str(string_)
-            + '\' differs from the correct one: ' + str(correct_listing[i]))
+            + '\' differs from the correct one: '
+            + str(example_correct_listing[i]))
 
 
 def invalid_characters(circuit_diagram):
@@ -175,6 +194,9 @@ def invalid_characters(circuit_diagram):
     return wrong_characters, wrong_characters_index
 
 def generate_example_diagrams_character():
+    """Generate examples for the invalid characters test. Only the last one
+    is incorrect.
+    """
     diagrams = (['(R1)', '[R1C2]', '([C1Q2]R3)', '(&R1G3)'])
     return diagrams
 
@@ -189,7 +211,6 @@ def test_invalid_characters(example_diagrams_character):
     WHEN: the circuit diagram validity is tested
     THEN: the circuit diagram contains only valid characters
     """
-    #Only the last example is incorrect
     for string_ in example_diagrams_character:
         wrong_characters, wrong_characters_index = invalid_characters(string_)
         assert not wrong_characters, (
@@ -233,6 +254,9 @@ def inconsistent_elements(circuit_diagram):
     return wrong_elements, wrong_element_index
 
 def generate_example_diagrams_consistency_element():
+    """Generate examples for the element consistency test. Only the last one
+    is incorrect.
+    """
     diagrams = (['(C1)', '[C1C2]', '([Q1C2]R3)', '(R[2G3])'])
     return diagrams
 
@@ -247,7 +271,6 @@ def test_invalid_characters(example_diagrams_consistency_element):
     WHEN: the circuit diagram validity is tested
     THEN: the circuit diagram contains only valid characters
     """
-    #Only the last example is incorrect
     for string_ in example_diagrams_consistency_element:
         wrong_elements, wrong_element_index = inconsistent_elements(string_)
         assert not wrong_elements, (
@@ -255,6 +278,7 @@ def test_invalid_characters(example_diagrams_consistency_element):
             + ' at ' + str(wrong_element_index) + ': ' + string_ + '. An '
             + 'element is composed by a valid letter followed by a natural '
             + 'number in invalid_characters()')
+
 
 def inconsistent_numbers(circuit_diagram):
     """Given a circuit diagram, return any inconsistent element number: each
@@ -287,6 +311,9 @@ def inconsistent_numbers(circuit_diagram):
     return wrong_numbers, wrong_numbers_index
 
 def generate_example_diagrams_consistency_numbers():
+    """Generate examples for the number consistency test. Only the last one
+    is incorrect.
+    """
     diagrams = (['(C1)', '[C1C2]', '([Q1C2]R3)', '(R1[R3C3])'])
     return diagrams
 
@@ -301,7 +328,6 @@ def test_inconsistent_numbers(example_diagrams_consistency_numbers):
     WHEN: the circuit diagram validity is tested
     THEN: the circuit diagram contains only valid numbers
     """
-    #Only the last example is incorrect
     for string_ in example_diagrams_consistency_numbers:
         wrong_numbers, wrong_numbers_index = inconsistent_numbers(string_)
         assert not wrong_numbers, (
@@ -312,6 +338,9 @@ def test_inconsistent_numbers(example_diagrams_consistency_numbers):
 
 
 def generate_example_circuit_diagrams():
+    """Generate examples of circuit diagrams for the initial circuit test.
+    Only the last one is incorrect.
+    """
     example_circuit_diagrams = (['(R1)', '(R1C2)', '(R1C2[R3Q4])', '(R1Ce)'])
     return example_circuit_diagrams
 
@@ -332,6 +361,9 @@ def example_parameters():
     return generate_example_parameters()
 
 def generate_example_constant_conditions():
+    """Generate examples of parameters for the initial circuit test.
+    Only the last one is incorrect.
+    """
     example_constant_conditions = ([{'R1': 0}, {'R1': 1, 'C2': 0},
                                     {'R1': 0, 'C2': 0, 'R3': 0, 'Q4': 0},
                                     {'R1': 'a', 'Ce': -1}])
@@ -342,7 +374,9 @@ def example_constant_conditions():
     return generate_example_constant_conditions()
 
 def generate_example_initial_circuits():
-    """Generate an array of constant element conditions. Used for tests."""
+    """Generate examples of initial circuits for the initial circuit test.
+    Only the last one is incorrect.
+    """
     example_initial_circuits = []
     circuit_diagrams = generate_example_circuit_diagrams()
     parameters = generate_example_parameters()
@@ -372,7 +406,6 @@ def test_initial_circuit_circuit_diagram(example_initial_circuits,
     THEN: the Circuit object has a valid circuit diagram
     """
     caller = 'generate_circuit()'
-    #Only the last example is incorrect
     for i, input_circuit in enumerate(example_initial_circuits):
         assert isinstance(input_circuit, Circuit), (
             'TyperError for output of ' + caller + ' method. It must be an '
@@ -456,6 +489,9 @@ def invalid_elements_type(element_list):
     return wrong_types, wrong_types_index
 
 def generate_example_elements_type():
+    """Generate examples for the invalid element test. Only the last one is
+    incorrect.
+    """
     example_elements_type = ([['C1'], ['C1', '&'], ['Q1', 'C2', 'R'],
                               [1.2, ['C2'], 'R3']])
     return example_elements_type
@@ -472,7 +508,6 @@ def test_invalid_elements_type(example_elements_type):
     WHEN: the elements validity is tested
     THEN: the elements list contains only valid types
     """
-    #Only the last example is incorrect
     for elements in example_elements_type:
         wrong_types, wrong_types_index = invalid_elements_type(elements)
         assert not wrong_types, (
@@ -508,6 +543,9 @@ def invalid_elements_length(element_list):
     return wrong_length, wrong_length_index
 
 def generate_example_elements_length():
+    """Generate examples for the invalid element length test. Only the last
+    one is incorrect.
+    """
     example_elements_length = ([['C1'], ['Cy', 'CC'], ['Q1', 'C2', 'R3'],
                                 ['C', 'C12', 'R3']])
     return example_elements_length
@@ -524,7 +562,6 @@ def test_invalid_elements_length(example_elements_length):
     WHEN: the elements validity is tested
     THEN: the elements list contains only strings with length 2
     """
-    #Only the last example is incorrect
     for elements in example_elements_length:
         wrong_length, wrong_length_index = invalid_elements_length(elements)
         assert not wrong_length, (
@@ -560,6 +597,9 @@ def invalid_elements_char_letter(elements_circuit):
     return wrong_char, wrong_char_index
 
 def generate_example_elements_char_letter():
+    """Generate examples for the invalid element letter test. Only the last
+    one is incorrect.
+    """
     example_elements_char_letter = ([['R1'], ['Cy', 'CC'], ['Q1', 'C2', 'R3'],
                                      ['1C', 'C2']])
     return example_elements_char_letter
@@ -577,7 +617,6 @@ def test_invalid_elements_char_letter(example_elements_char_letter):
     THEN: the elements list contains only elements with the valid letters as
     first character
     """
-    #Only the last example is incorrect
     for elements in example_elements_char_letter:
         (wrong_char_letter,
          wrong_char_letter_index) = invalid_elements_char_letter(elements)
@@ -622,6 +661,9 @@ def invalid_elements_char_number(elements_circuit):
     return wrong_char, wrong_char_index
 
 def generate_example_elements_char_number():
+    """Generate examples for the invalid element number test. Only the last
+    one is incorrect.
+    """
     example_elements_char_number = ([['R1'], ['y1', '22'], ['Q1', 'C2', 'R3'],
                                      ['1C', 'C2', 'R2', 'R4']])
     return example_elements_char_number
@@ -639,7 +681,6 @@ def test_invalid_elements_char_number(example_elements_char_number):
     THEN: the elements list contains only elements with the a valid number as
     as second character
     """
-    #Only the last example is incorrect
     for elements in example_elements_char_number:
         (wrong_char_number,
             wrong_char_number_index) = invalid_elements_char_number(elements)
@@ -663,7 +704,6 @@ def test_initial_circuit_elements(example_initial_circuits,
     THEN: the Circuit object has valid elements
     """
     caller = 'generate_circuit()'
-    #Only the last example is incorrect
     for i, input_circuit in enumerate(example_initial_circuits):
         parameters_map = input_circuit.parameters_map
         assert isinstance(parameters_map, dict), (
@@ -734,6 +774,9 @@ def wrong_tuples_circuit(parameters_map):
     return wrong_tuples
 
 def generate_example_parameters_tuples():
+    """Generate examples for the wrong tuples test. Only the last one is
+    incorrect.
+    """
     tuples = ([{'C1': (1e-6, 0)}, {'C1': (1e-6, 0), 'R2': (100, 0)},
                {'Q1': ([1e-6, 0.5], 1), 'R2': (100, 0)},
                {'Q1': ([1e-6, 0.5])}])
@@ -751,7 +794,6 @@ def test_wrong_tuples_circuit(example_parameters_tuples):
     WHEN: the parameters validity is tested
     THEN: the parameters contains only tuples as values
     """
-    #Only the last example is incorrect
     for parameters in example_parameters_tuples:
         wrong_tuples = wrong_tuples_circuit(parameters)
         assert not wrong_tuples, (
@@ -794,6 +836,9 @@ def invalid_parameters_type(parameters_list):
     return wrong_type, wrong_type_index
 
 def generate_example_parameters_type():
+    """Generate examples for the invalid parameter test. Only the last one is
+    incorrect.
+    """
     parameters = ([[1e-6], [1000.0, 1e-5], [100.0, [1e-5, 1.1, 10.0]],
                    ['a', [1e-5, 'b']]])
     return parameters
@@ -810,7 +855,6 @@ def test_invalid_parameters_type(example_parameters_type):
     WHEN: the parameters validity is tested
     THEN: the parameters list contains only valid types
     """
-    #Only the last example is incorrect
     for parameters in example_parameters_type:
         wrong_type, wrong_type_index = invalid_parameters_type(
             parameters)
@@ -848,6 +892,9 @@ def invalid_parameters_list(parameters_list):
     return wrong_parameters, wrong_parameters_index
 
 def generate_example_parameters_list():
+    """Generate examples for the invalid parameters lists test. Only the last
+    one is incorrect.
+    """
     parameters = ([[1e-6], [1000.0, 1e-5], [100.0, [1e-5, 10.0]],
                    [13.0, [1e-5, 1.1, 100.0]]])
     return parameters
@@ -864,7 +911,6 @@ def test_invalid_parameters_list(example_parameters_list):
     WHEN: the parameters validity is tested
     THEN: the parameters list are only of length 2
     """
-    #Only the last example is incorrect
     for parameters in example_parameters_list:
         wrong_list, wrong_list_index = invalid_parameters_list(parameters)
         assert not wrong_list, (
@@ -910,6 +956,9 @@ def invalid_parameters_value(parameters_list):
     return wrong_value, wrong_value_index
 
 def generate_example_parameters_value():
+    """Generate examples for the parameters value test. Only the last one is
+    incorrect.
+    """
     parameters = ([[1e-6], [1000.0, 1e-5], [100.0, [1e-5, 10.0]],
                    [-300.0, [1e-5, 10.0]]])
     return parameters
@@ -926,7 +975,6 @@ def test_invalid_parameters_value(example_parameters_value):
     WHEN: the parameters validity is tested
     THEN: the parameters have valid values
     """
-    #Only the last example is incorrect
     for parameters in example_parameters_value:
         wrong_value, wrong_value_index = invalid_parameters_value(
             parameters)
@@ -974,6 +1022,9 @@ def elements_parameters_match(parameters_map):
     return wrong_match, wrong_match_index
 
 def generate_example_parameters_maps():
+    """Generate examples for the element paramaters match test. Only the last
+    one is incorrect.
+    """
     parameters_maps = ([{'C1': (1e-6, 0)}, {'C1': (1e-6, 0), 'R2': (100, 0)},
                         {'Q1': ([1e-6, 0.5], 1), 'R2': (100, 0)},
                         {'R1': ([1e-6, 0.5], 0), 'Q2': (10.0, 1)}])
@@ -983,7 +1034,7 @@ def generate_example_parameters_maps():
 def example_parameters_maps():
     return generate_example_parameters_maps()
 
-def test_invalid_parameters_value(example_parameters_maps):
+def test_elements_parameters_match(example_parameters_maps):
     """Check that the help function to find the invalid match between elements
     type and parameters in the parameters dictionary works.
 
@@ -992,7 +1043,6 @@ def test_invalid_parameters_value(example_parameters_maps):
     WHEN: the parameters validity is tested
     THEN: the parameters match is correct
     """
-    #Only the last example is incorrect
     for parameters_map in example_parameters_maps:
         wrong_match, wrong_match_index = elements_parameters_match(
             parameters_map)
@@ -1021,7 +1071,6 @@ def test_initial_circuit_parameters(example_initial_circuits,
     THEN: the Circuit object has valid parameters
     """
     caller = 'generate_circuit()'
-    #Only the last example is incorrect
     for i, input_circuit in enumerate(example_initial_circuits):
         parameters_map = input_circuit.parameters_map
 
@@ -1102,7 +1151,9 @@ def invalid_constant_type(constant_elements_list):
     return wrong_types, wrong_types_index
 
 def generate_example_constant_conditions_integers():
-    """Generate three examples of lists of all integers."""
+    """Generate examples for the constant type test. Only the last one is
+    incorrect.
+    """
     example_constant_conditions_integers = ([[2, 0, 1], [1], [3, 0],
                                              ['a', 0.3, 1]])
     return example_constant_conditions_integers
@@ -1119,7 +1170,6 @@ def test_invalid_constant_type(example_constant_conditions_integers):
     WHEN: the constant conditions are tested
     THEN: the constant conditions have a valid type
     """
-    #Only the last example is incorrect
     for element in example_constant_conditions_integers:
         wrong_types, wrong_types_index = invalid_constant_type(element)
         assert not wrong_types, (
@@ -1156,6 +1206,9 @@ def invalid_constant_value(constant_elements_list):
     return wrong_value, wrong_value_index
 
 def generate_example_constant_conditions_value():
+    """Generate examples for the constant value test. Only the last one is
+    incorrect.
+    """
     example_constant_conditions_value = ([[1, 0, 1], [1], [0, 0], [3, 1]])
     return example_constant_conditions_value
 
@@ -1171,7 +1224,6 @@ def test_invalid_constant_value(example_constant_conditions_value):
     WHEN: the constant conditions are tested
     THEN: the constant conditions have a valid value
     """
-    #Only the last example is incorrect
     for element in example_constant_conditions_value:
         wrong_value, wrong_value_index = invalid_constant_value(element)
         assert not wrong_value, (
@@ -1203,6 +1255,9 @@ def number_of_parameters_is_equal_to_number_of_const_elements(
     return length_equality
 
 def generate_example_parameters_length():
+    """Generate examples of parameters for the length parameters-constant
+    test. Only the last one is incorrect.
+    """
     parameters = ([{'R1': 100, 'C2': 1e-6, 'R3': 1000},
                    {'R1': 200},
                    {'C1': 2e-6, 'R2': 3000},
@@ -1214,6 +1269,9 @@ def example_parameters_length():
     return generate_example_parameters_length()
 
 def generate_example_conditionts_length():
+    """Generate examples of constant conditions for the length
+    parameters-constant test. Only the last one is incorrect.
+    """
     constant_conditions = ([[1, 0, 1], [1], [0, 0], [0, 0]])
     return constant_conditions
 
@@ -1232,7 +1290,6 @@ def test_number_of_parameters_is_equal_to_number_of_const_elements(
     THEN: the constant conditions have the same length of the parameters
     dictionaries
     """
-    #Only the last example is incorrect
     for i, parameters in enumerate(example_parameters_length):
         assert number_of_parameters_is_equal_to_number_of_const_elements(
             parameters, example_conditionts_length[i]), (
@@ -1242,11 +1299,14 @@ def test_number_of_parameters_is_equal_to_number_of_const_elements(
             + 'Parameters size: ' + str(len(parameters)) + ', constant array '
             + 'size: ' + str(len(example_conditionts_length[i])))
 
+
 def generate_example_parameters_constant_elements():
-    """Generate an array of constant element conditions. Used for tests."""
-    parameters = ([{'R1': 100, 'C2': 1e-6, 'R3': 1000},
+    """Generate examples of parameters for the constant element conditions
+    test.
+    """
+    parameters = [{'R1': 100, 'C2': 1e-6, 'R3': 1000},
                    {'R1': 200},
-                   {'C1': 2e-6, 'R2': 3000}])
+                   {'C1': 2e-6, 'R2': 3000}]
     return parameters
 
 @pytest.fixture
@@ -1254,7 +1314,9 @@ def example_parameters_constant_elements():
     return generate_example_parameters_constant_elements()
 
 def generate_example_constant_elements():
-    """Generate an array of constant element conditions. Used for tests."""
+    """Generate examples of constant conditions given by the function under
+    test for the constant element conditions test.
+    """
     parameters = generate_example_parameters_constant_elements()
     constant_conditions = []
     for parameter in parameters:
@@ -1304,7 +1366,6 @@ def test_generate_constant_elements_data(example_constant_elements,
             + ', constant conditions size: ' + str(len(conditions)))
 
 
-
 def test_initial_circuit_constant_elements(example_initial_circuits,
                                            example_constant_conditions):
     """Check that the constant elements list of the Circuit objetc is valid.
@@ -1316,7 +1377,6 @@ def test_initial_circuit_constant_elements(example_initial_circuits,
     condition
     """
     caller = 'generate_circuit()'
-    #Only the last example is incorrect
     for i, input_circuit in enumerate(example_initial_circuits):
         parameters_map = input_circuit.parameters_map
 
