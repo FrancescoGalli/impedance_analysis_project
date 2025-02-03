@@ -53,7 +53,7 @@ def plot_data(frequency, impedance):
     """
     _, (amplitude, phase) = plt.subplots(ncols=2, figsize=(12, 5.5))
     amplitude_data = get_amplitude(impedance)
-    amplitude.set_title('Modulus', fontsize=12)
+    amplitude.set_title('Amplitude', fontsize=12)
     amplitude.set_xlabel('Frequency(Hz)')
     amplitude.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
     min_y_mod = min(amplitude_data)/2
@@ -100,7 +100,7 @@ def save_data(file_name, number_of_columns, frequency, impedance):
     elif number_of_columns==3:
         amplitude = get_amplitude(impedance)
         phase_vector = get_phase(impedance)
-        header_text = 'Frequency(Hz)    Modulus(Ohm)    Phase(deg)'
+        header_text = 'Frequency(Hz)    Amplitude(Ohm)    Phase(deg)'
         np.savetxt(file_name, np.c_[frequency, amplitude,phase_vector],
                    delimiter=';', header=header_text, comments='%')
     else:
@@ -156,7 +156,7 @@ def plot_fit(frequency, impedance_data_vector, impedance_fit,
     _, (amplitude, phase) = plt.subplots(ncols=2, figsize=(12, 5.5))
     amplitude_data = get_amplitude(impedance_data_vector)
     amplitude_fit_vector = get_amplitude(impedance_fit)
-    amplitude.set_title('Modulus', fontsize=18)
+    amplitude.set_title('Amplitude', fontsize=18)
     amplitude.set_xlabel('Frequency(Hz)')
     amplitude.set_ylabel('|Z|('+OHM_CHARACTER_UNICODE+')')
     min_y_mod = min(amplitude_data)/2
