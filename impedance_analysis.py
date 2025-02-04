@@ -1,5 +1,5 @@
 """This module takes impedance vs frequency data from a .txt file, either in
-complex impedance form of modulus and phase form, and plots the modulus and
+complex impedance form of amplitude and phase form, and plots the amplitude and
 phase of the data.
 Then, starting from a circuit string and the initial parameters of the
 components of each element set by the user, a Circuit object is created.
@@ -10,179 +10,22 @@ take into account in the fit any initial parameter through the element
 constant conditions, also defined by the user.
 The fit is done minimizing a certain error function using the Nelder-Mead
 algorithm, and then the fit results are written both in the command line and
-in the final plot of the fit, containing the modulus and phase of both data
+in the final plot of the fit, containing the amplitude and phase of both data
 and fit.
 """
 
-import os.path
-import sys
-import configparser
-from csv import reader
 
+import configparser
 import numpy as np
 from scipy.optimize import minimize
 
+from read import read_input_circuit_diagram, read_input_parameters
+from read import read_input_constant_parameter_configurations_fit
+from read import read_input_file_name, read_data
 from generate_impedance import generate_circuit, get_string
 from plot_and_save import plot_data, plot_fit
 
 
-#######################
-#Input functions
-
-def read_input_circuit_diagram_fit(config):
-    """Read the circuit diagram specified in the configuration file for the
-    fit.
-
-    Parameters
-    ----------
-    config : configparser.ConfigParser
-        Parser object with the information inside the configuration file
-
-    Returns
-    -------
-    circuit_diagram_fit : str
-        Circuit diagram given in the configuration file
-    """
-    circuit_diagram_fit = config.get('Circuit','diagram')
-    return circuit_diagram_fit
-
-def read_input_parameters_fit(config):
-    """Read the parameters specified in the configuration file for the
-    fit.
-
-    Parameters
-    ----------
-    config : configparser.ConfigParser
-        Parser object with the information inside the configuration file
-
-    Returns
-    -------
-    parameters_fit : dict
-        Parameters given in the configuration file
-    """
-    parameters_fit = {}
-    for parameter_name in config['Parameters']:
-        string_parameter_name = (str(parameter_name)).upper()
-        if string_parameter_name.startswith('Q'):
-            string_list = config.get('Parameters',
-                                     string_parameter_name).split()
-            parameters_fit[string_parameter_name] = [float(i) for i in
-                                                        string_list]
-        else:
-            parameters_fit[string_parameter_name] = config.getfloat(
-                'Parameters', string_parameter_name)
-    return parameters_fit
-
-def read_input_constant_parameter_configurations_fit(config):
-    """Read the constant conditions specified in the configuration file for
-    the fit.
-
-    Parameters
-    ----------
-    config : configparser.ConfigParser
-        Parser object with the information inside the configuration file
-
-    Returns
-    -------
-    constant_elements_fit : dict
-        Constant conditions for the fit given in the configuration file
-    """
-    constant_elements_fit = {}
-    for parameter_name in config['Constant_parameter_conditions']:
-        string_parameter_name = (str(parameter_name)).upper()
-        constant_elements_fit[string_parameter_name] = config.getint(
-            'Constant_parameter_conditions', string_parameter_name)
-    return constant_elements_fit
-
-def read_input_file_name(config):
-    """Read the file name, from where the data will be read, specified in the
-    configuration file for the fit.
-
-    Parameters
-    ----------
-    config : configparser.ConfigParser
-        Parser object with the information inside the configuration file
-
-    Returns
-    -------
-    file_name : str
-        Name of the input file
-    """
-    file_name = config.get('File', 'file_name')
-    file_name += '.txt'
-    return file_name
-
-
-
-############################
-#Read functions
-
-def get_number_of_columns(file_name):
-    """Return the number of columns inside the data file, ignoring the
-    comment lines.
-
-    Parameters
-    ----------
-    file_name : str
-        Name of the file where the data are saved
-
-    Returns
-    -------
-    number_of_columns : int
-        Number of data array (columns) inside the data file
-    """
-    number_of_columns = 0
-    comment_character = '%'
-    with open(file_name) as file:
-        for row in reader(file, delimiter=';', skipinitialspace=True):
-            if row[0][0]!=comment_character:
-                number_of_columns = len(row)
-    return number_of_columns
-
-def read_data(file_name):
-    """Return the (real) frequency vector and the complex impedance vector.
-    The impedance data can be a single complex column or two real
-    columns: modulus first and phase (in deg) second. Based on the number of
-    columns in the data file, one of the two structure will be assumed.
-
-    Parameters
-    ----------
-    file_name : str
-        Name of the file where the data are saved
-
-    Returns
-    -------
-    frequency_array : array
-        Data frequencies array from the data file
-    impedance_data_array : array
-        Complex array either directly imported from the data file, or
-        constructed combining the modulus and the phase from the data file,
-        depending on the data file format
-    """
-    try:
-        if not os.path.exists(file_name):
-            raise FileNotFoundError('no file \'' + str(file_name)
-                                    + '\' found in this directory')
-        if not os.path.isfile(file_name):
-            raise FileNotFoundError(str(file_name) + 'is not a file')
-    except FileNotFoundError as error:
-        print('FatalError: ' + repr(error))
-        sys.exit(0)
-    number_of_columns = get_number_of_columns(file_name)
-    if number_of_columns==2:
-        frequency_complex_array, impedance_data_array = np.loadtxt(
-            file_name, dtype=np.complex128, comments='%', delimiter=';',
-            unpack=True)
-        frequency_array = np.real(frequency_complex_array)
-    if number_of_columns==3:
-        frequency_array, modulus_data_vector, phase_data_vector = np.loadtxt(
-            file_name, comments='%', delimiter=';', unpack=True)
-        impedance_data_array = modulus_data_vector * np.e**(
-            1j * phase_data_vector * np.pi/180)
-    return frequency_array, impedance_data_array
-
-###############################
-#Fit functions
 
 def error_function(parameters, impedance_data_vector, impedance_function,
                    frequency_vector):
@@ -399,8 +242,8 @@ if __name__=="__main__":
     frequency, impedance_data = read_data(FILE_NAME)
     plot_data(frequency, impedance_data)
 
-    CIRCUIT_DIAGRAM_FIT = read_input_circuit_diagram_fit(config)
-    parameters_fit = read_input_parameters_fit(config)
+    CIRCUIT_DIAGRAM_FIT = read_input_circuit_diagram(config)
+    parameters_fit = read_input_parameters(config)
     constant_elements_fit = read_input_constant_parameter_configurations_fit(
         config)
 
