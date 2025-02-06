@@ -39,14 +39,17 @@ To install the application clone the repository with
 git clone https://github.com/FrancescoGalli/impedance_analysis_project.git
 ```
 
-To use the library, either to generate or to analyze the data, the user has
-to modify the appropriate module to set the input information (in
-`Generate_data.py` or in `Impedance_analysis.py`, respectively). This regards
-the setting functions (placed at the top of the file) of the circuit string,
+To use the library, either to generate or to analyze the data, the user can
+set all the input information (which are specified throughout `Tutorial_0`)
+in the correspondant configuration file: `config_generation.ini`
+or `config_analysis.ini`, respectively. This regards the circuit diagram,
 the parameters, and the data file name for both files, while the range and
-number of points of the frequency only for the generation, and the constat
-elements conditions for the analysis.\
-Then the user has to run the modified file.
+number of points of the frequency and the seed for the ranodm noise only for
+the generation, and the constat elements conditions for the analysis.\
+Then the user has to run the desided file with the command
+```
+python3 <module_name>
+```
 
 ## Requirements
 The library is entirely written and tested using `python 3.9.12`, but should
