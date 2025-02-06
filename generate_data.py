@@ -1,7 +1,7 @@
-"""This module simulates impedance data starting from the circuit string, the
+"""This module simulates impedance data starting from the circuit diagram, the
 initial parameters of each element and the element constant conditions.
 These three pieces of information are stored inside of an Circuit class object
-named initial_circuit. The circuit string containes the elements type and
+named initial_circuit. The circuit diagram containes the elements type and
 their disposition, while their values in the parameters list. The element
 constant conditions are all set to 1, since they are not relevant to the
 generation of the data.

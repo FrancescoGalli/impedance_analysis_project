@@ -68,7 +68,7 @@ class Circuit:
     Attributes
     ----------
     circuit_diagram : str
-        Circuit string, representing the circuit scheme.
+        Circuit diagram, representing the circuit scheme.
     parameters_map : dict
         a dictionary that correlate each element to a tuple containing the
         element parameter and the constant condition
@@ -356,8 +356,8 @@ class AnalisysCircuit:
         return impedance_cell
 
     def update_diagram(self, i_start, i_end, cell_count):
-        """Given the circuit string, the position of the analyzed cell bordes
-        and the number of analyzed cells, update the circuit string
+        """Given the circuit diagram, the position of the analyzed cell bordes
+        and the number of analyzed cells, update the circuit diagram
         substituting the analyzed cell with an equivalent element type 'Z'
         followed by the corresponding number of number of analyzed cells.
 
@@ -574,13 +574,13 @@ def parallel_comb(impedance_cell):
 #############################
 
 def get_position_opening_bracket(circuit_diagram, i_end):
-    """Given the circuit string and the position of a closing bracket, find
+    """Given the circuit diagran and the position of a closing bracket, find
     the corrispective opening bracket
 
     Parameters
     ----------
     circuit_diagram : str
-        String of the current circuit
+        Diagram of the current circuit
     i_end : int
         Index of circuit_diagram that corresponds to a closing bracket
 
