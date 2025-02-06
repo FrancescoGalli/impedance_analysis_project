@@ -33,25 +33,12 @@ where the numerical method `Nelder-Mead` has proven to be the best one among
 the options. A maximum iterations of 1000 has been set, but with circuits
 composed of less than six elements (as usually is), this number is rarely hit.
 
-## Installation and usage
+## Installation and Requirements
 To install the application clone the repository with
 ```
 git clone https://github.com/FrancescoGalli/impedance_analysis_project.git
 ```
 
-To use the library, either to generate or to analyze the data, the user can
-set all the input information (which are specified throughout `Tutorial_0`)
-in the correspondant configuration file: `config_generation.ini`
-or `config_analysis.ini`, respectively. This regards the circuit diagram,
-the parameters, and the data file name for both files, while the range and
-number of points of the frequency and the seed for the ranodm noise only for
-the generation, and the constat elements conditions for the analysis.\
-Then the user has to run the desided file with the command
-```
-python3 <module_name>
-```
-
-## Requirements
 The library is entirely written and tested using `python 3.9.12`, but should
 work with any older version of `python 3`. The running code relies on the
 following standard libraries:
@@ -66,6 +53,20 @@ And on the following scientific libraries:
 
 All the code, except for the plotting and saving functions are tested using
 `inspect`, `pytest` and `hypothesis` libraries.
+
+
+## Usage
+To use the library, either to generate or to analyze the data, the user can
+set all the input information (which are specified throughout `Tutorial_0`)
+in the correspondant configuration file: `config_generation.ini`
+or `config_analysis.ini`, respectively. This regards the circuit diagram,
+the parameters, and the data file name for both files, while the range and
+number of points of the frequency and the seed for the ranodm noise only for
+the generation, and the constat elements conditions for the analysis.\
+Then the user has to run the desided file with the command
+```
+python3 <module_name>
+```
 
 ## Structure
 The library is divided in 5 modules:
