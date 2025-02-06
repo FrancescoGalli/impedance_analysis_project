@@ -11,8 +11,8 @@ file, with the complex impedance format.
 """
 
 import numpy as np
-import configparser
 
+from read import read_configuration
 from read import read_input_circuit_diagram, read_input_parameters
 from read import read_input_frequencies, read_input_seed
 from read import read_output_file_name, read_output_file_format
@@ -97,8 +97,8 @@ def simulate_noise(seed_number, impedance_signal):
 
 
 if __name__=="__main__":
-    config = configparser.ConfigParser()
-    config.read('config_generation.ini')
+    default_name = 'config_generation'
+    config = read_configuration(default_name)
 
     CIRCUIT_DIAGRAM_DATA = read_input_circuit_diagram(config)
     parameters_data = read_input_parameters(config)
@@ -119,4 +119,3 @@ if __name__=="__main__":
     FILE_NAME = read_output_file_name(config)
     NUMBER_OF_COLUMNS = read_output_file_format(config)
     save_data(FILE_NAME, NUMBER_OF_COLUMNS, frequency, impedance_data)
-    

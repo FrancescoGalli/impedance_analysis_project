@@ -42,9 +42,12 @@ git clone https://github.com/FrancescoGalli/impedance_analysis_project.git
 The library is entirely written and tested using `python 3.9.12`, but should
 work with any older version of `python 3`. The running code relies on the
 following standard libraries:
+- `configparser`
+- `argparse`
 - `csv`
 - `sys`
 - `os.path`
+- `pathlib`
 
 And on the following scientific libraries:
 - `numpy`
@@ -52,21 +55,27 @@ And on the following scientific libraries:
 - `matplotlib.pyplot`
 
 All the code, except for the plotting and saving functions are tested using
-`inspect`, `pytest` and `hypothesis` libraries.
+`pytest`, `inspect` and `hypothesis` libraries.
 
 
 ## Usage
 To use the library, either to generate or to analyze the data, the user can
 set all the input information (which are specified throughout `Tutorial_0`)
-in the correspondant configuration file: `config_generation.ini`
-or `config_analysis.ini`, respectively. This regards the circuit diagram,
-the parameters, and the data file name for both files, while the range and
-number of points of the frequency and the seed for the ranodm noise only for
-the generation, and the constat elements conditions for the analysis.\
-Then the user has to run the desided file with the command
+in a configuration file, i.e. a file with the `.ini` extention.
+This regards the circuit diagram, the parameters, and the data file name for
+both files, while the range and number of points of the frequency and the
+seed for the ranodm noise only for the generation, while the constat elements
+conditions for the analysis.\
+To run the desired file with the chosen configuration file, the user can use
+the command
 ```
-python3 <module_name>
+python3 <module_name.py> --config=<configuration_file_name>
 ```
+where `<confi_file_name>` is the name, without the `.ini` extention of the
+configuration file. This is done in order to keep track of the input settings
+given to the program. This command is optional, and the default value is
+`config_generation` for the generation module and `config_analysis` for the
+analysis module.
 
 ## Structure
 The library is divided in 5 modules:
@@ -79,18 +88,18 @@ two specifications the impedance function is created, and, according to the
 frequency points, the impedance complex data are calculated. After the
 generation, a random noise on both real and imaginary parts is added to the
 generated data, using `numpy.random.rand` and a seed specified in the
-configuration file. The module then prints the impedance module and phase vs
-frequency of the results, and saves the graphs in a `.pdf` file and the points
-in a `.txt` file.
+configuration file. The module then prints the impedance amplitude and
+phase vs frequency of the results, and saves the graphs in a `.pdf` file and
+the points in a `.txt` file.
 
 [Impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/impedance_analysis.py) is dedicated to the analysis (fitting) of the
 impedance data. It reads a .txt file containing the impedance vs frequency
-points. The accepted formats are either frequency, impedance module and phase,
-or frequency and complex impedance. Similarly to the generation module, a
-circuit diagram and the physical description of its elements (i.e. the fitting
-parameters) must be set by the user. In addition each element can be set as
-constant, i.e. its parameter will still contribute to the circuit impedance,
-but will NOT be considered during the fitting process as a minimizing
+points. The accepted formats are either frequency, impedance amplitude and
+phase, or frequency and complex impedance. Similarly to the generation module,
+a circuit diagram and the physical description of its elements (i.e. the
+fitting parameters) must be set by the user. In addition each element can be
+set as constant, i.e. its parameter will still contribute to the circuit
+impedance, but will NOT be considered during the fitting process as a minimizing
 parameter. The reason behind this is that it happens that, with data in a
 certain range of frequecy, some elements are less relevant than others for the
 impedance trend.\
@@ -110,4 +119,11 @@ account if any parameter is set constant).
 and the phase of the complex impedances and to plot the data or the data
 with the fit and the results.
 
-[test_impedance_analysis.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/test_impedance.py) contains all the tests.
+[read.py](https://github.com/FrancescoGalli/impedance_analysis_project/blob/main/read.py)
+contains all the functions to read the input information.
+
+Then there are two folders:\
+`Tutorials` containes three `.ipynb` files that
+should work as a guide through the specifics of the input information, the
+generation module and the analysis module.\
+`tests` instead is the colection of tests of the project.

@@ -8,7 +8,36 @@ well
 import numpy as np
 import os.path
 import sys
+import configparser
+import argparse
 from csv import reader
+
+
+def read_configuration(default_name):
+    """Read from command line the (optional) name of the configuration file,
+    and then read the configuration file.
+
+    Parameters
+    ----------
+    default_name : str
+        Default name for the configuration file
+
+    Returns
+    -------
+    config : configparser.ConfigParser
+        Configuration object that contains all the input information
+    """
+    parser = argparse.ArgumentParser(
+        description="Module to generate impedance data")
+    parser.add_argument('--config', required=False, type=str,
+                        default=default_name,
+                        help=('Enter the name of the configuration file '
+                              + '(without .ini extension)'))
+    args = parser.parse_args()
+    config_name = args.config
+    config = configparser.ConfigParser()
+    config.read(config_name+'.ini')
+    return config
 
 
 def read_input_circuit_diagram(config):

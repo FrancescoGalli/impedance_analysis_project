@@ -15,10 +15,10 @@ and fit.
 """
 
 
-import configparser
 import numpy as np
 from scipy.optimize import minimize
 
+from read import read_configuration
 from read import read_input_circuit_diagram, read_input_parameters
 from read import read_input_constant_parameter_configurations_fit
 from read import read_input_file_name, read_data
@@ -234,8 +234,8 @@ def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
 
 
 if __name__=="__main__":
-    config = configparser.ConfigParser()
-    config.read('config_analysis.ini')
+    default_name = 'config_analysis'
+    config = read_configuration(default_name)
 
     FILE_NAME = read_input_file_name(config)
     print('\nReading data . . . ')
