@@ -64,7 +64,7 @@ set all the input information (which are specified throughout `Tutorial_0`)
 in a configuration file, i.e. a file with the `.ini` extention.
 This regards the circuit diagram, the parameters, and the data file name for
 both files, while the range and number of points of the frequency and the
-seed for the ranodm noise only for the generation, while the constat elements
+seed for the ranodm noise only for the generation, while the constat conditions
 conditions for the analysis.\
 To run the desired file with the chosen configuration file, the user can use
 the command

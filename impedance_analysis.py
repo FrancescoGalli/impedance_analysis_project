@@ -244,11 +244,11 @@ if __name__=="__main__":
 
     CIRCUIT_DIAGRAM_FIT = read_input_circuit_diagram(config)
     parameters_fit = read_input_parameters(config)
-    constant_elements_fit = read_input_constant_parameter_configurations_fit(
+    constant_conditions_fit = read_input_constant_parameter_configurations_fit(
         config)
 
     initial_circuit_fit = generate_circuit(
-        CIRCUIT_DIAGRAM_FIT, parameters_fit, constant_elements_fit)
+        CIRCUIT_DIAGRAM_FIT, parameters_fit, constant_conditions_fit)
     analyzed_circuit_fit = initial_circuit_fit.generate_analyzed_circuit()
     impedance_function = analyzed_circuit_fit.impedance
     initials_parameters = analyzed_circuit_fit.list_parameters()

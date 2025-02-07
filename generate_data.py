@@ -23,7 +23,7 @@ from plot_and_save import plot_data, save_data
 ############################
 #Input data manipulation
 
-def generate_constant_elements_data(parameters_data):
+def generate_constant_conditions_data(parameters_data):
     """Generate an array for constant elements conditions for the data
     generation.
 
@@ -34,12 +34,12 @@ def generate_constant_elements_data(parameters_data):
 
     Returns
     -------
-    constant_elements_data : dict
+    constant_conditions_data : dict
         Dictionary of constant elements conditions, all set to 1
     """
     elements = list(parameters_data.keys())
-    constant_elements_data = dict.fromkeys(elements, 1)
-    return constant_elements_data
+    constant_conditions_data = dict.fromkeys(elements, 1)
+    return constant_conditions_data
 
 ############################
 #Noise simulation
@@ -102,10 +102,11 @@ if __name__=="__main__":
 
     CIRCUIT_DIAGRAM_DATA = read_input_circuit_diagram(config)
     parameters_data = read_input_parameters(config)
-    constant_elements_data = generate_constant_elements_data(parameters_data)
+    constant_conditions_data = generate_constant_conditions_data(
+        parameters_data)
     initial_circuit_data = generate_circuit(CIRCUIT_DIAGRAM_DATA,
                                             parameters_data,
-                                            constant_elements_data)
+                                            constant_conditions_data)
     analyzed_circuit_data = initial_circuit_data.generate_analyzed_circuit()
     impedance_function = analyzed_circuit_data.impedance
 
