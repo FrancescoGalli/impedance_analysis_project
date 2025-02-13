@@ -11,6 +11,7 @@ file, with the complex impedance format.
 """
 
 import numpy as np
+import sys
 
 from read import read_configuration
 from read import read_input_circuit_diagram, read_input_parameters
@@ -42,10 +43,33 @@ def generate_constant_conditions_data(parameters_data):
     return constant_conditions_data
 
 ############################
-#Noise simulation
+#Singla generation
+
+def calculate_impedance(impedance_function, frequency):
+    """Claculate the impedance data based on the final impedance function and
+    on the input frequency points.
+
+    Parameters
+    ----------
+    impedance_function : func
+        Final function of the circuit.
+    frequency : list
+        List of input frequency of which the impedance data are generate on.
+
+    Returns
+    -------
+    impedance_signal : array
+        Ideal impedance signal of the analyzed circuit.
+    """
+    try:
+        impedance_signal = impedance_function([], frequency)
+    except ZeroDivisionError as error:
+        print('FatalError: ' + repr(error))
+        sys.exit(0) 
+    return impedance_signal
 
 def generate_random_error_component(seed_number, signal_length):
-    """Generate a random array of numbers between 0 and 1 of length
+    """Generate a random array of numbers between -1 and 1 of length
     signal_length.
 
     Parameters
@@ -58,12 +82,11 @@ def generate_random_error_component(seed_number, signal_length):
     Returns
     -------
     random_error_component : array
-        Array for constant elements conditions, with the same length of the
-        parameters list. During the data generation both 0 and 1 have the same
-        effect, thus this array is set to contain only 1 (faster process).
+        Array for simulated noise, of the same length of the signal input.
+        Its numbers ranges from -1 to 1, through a uniform distribution.
     """
     np.random.seed(seed_number)
-    random_error_component = np.random.uniform(-0.5, 0.5, signal_length)
+    random_error_component = np.random.uniform(-1, 1, signal_length)
     return random_error_component
 
 def simulate_noise(seed_number, impedance_signal):
@@ -90,7 +113,7 @@ def simulate_noise(seed_number, impedance_signal):
     imaginary_part_error = generate_random_error_component(seed_number+1,
                                                            signal_length)
     noise = noise_factor*impedance_signal * (real_part_error
-                                          + 1j*imaginary_part_error)
+                                             + 1j*imaginary_part_error)
     impedance_data = impedance_signal + noise
     return impedance_data
 
@@ -111,8 +134,7 @@ if __name__=="__main__":
     impedance_function = analyzed_circuit_data.impedance
 
     frequency = read_input_frequencies(config)
-    final_parameters = analyzed_circuit_data.list_parameters()
-    impedance_signal = impedance_function(final_parameters, frequency)
+    impedance_signal = calculate_impedance(impedance_function, frequency)
     seed_number = read_input_seed(config)
     impedance_data = simulate_noise(seed_number, impedance_signal)
 
