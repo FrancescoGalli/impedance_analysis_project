@@ -109,12 +109,16 @@ class Circuit:
         analyzed_circuit : AnalisysCircuit
             object containing all the analysis of the initial circuit
         """
-        working = 1
-        index = 1 #first element is just a bracket, cannot be an element
+        circuit_diagram_0 = self.circuit_diagram
+        if circuit_diagram_0.find(')')==-1 and circuit_diagram_0.find(']')==-1:
+            raise Exception('InputError: impossible to find any closing '
+                            + 'bracket in the diagram')
         analyzed_circuit = AnalisysCircuit(self.circuit_diagram, {})
         working_count = 0
         working_limit = 100
         cell_count = 0
+        index = 1 #first element is just a bracket, cannot be an element
+        working = 1
         while working:
             circuit_diagram = analyzed_circuit.circuit_diagram
             if (circuit_diagram[index]==')' or circuit_diagram[index]==']'):
@@ -244,11 +248,11 @@ class AnalisysCircuit:
             impedance_element_f = lambda _, f: impedance_capacitor(
                 const_parameter, f)
         elif element_name.startswith('Q'):
-            impedance_element_f = lambda _, f:impedance_cpe(
+            impedance_element_f = lambda _, f: impedance_cpe(
                 const_parameter[0], const_parameter[1], f)
         else:
-            raise Exception('FatalError: Invalid constant parameter name for '
-                            + 'the impedance function')
+            raise Exception('FatalError: Invalid constant element name for '
+                            + 'the setting of impedance function')
         self.impedance_parameters_map[element_name] = (impedance_element_f,
                                                        'const')
 
@@ -293,8 +297,8 @@ class AnalisysCircuit:
             self.impedance_parameters_map[element_name] = (
                 impedance_function_element, parameter)
         else:
-            raise Exception('FatalError: Invalid non-constant parameter name '
-                            + 'for the impedance function')
+            raise Exception('FatalError: Invalid non-constant element name '
+                            + 'for the setting of impedance function')
 
     def set_impedance_element(self, element_name, initial_circuit):
         """Return the impedance function selecting the three cases: the
@@ -309,7 +313,12 @@ class AnalisysCircuit:
         initial_circuit : Circuit
             Input circuit object to be analyzed
         """
-        constant_condition = initial_circuit.parameters_map[element_name][1]
+        parameters_map = initial_circuit.parameters_map
+        if element_name in parameters_map.keys():
+            constant_condition = parameters_map[element_name][1]
+        else:
+            raise Exception('FatalError: Invalid element name for the '
+                            + 'constant conditions')
         if constant_condition:
             constant_parameter = initial_circuit.parameters_map[
                 element_name][0]
@@ -415,17 +424,6 @@ class AnalisysCircuit:
                 parameters_list.append(parameter)
         return parameters_list
 
-    def list_elements(self):
-        """List all the non-constant elements strings in the parameters_map.
-        Returns
-        -------
-        elements_list : list
-            List of all the non-constant elements strings
-        """
-        elements_list = []
-        for elements in self.parameters_map.keys():
-            elements_list.append(elements)
-        return elements_list
 
 ###########################
 #Impedance definitions
@@ -450,7 +448,8 @@ def impedance_resistor(resistance, frequency):
     return impedance
 
 def impedance_capacitor(capacitance, frequency):
-    """Definition of impedance for capacitors.
+    """Definition of impedance for capacitors. Raises a ZeroDivisionError if
+    the value of the capacitance is 0. or if 0. is in the frequency array
 
     Parameters
     ----------
@@ -465,11 +464,18 @@ def impedance_capacitor(capacitance, frequency):
     impedance : complex array
         Value of the impedances (in Ohm) for the given frequencies
     """
-    impedance = 1./(1j*frequency*2*np.pi*capacitance)
+    impedance = 0.
+    if (capacitance==0. or 0. in frequency):
+        raise ZeroDivisionError('Zero Division in capacitance impedance '
+                                + 'definition')
+    else:
+        impedance = 1./(1j*frequency*2*np.pi*capacitance)
     return impedance
 
 def impedance_cpe(q_parameter, ideality_factor, frequency):
     """Definition of impedance for (capacitative) constant phase elements.
+    Raises a ZeroDivisionError if the value of the cpe is 0. or if 0. is in
+    the frequency array
 
     Parameters
     ----------
@@ -486,9 +492,13 @@ def impedance_cpe(q_parameter, ideality_factor, frequency):
     impedance : complex array
         Value of the impedances (in Ohm) for the given frequencies
     """
-    phase_factor = np.exp(np.pi/2*ideality_factor*1j)
-    impedance = 1./(
-        q_parameter*(frequency*2*np.pi)**ideality_factor*phase_factor)
+    impedance = 0.
+    if (q_parameter==0. or 0. in frequency):
+        raise ZeroDivisionError('Zero Division in cpe impedance definition')
+    else:
+        phase_factor = np.exp(np.pi/2*ideality_factor*1j)
+        impedance = 1./(
+            q_parameter*(frequency*2*np.pi)**ideality_factor*phase_factor)
     return impedance
 
 ######################################
@@ -545,7 +555,7 @@ def reciprocal(function_):
     receprocal_f : function
         Inverted function
     """
-    reciprocal_function = lambda x, y: 1./function_(x, y)
+    reciprocal_function = lambda x, y: 1./function_(x, y) 
     return reciprocal_function
 
 def parallel_comb(impedance_cell):
