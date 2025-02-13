@@ -1,69 +1,136 @@
+"""This module containes all the test functions (and the tested help functions
+for the tests) of the impedance_analysis.py module.
+"""
+
 import pytest
 import numpy as np
 
 import sys
 from pathlib import Path
-sys.path.append(str(Path.cwd().parent)) 
+sys.path.append(str(Path.cwd().parent))
 
 from generate_impedance import Circuit, AnalisysCircuit
-
 from impedance_analysis import (
     error_function, bounds_definitions, fit,
-    get_constant_parameter_info, get_optimized_parameters_info,
+    get_constant_parameter_info, get_optimized_parameter_info,
     get_results_info)
 
 
 
+def test_error_function_resisitor():
+    """Check that the output of error_function() is a valid error (a
+    non negative float, almost zero if the parameters are correct) if the
+    parameters and function are perfectly matching the data of a resisitor.
 
-def generate_examples_error():
-    """Generate examples of errors from the error function, for the error test.
-    Only the last one is incorrect, where the parameters is set as incorrect
+    GIVEN: valid data, correct function and parameters of a resisitor. The
+    parameters and functions match the data.
+    WHEN: I call the the function to calculate the error between the impedance
+    function (with given parameters) and the data.
+    THEN: the error is a non-negative float, smaller than 1.
     """
-    signals = [np.array([complex(100,0), complex(100,0), complex(100,0),
-                         complex(100,0)]),
-               np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
-                         complex(0,-1)]),
-               np.array([complex(500,-1000), complex(500,-100),
-                         complex(500,-10), complex(500,-1)]),
-               np.array([complex(200,0), complex(200,0), complex(200,0),
-                         complex(200,0)]),]
+    impedance = np.array([complex(100,0), complex(100,0), complex(100,0),
+                          complex(100,0)])
     frequency = np.array([10, 100, 1000, 10000])
     function_r = lambda x, y: (x[0]+0j) * np.ones(len(y))
+    parameters = [100.]
+    error = error_function(parameters, impedance, function_r, frequency)
+    expected_result = 0.
+
+    assert isinstance(error, float), (
+        'TypeError for output of error_function(): the output must be a float, '
+        + 'not a ' + str(type(error)))
+    assert error>=0, ('ValueError for output of error_function(): the output '
+                      + 'must be non-negative')
+    assert error<1, ('ValueError output of error_function(): given the '
+                     + 'examples, the parameters are set to have a small'
+                     + 'error')
+    assert error==expected_result, (
+        'ValueError output of error_function(): the error is incorrect')
+
+def test_error_function_capacitor():
+    """Check that the output of error_function() is a valid error (a
+    non negative float, almost zero if the parameters are correct) if the
+    parameters and function are correct but not matching the data of a
+    capacitor.
+
+    GIVEN: valid data, correct function but not matching parameters of a
+    capacitor.
+    WHEN: I call the the function to calculate the error between the impedance
+    function (with given parameters) and the data.
+    THEN: the error is a non-negative float, bigger than 1.
+    """
+    impedance = np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
+                         complex(0,-1)])
+    frequency = np.array([10, 100, 1000, 10000])
     function_c = lambda x, y: 1./(1j*y*2*np.pi*x[0])
+    parameters = [2.e-4/(2*np.pi)]
+    error = error_function(parameters, impedance, function_c, frequency)
+    expected_result = 2.
+
+    assert isinstance(error, float), (
+        'TypeError for output of error_function(): the output must be a float, '
+        + 'not a ' + str(type(error)))
+    assert error>=0, ('ValueError for output of error_function(): the output '
+                      + 'must be non-negative')
+    assert error>1, ('ValueError output of error_function(): given the '
+                     + 'examples, the parameters are set to have'
+                     + 'a big error')
+    assert error==expected_result, (
+        'ValueError output of error_function(): the error is incorrect')
+
+def test_error_function_rc():
+    """Check that the output of error_function() is a valid error (a
+    non negative float, almost zero if the parameters are correct) if the
+    parameters and function are perfectly matching the data of an rc circuit.
+
+    GIVEN: valid data, correct function and parameters of an rc circuit. The
+    parameters and functions match the data.
+    WHEN: I call the the function to calculate the error between the impedance
+    function (with given parameters) and the data.
+    THEN: the error is a non-negative float, smaller than 1.
+    """
+    impedance = np.array([complex(500,-1000), complex(500,-100),
+                          complex(500,-10), complex(500,-1)])
+    frequency = np.array([10, 100, 1000, 10000])
     function_rc = lambda x, y: ((x[0]+0j) * np.ones(len(y))
                                 + 1./(1j*y*2*np.pi*x[1]))
-    functions_ = [function_r, function_c, function_rc, function_r]
-    parameters = [[100.], [1e-4/(2*np.pi)], [500, 1e-4/(2*np.pi)], [50.]]
-    examples_errors = []
-    for i, signal in enumerate(signals):
-        error = error_function(parameters[i], signal, functions_[i],
-                               frequency)
-        examples_errors.append(error)
-    return examples_errors
+    parameters = [500, 1e-4/(2*np.pi)]
+    error = error_function(parameters, impedance, function_rc, frequency)
+    expected_result = 0.
 
-@pytest.fixture
-def examples_error():
-    return generate_examples_error()
+    assert isinstance(error, float), (
+        'TypeError for output of error_function(): the output must be a float, '
+        + 'not a ' + str(type(error)))
+    assert error>=0, ('ValueError for output of error_function(): the output '
+                      + 'must be non-negative')
+    assert error<1, ('ValueError output of error_function(): given the '
+                     + 'examples, the parameters are set to have'
+                     + 'a small error')
+    assert error==expected_result, (
+        'ValueError output of error_function(): the error is incorrect')
 
-def test_error_function(examples_error):
-    """Check that the output of error_function() is a valid error (a 
-    non negative float, almost zero if the parameters are correct).
+def test_error_function_zero_q():
+    """Check that the output of error_function() raises an Exception with a
+    certain message if the circuit contains a divergent point in the function
 
-    GIVEN: valid data, functions and parameters.
-    WHEN: the function to calculate the error between the impedance function
-    (with given parameters) and the data is called.
-    THEN: the error is a non-negative positive float.
+    GIVEN: an invalid (zero) q and a valid n in the paramters, and valid data
+    WHEN: I call the the function to calculate the error between the impedance
+    function (with given parameters) and the data.
+    THEN: the error function raises an Exception with a message that states
+    the division by 0
     """
-    for i, error in enumerate(examples_error):
-        assert isinstance(error, float), (
-            'TypeError for ' + str(i+1) + 'th example of error_function(): '
-            + 'the output must be a float, not a ' + str(type(error)))
-        assert error>=0, ('ValueError for ' + str(i+1) + ' of '
-                          + 'error_function(): the output must be '
-                          + 'non-negative')
-        assert error<1, ('ValueError ' + str(i+1) + ' of error_function(): '
-                          + 'given the examples, the parameters are set to '
-                          + 'have almost zero error')
+    impedance = np.array([complex(0,-1000), complex(0,-100),
+                          complex(0,-10), complex(0,-1)])
+    frequency = np.array([10, 100, 1000, 10000])
+    function_q = lambda x, y: 1./(
+        x[0]*(y*2*np.pi)**x[1]*np.exp(np.pi/2*x[1]*1j))
+    parameters = [0, 1] #First parameter, q, cannot be 0
+    with pytest.raises(SystemExit) as excinfo:
+        _ = error_function(parameters, impedance, function_q, frequency)
+    message = excinfo.value.args[0]
+
+    assert message==('FatalError: FloatingPointError(\'divide by zero '
+                     + 'encountered in true_divide\')')
 
 
 def wrong_element_type_bound_definitions(bounds_list):
@@ -73,7 +140,7 @@ def wrong_element_type_bound_definitions(bounds_list):
     Parameters
     ----------
     bounds_list : list
-        List of all the bounds (numeric/None tuples).
+        List of all the bounds (tuples).
 
     Returns
     -------
@@ -88,32 +155,73 @@ def wrong_element_type_bound_definitions(bounds_list):
             wrong_element_type_index.append(i)
     return wrong_element_type_index
 
-def generate_examples_tuple_list_type():
-    """Generate examples of tuples, for the wrong_element_value_bound test.
-    Only the last one is incorrect.
+def test_wrong_element_type_bound_empty_list():
+    """Check that the the help function to find objects that are not a
+    2-length tuples works if there are no bounds.
+
+    GIVEN: an empty list
+    WHEN: I check if there are any invalid elements in a list
+    THEN: no invalid element is found
     """
-    examples_tuples_list = [[('a', 1)], [(22, 345), (10, 1e5)], [(1., 1j)],
-                            [(1e-2, 1e3, 1e4)]]
-    return examples_tuples_list
+    empty_list = []
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        empty_list)
 
-@pytest.fixture
-def examples_tuple_list_type():
-    return generate_examples_tuple_list_type()
+    assert not wrong_element_type_index, (
+        'TypeError in output of bound_definitions(): the output must be'
+        + ' a list of tuples of length 2. Cannot find invalid elements '
+        + 'because there are no elements')
 
-def test_wrong_element_type_bound(examples_tuple_list_type):
-    """Check that the the help function to find objects that are not a 2-lengt
-    tuples works 
+def test_wrong_element_type_bound_single_tuple():
+    """Check that the the help function to find objects that are not a
+    2-length tuples works if there is a valid tuples of bounds.
 
-    GIVEN: valid list of bounds.
-    WHEN: the help function to test the bound definitions is called
-    THEN: the function works.
+    GIVEN: a list with one valid tuple
+    WHEN: I check if there are any invalid elements in a list
+    THEN: no invalid element is found
     """
-    for i, bounds_list in enumerate(examples_tuple_list_type):
-        wrong_element_type_index = wrong_element_type_bound_definitions(
-            bounds_list)
-        assert not wrong_element_type_index, (
-            'TypeError in ' + str(i+1) + 'th example of bound_definitions(): '
-            + 'the output must be a list of tuples of length 2')
+    one_tuple = [(100., None)]
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        one_tuple)
+
+    assert not wrong_element_type_index, (
+        'TypeError in output of bound_definitions(): the output must be'
+        + ' a list of tuples of length 2.')
+
+def test_wrong_element_type_bound_many_tuples():
+    """Check that the the help function to find objects that are not a
+    2-length tuples works if there are many tuples of bounds.
+
+    GIVEN: a list with many valid tuples
+    WHEN: I check if there are any invalid elements in a list
+    THEN: no invalid element is found
+    """
+    many_tuples = [(100., None), (1e-10, 1e-4), (1e-10, 1e-6), (0, 1)]
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        many_tuples)
+
+    assert not wrong_element_type_index, (
+        'TypeError in output of bound_definitions(): the output must be'
+        + ' a list of tuples of length 2.')
+
+def test_wrong_element_type_bound_invalid_tuples():
+    """Check that the the help function to find objects that are not a
+    2-length tuples works if there are three invalid elements in a list of
+    four elements.
+
+    GIVEN: a list with four elements. Only the last one is a valid tuples
+    WHEN: I check if there are any invalid elements in a list
+    THEN: the first three invalid elements are the only ones to be detected as
+    invalid
+    """
+    many_tuples = ['(100., None)', 1e-10, (1e-2, 1e3, 1e4), (1e-8, 1e-6)]
+    expected_result = [0, 1, 2] #Index of invalid tuples
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        many_tuples)
+
+    assert wrong_element_type_index==expected_result, (
+        'TypeError in output of bound_definitions(): the output differs from '
+        + 'the expected one: ' + expected_result)
 
 
 def wrong_element_value_bound_definitions(bounds_list):
@@ -146,35 +254,96 @@ def wrong_element_value_bound_definitions(bounds_list):
                 + 'element), ')
     return wrong_element_value_index
 
-def generate_examples_tuple_list_value():
-    """Generate examples of tuples, for the wrong_element_value_bound test.
-    Only the last one is incorrect (multiple times).
-    """
-    examples_tuples_list = [[(22, 345), (10, 1e5)], [(1., 10)], [(1e-2, 1e3)],
-                            [('a', None), (1., 1j), (10., 1), (-1, 10)]]
-    return examples_tuples_list
-
-@pytest.fixture
-def examples_tuple_list_value():
-    return generate_examples_tuple_list_value()
-
-def test_wrong_element_value_bound(examples_tuple_list_value):
+def test_wrong_element_value_bound_no_elements():
     """Check that the the help function to find objects inside of tuples that
-    are not valid bounds works.
+    are not valid bounds works for an empty list.
 
-    GIVEN: valid list of bounds.
-    WHEN: the help function to test the bound definitions is called
-    THEN: the function works.
+    GIVEN: an empty list
+    WHEN: I check if all the value of the bounds are correct
+    THEN: no invalid value is found
     """
-    for i, bounds_list in enumerate(examples_tuple_list_value):
-        wrong_element_value_index = wrong_element_value_bound_definitions(
-            bounds_list)
-        assert not wrong_element_value_index, (
-            'StructuralError for ' + wrong_element_value_index + 'of the '
-            + str(i+1) + 'th example of bound_definitions(): each element '
-            + 'of the output must be a tuple with as first element a '
-            + 'non-negative number, and as a second element either \'None\' '
-            + 'or a non-negative number bigger than the  first element')
+    empty_list = []
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+            empty_list)
+
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + 'of output of '
+        + 'bound_definitions(): each element of the output must be a tuple '
+        + 'with as first element a non-negative number, and as a second '
+        + 'element either \'None\' or a non-negative number bigger than the '
+        + 'first element. Cannot find an invalid element because there are no'
+        + 'elements')
+
+def test_wrong_element_value_bound_single_element():
+    """Check that the the help function to find objects inside of tuples that
+    are not valid bounds works for a list with one valid element.
+    Each tuple must have as first element a non-negative number, and as a
+    second element either None-type or a non-negative number bigger than the '
+    first element.
+
+    GIVEN: a list with valid tuple
+    WHEN: I check if all the value of the bounds are correct
+    THEN: no invalid value is found
+    """
+    single_element = [(10, 1e5)]
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+            single_element)
+
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + 'of output of '
+        + 'bound_definitions(): each element of the output must be a tuple '
+        + 'with as first element a non-negative number, and as a second '
+        + 'element either \'None\' or a non-negative number bigger than the '
+        + 'first element')
+
+def test_wrong_element_value_bound_many_elements():
+    """Check that the the help function to find objects inside of tuples that
+    are not valid bounds works for a list with three valid elements.
+    Each tuple must have as first element a non-negative number, and as a
+    second element either None-type or a non-negative number bigger than the '
+    first element.
+
+    GIVEN: a list with three valid tuples
+    WHEN: I check if all the value of the bounds are correct
+    THEN: no invalid value is found
+    """
+    many_elements = [(22, 345), (1., 10), (1e-2, 1e3)]
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+            many_elements)
+
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + 'of output of '
+        + 'bound_definitions(): each element of the output must be a tuple '
+        + 'with as first element a non-negative number, and as a second '
+        + 'element either \'None\' or a non-negative number bigger than the '
+        + 'first element')
+
+def test_wrong_element_value_bound_invalid_elements():
+    """Check that the the help function to find objects inside of tuples that
+    are not valid bounds works for a list with four invalid elements.
+    Each tuple must have as first element a non-negative number, and as a
+    second element either None-type or a non-negative number bigger than the '
+    first element.
+
+    GIVEN: a list with four invalid tuples
+    WHEN: I check if all the value of the bounds are correct
+    THEN: all the tuples are detected as invalid
+    """
+    many_elements = [('a', None), #Invalid for the string object
+                     (1., 1j), #Invalid for the comples second object
+                     (10., 1), #Invalid because first number is bigger than
+                              #the second one
+                     (-1, 10)] #Invalid because first number is negative
+    expected_result = ('[0] (first element), [1] (second element), '
+                       + '[2] (second element), [3] (first element), ')
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+            many_elements)
+
+    assert wrong_element_value_index==expected_result, (
+        'StructuralError for ' + wrong_element_value_index + 'of output of '
+        + 'bound_definitions(): the output differs from the expected one: '
+        + str(expected_result))
+
 
 def count_q(elements_bound, i_element):
     """Count how many Q elements there are before a certain element.
@@ -196,97 +365,76 @@ def count_q(elements_bound, i_element):
         number_of_q += element.count('Q')
     return number_of_q
 
-def generate_examples_Q_count():
-    """Generate examples of Qcounts for the count_q test."""
-    elements_list = [['R1', 'C2', 'R3'], ['R1', 'Q2', 'R3'],
-                              ['R3', 'Q4', 'R1', 'C2']]
-    example_Q_count = []
-    for list_ in elements_list:
-        example_Q_count.append(count_q(list_, 2))
-    return example_Q_count
-
-@pytest.fixture
-def examples_Q_count():
-    return generate_examples_Q_count()
-
-def generate_examples_Q_count_results():
-    """Generate examples of Q counts for the count_q test."""
-    results = [0, 1, 1]
-    return results
-
-@pytest.fixture
-def examples_Q_count_results():
-    return generate_examples_Q_count_results()
-
-def test_count_Q(examples_Q_count, examples_Q_count_results):
+def test_count_Q_no_q_elements():
     """Check that the the help function to find how many Q elements there are
-    in a element list works.
+    in a element list before a certain element works if there are only
+    non-Q elements.
 
-    GIVEN: valid list of bounds.
-    WHEN: the help function to test the bound definitions is called
-    THEN: the function works.
+    GIVEN: a valid list of three elements. None of them is a Q elements.
+    WHEN: I call the help function to count the number of Q elements
+    THEN: count of Q is 0, as it should be.
     """
-    for i, q_count in enumerate(examples_Q_count):
-        assert q_count==examples_Q_count_results[i], (
-            'Value error for the q_count() function: incorrect result')
+    no_q = ['R1', 'C2', 'R3']
+    counting_element = 2
+    number_of_q = count_q(no_q, counting_element)
+    expected_result = 0
 
+    assert number_of_q==expected_result, (
+        'Value error for the q_count() function: incorrect result')
 
-def bound_definitions_same_length_elements_list(elements_bound, bounds_list):
-    """Return whether there is a consistent correspondance between the length
-    of elements and bounds_list. For each element but for Q 1 element is equal
-    to 1 bound. For Q case is 1 element to 2 bounds. Used for testing
+def test_count_Q_one_q_elements():
+    """Check that the the help function to find how many Q elements there are
+    in a element list before a certain element works if there is one
+    Q element (and it is before the certain element).
 
-    Parameters
-    ----------
-    elements_bound : list
-        List of elements string of the fitting parameters
-    bounds_list : list
-        List of all the bounds (numeric tuples)
-
-    Returns
-    -------
-    consistent_condition : bool
-        Boolean condition for length equality
+    GIVEN: a valid list of three elements and index of the counting element.
+    One of them is a Q elements.
+    WHEN: I call the help function to count the number of Q elements
+    THEN: count of Q is 0, as it should be.
     """
-    number_of_q = count_q(elements_bound, len(elements_bound)+1)
-    consistent_condition = ((len(elements_bound)+number_of_q)==len(
-        bounds_list))
-    return consistent_condition
+    no_q = ['R1', 'Q2', 'R3']
+    counting_element = 2
+    number_of_q = count_q(no_q, counting_element)
+    expected_result = 1
 
-def generate_examples_same_length():
-    """Generate examples of result of length equality between elements lists
-    and bound lists.
+    assert number_of_q==expected_result, (
+        'Value error for the q_count() function: incorrect result')
+
+def test_count_Q_two_q_elements():
+    """Check that the the help function to find how many Q elements there are
+    in a element list before a certain element works if there are three
+    Q elements, but only two are before the certain element.
+
+    GIVEN: a valid list of three elements and index of the counting element.
+    None of them is a Q elements.
+    WHEN: I call the help function to count the number of Q elements
+    THEN: count of Q is 0, as it should be.
     """
-    examples_elements_list = [['R1'], ['R1', 'Q2'], ['R3', 'R1', 'C2'], ['C1']]
-    examples_bounds_list = [[(1, 2)], [(1, 10), (0.1, 100), (1, 2, 3)],
-                            [(1, 10), (0.1, 100), (1, 2, 3)],
-                            [(1, 10), (0.1, 100)]]
-    boolean_conditions = []
-    for i, element_list in enumerate(examples_elements_list):
-        condition = bound_definitions_same_length_elements_list(
-            element_list, examples_bounds_list[i])
-        boolean_conditions.append(condition)
-    return boolean_conditions
+    no_q = ['R1', 'Q2', 'Q3', 'C4', 'R5', 'Q6']
+    counting_element = 3
+    number_of_q = count_q(no_q, counting_element)
+    expected_result = 2
 
-@pytest.fixture
-def examples_same_length():
-    return generate_examples_same_length()
+    assert number_of_q==expected_result, (
+        'Value error for the q_count() function: incorrect result')
 
-def test_same_length(examples_same_length):
-    """Check that the the help function to find if the elements lists and the
-    bound list are consistent in length works.
+def test_count_Q_one_q_element_after():
+    """Check that the the help function to find how many Q elements there are
+    in a element list before a certain element works if there is a
+    Q element, but is after the certain element.
 
-    GIVEN: valid list of bounds and elements.
-    WHEN: the help function to test the bound definitions is called
-    THEN: the function works.
+    GIVEN: a valid list of three elements, but the index of the counting
+    element is before the one of the Q element.
+    WHEN: I call the help function to count the number of Q elements
+    THEN: count of Q is 0, as it should be.
     """
-    for i, result in enumerate(examples_same_length):
-        assert result, (
-            'StructuralError for the ' + str(i+1) + 'th example of '
-            + 'bound_definitions(): the list of bounds must have a proper '
-            + 'length related to the elements list. For each element but for '
-            + 'Q 1 element is equal to 1 bound. For Q case is 1 element to 2 '
-            + 'bounds.')
+    no_q = ['R1', 'R2', 'Q3']
+    counting_element = 1
+    number_of_q = count_q(no_q, counting_element)
+    expected_result = 0
+
+    assert number_of_q==expected_result, (
+        'Value error for the q_count() function: incorrect result')
 
 
 def bad_match_bound_definitions_elements_list(elements_bound, bounds_list):
@@ -316,466 +464,286 @@ def bad_match_bound_definitions_elements_list(elements_bound, bounds_list):
             if bounds_list[i+number_of_q][0]==0:
                 wrong_match_index += '[' + str(i) + '] (first element), '
             if bounds_list[i+number_of_q+1][1]>1:
-                wrong_match_index += '[' + str(i) + '] (second element), '
+                wrong_match_index += '[' + str(i+1) + '] (second element), '
     return wrong_match_index
 
-def generate_examples_elements_list_bounds():
-    """Generate examples of elements lists for the bad_match test."""
-    examples_elements_list = [['R1'], ['R1', 'Q2'], ['R3', 'R1', 'C2'], ['C1']]
-    return examples_elements_list
-
-@pytest.fixture
-def examples_elements_list_bounds():
-    return generate_examples_elements_list_bounds()
-
-def generate_examples_bounds_list_bad_match():
-    """Generate examples of elements lists for the bad_match test."""
-    examples_bounds_list = [[(1, 1000)], [(1, 10), (0.1, 100), (0.2, 0.7)],
-                            [(1, 10), (0.1, 100), (1e-6, 1)], [(0, 10)]]
-    return examples_bounds_list
-
-@pytest.fixture
-def examples_bounds_list_bad_match():
-    return generate_examples_bounds_list_bad_match()
-
-def test_bad_match_bound(examples_elements_list_bounds,
-                         examples_bounds_list_bad_match):
+def test_bad_match_bound_no_elements():
     """Check that the the help function to find if the elements lists and the
-    bound list have a bad match works.
+    bound list have a bad match works on two empty lists.
+    Bound for R, C or Q must have a positive umber as first element, while
+    for n the second parameter must not be bigger than 1
 
-    GIVEN: valid list of bounds and elements.
-    WHEN: the help function to test the bound definitions is called
-    THEN: the function works.
+    GIVEN: two empty lists
+    WHEN: I call the help function to find if there is a bad match between
+    bounds and elements
+    THEN: no bad match is found
     """
-    for i, elements_list in enumerate(examples_elements_list_bounds):
-        wrong_match_index = bad_match_bound_definitions_elements_list(
-            elements_list, examples_bounds_list_bad_match[i])
-        assert not wrong_match_index, (
-            'StructuralError for elements ' + wrong_match_index + 'in the '
-            + str(i+1) + 'th example: there must be a correspondace between '
-            + 'each element of the element list and the correspective bound.'
-            + 'Bound for R, C or Q must have a positive umber as first '
-            + 'element, while for n the second parameter must not be bigger '
-            + 'than 1')
+    element_list = []
+    bound_list = []
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bound_list)
+
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ' there must '
+        + 'be a correspondace between each element of the element list and '
+        + 'the correspective bound.'
+        + 'Bound for R, C or Q must have a positive umber as first '
+        + 'element, while for n the second parameter must not be bigger '
+        + 'than 1. CAnnot find bad match because there are no elements')
+
+def test_bad_match_bound_one_element():
+    """Check that the the help function to find if the elements lists and the
+    bound list have a bad match works on a single element list.
+    Bound for R, C or Q must have a positive umber as first element, while
+    for n the second parameter must not be bigger than 1
+
+    GIVEN: an element list and a bound list with one valid element each
+    WHEN: I call the help function to find if there is a bad match between
+    bounds and elements
+    THEN: no bad match is found
+    """
+    element_list = ['R1']
+    bound_list = [(1, 1000)]
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bound_list)
+
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ' there must '
+        + 'be a correspondace between each element of the element list and '
+        + 'the correspective bound.'
+        + 'Bound for R, C or Q must have a positive umber as first '
+        + 'element, while for n the second parameter must not be bigger '
+        + 'than 1')
+
+def test_bad_match_bound_many_element():
+    """Check that the the help function to find if the elements lists and the
+    bound list have a bad match works on many elements.
+    Bound for R, C or Q must have a positive umber as first element, while
+    for n the second parameter must not be bigger than 1
+
+    GIVEN: an element list and a bound list with three and four valid elements,
+    respectively, which are also matching
+    WHEN: I call the help function to find if there is a bad match between
+    bounds and elements
+    THEN: no bad match is found
+    """
+    element_list = ['R1', 'Q2', 'C3']
+    bound_list = [(1, 10), (1e-6, 1), (0.1, 0.5), (1e-10, 1e-3)]
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bound_list)
+
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ' there must '
+        + 'be a correspondace between each element of the element list and '
+        + 'the correspective bound.'
+        + 'Bound for R, C or Q must have a positive umber as first '
+        + 'element, while for n the second parameter must not be bigger '
+        + 'than 1')
+
+def test_bad_match_bound_bad_match():
+    """Check that the the help function to find if the elements lists and the
+    bound list have a bad match works on lists with two bad matches.
+    Bound for R, C or Q must have a positive umber as first element, while
+    for n the second parameter must not be bigger than 1
+
+    GIVEN: an element list and a bound list with three and four valid elements
+    each, but ony one each is matching (the second ones)
+    WHEN: I call the help function to find if there is a bad match between
+    bounds and elements
+    THEN: the two bad match are detected
+    """
+    element_list = ['R1', 'R2', 'Q3']
+    bound_list = [(0, 1), (10, 1000), (0, 100), (0-5, 10)]
+    expected_result = ('[0] (first element), [2] (first element), [3] (second '
+                      + 'element), ')
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bound_list)
+
+    assert wrong_match_index==expected_result, (
+        'StructuralError for elements ' + wrong_match_index + ' there must '
+        + 'be a correspondace between each element of the element list and '
+        + 'the correspective bound.'
+        + 'Bound for R, C or Q must have a positive umber as first '
+        + 'element, while for n the second parameter must not be bigger '
+        + 'than 1')
 
 
-def generate_example_bounds_list():
-    """Generate examples of bound list from the element list."""
-    element_lists = generate_examples_elements_list_bounds()
-    example_bounds = []
-    for element_list in element_lists:
-        bounds_list = bounds_definitions(element_list)
-        example_bounds.append(bounds_list)
-    return example_bounds
-
-@pytest.fixture
-def example_bounds_list():
-    return generate_example_bounds_list()
-
-def test_bound_definitions(examples_elements_list_bounds, example_bounds_list):
+def test_bound_definitions_single_element():
     """Check that the output of bound_definitions() is a valid list of tuple
-    for bound conditions.
+    for bound conditions in the case of a single resistor element.
 
-    GIVEN: a valid list of elements
-    WHEN: the function to get the bounds defintiion is called during the fit
-    THEN: the output is a proper list of tuples for elements
+    GIVEN: a valid list of elements containing just one resisitor-like element
+    WHEN: I call the function to get the bounds definition of a list of
+    elements
+    THEN: the output is a proper list of tuples for the input element
     """
-    for i, bounds_list in enumerate(example_bounds_list):
-        assert isinstance(bounds_list, list), (
-            'TypeError in the ' + str(i+1) + 'th example: the output must '
-            + 'be a list,  not a ' + str(type(bounds_list)))
-        wrong_element_type_index = wrong_element_type_bound_definitions(
-            bounds_list)
-        assert not wrong_element_type_index, (
-            'TypeError in the '
-            + str(i+1) + 'th example: the output must '
-            + 'be a list of tuples of length 2')
-        wrong_element_value_index = wrong_element_value_bound_definitions(
-            bounds_list)
-        assert not wrong_element_value_index, (
-            'StructuralError for ' + wrong_element_value_index + 'in the '
-            + str(i+1) + 'th example: each element of the output must be a '
-            + 'tuple with as first element a non-negative number, and as a '
-            + 'second element either \'None\' or a non-negative number '
-            + 'bigger than the first element')
-        elements_bound = examples_elements_list_bounds[i]
-        assert bound_definitions_same_length_elements_list(
-            elements_bound, bounds_list), (
-            'StructuralError in the '
-            + str(i+1) + 'th example: the list of '
-            + 'bounds must have a proper length related to the elements '
-            + 'list. For each element but for Q 1 element is equal to '
-            + 'bound. For Q case is 1 element to 2 bounds.')
-        wrong_match_index = bad_match_bound_definitions_elements_list(
-            elements_bound, bounds_list)
-        assert not wrong_match_index, (
-            'StructuralError for elements ' + wrong_match_index + 'in the '
-            + str(i+1) + 'th example: there must be a correspondace between '
-            + 'each element of the element list \'' + str(elements_bound)
-            + '\' and the correspective bound. Bound for R, C or Q must have '
-            + 'a positive number as first element, while for n the second '
-            + 'parameter must not be bigger than 1')
+    element_list = ['R1']
+    bounds_list = bounds_definitions(element_list)
 
+    assert isinstance(bounds_list, list), (
+        'TypeError in the output: it must be a list,  not a '
+        + str(type(bounds_list)))
+    assert bounds_list, (
+        'StructuralError in the output: it cannot be empty')
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        bounds_list)
+    assert not wrong_element_type_index, (
+        'TypeError: the output must be a list of tuples of length 2')
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+        bounds_list)
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + ': each element '
+        + 'of the output must be a tuple with as first element a non-negative'
+        + 'number, and as a second element either \'None\' or a non-negative '
+        + 'number bigger than the first element')
+    number_of_q = count_q(element_list, len(element_list)+1)
+    consistent_condition = ((len(element_list)+number_of_q)==len(
+        bounds_list))
+    assert consistent_condition, (
+        'StructuralError: the list of bounds must have a proper length related '
+        + 'to the elements list. For each element but for Q 1 element is '
+        + 'equal to bound. For Q case is 1 element to 2 bounds.')
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bounds_list)
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ': there must '
+        + 'be a correspondace between each element of the element list \''
+        + str(element_list) + '\' and the correspective bound. Bound for R, '
+        + 'C or Q must have a positive number as first element, while for n'
+        + 'the second parameter must not be bigger than 1')
 
+def test_bound_definitions_two_elements():
+    """Check that the output of bound_definitions() is a valid list of tuple
+    for bound conditions in the case of a resistor and capacitor elements.
 
-def same_length_elements_parameters_map(elements_pre_fit, elements_post_fit):
-    """Return whether there is a length equality between the elemnts list
-    before and after the fit.
-
-    Parameters
-    ----------
-    elements_pre_fit : list
-        List of elements string of the fitting parameters before the fit
-    elements_post_fit : list
-        List of elements string of the fitting parameters after the fit
-
-    Returns
-    -------
-    length_equality : bool
-        Boolean condition for length equality
+    GIVEN: a valid list of elements containing one resisitor-like element and
+    one capacitor-like element
+    WHEN: I call the function to get the bounds definition of a list of
+    elements
+    THEN: the output is a proper list of tuples for the input elements
     """
-    length_equality = (len(elements_pre_fit)==len(elements_post_fit))
-    return length_equality
+    element_list = ['R1', 'C2']
+    bounds_list = bounds_definitions(element_list)
 
-def generate_example_elements_pre_fit_length():
-    """Generate examples of element lists pre fit."""
-    element_lists = [['R1'], ['C1'], ['R1', 'C1'], ['R1']]
-    return element_lists
+    assert isinstance(bounds_list, list), (
+        'TypeError in the output: it must be a list,  not a '
+        + str(type(bounds_list)))
+    assert bounds_list, (
+        'StructuralError in the output: it cannot be empty')
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        bounds_list)
+    assert not wrong_element_type_index, (
+        'TypeError: the output must be a list of tuples of length 2')
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+        bounds_list)
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + ': each element '
+        + 'of the output must be a tuple with as first element a non-negative'
+        + 'number, and as a second element either \'None\' or a non-negative '
+        + 'number bigger than the first element')
+    number_of_q = count_q(element_list, len(element_list)+1)
+    consistent_condition = ((len(element_list)+number_of_q)==len(
+        bounds_list))
+    assert consistent_condition, (
+        'StructuralError: the list of bounds must have a proper length related '
+        + 'to the elements list. For each element but for Q 1 element is '
+        + 'equal to bound. For Q case is 1 element to 2 bounds.')
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bounds_list)
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ': there must '
+        + 'be a correspondace between each element of the element list \''
+        + str(element_list) + '\' and the correspective bound. Bound for R, '
+        + 'C or Q must have a positive number as first element, while for n'
+        + 'the second parameter must not be bigger than 1')
 
-@pytest.fixture
-def example_elements_pre_fit_length():
-    return generate_example_elements_pre_fit_length()
+def test_bound_definitions_many_elements():
+    """Check that the output of bound_definitions() is a valid list of tuple
+    for bound conditions in the case of many elements.
 
-def generate_example_elements_post_fit_length():
-    """Generate examples of element lists post fit."""
-    element_lists = [['R1'], ['C1'], ['R1', 'C1'], ['R1', 'C1']]
-    return element_lists
-
-@pytest.fixture
-def example_elements_post_fit_length():
-    return generate_example_elements_post_fit_length()
-
-def test_same_length_elements_fit(example_elements_pre_fit_length,
-                                  example_elements_post_fit_length):
-    """Check that the the help function to find if the elements lists before
-    and after fit are of the same length works.
-
-    GIVEN: valid elements lists.
-    WHEN: the help function to test the fit function
-    THEN: the function works.
+    GIVEN: a valid list of elements containing all types of elements
+    WHEN: I call the function to get the bounds definition of a list of
+    elements
+    THEN: the output is a proper list of tuples for the input elements
     """
-    for i, elements_list in enumerate(example_elements_pre_fit_length):
-        assert same_length_elements_parameters_map(
-            elements_list, example_elements_post_fit_length[i]), (
-            'StructuralError for the '+ str(i+1) + 'th example between '
-            + 'elements list in parameter map pre and post fit. They must '
-            + 'have the same length')
+    element_list = ['R1', 'C2', 'Q3', 'R4']
+    bounds_list = bounds_definitions(element_list)
 
+    assert isinstance(bounds_list, list), (
+        'TypeError in the output: it must be a list,  not a '
+        + str(type(bounds_list)))
+    assert bounds_list, (
+        'StructuralError in the output: it cannot be empty')
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        bounds_list)
+    assert not wrong_element_type_index, (
+        'TypeError: the output must be a list of tuples of length 2')
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+        bounds_list)
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + ': each element '
+        + 'of the output must be a tuple with as first element a non-negative'
+        + 'number, and as a second element either \'None\' or a non-negative '
+        + 'number bigger than the first element')
+    number_of_q = count_q(element_list, len(element_list)+1)
+    consistent_condition = ((len(element_list)+number_of_q)==len(
+        bounds_list))
+    assert consistent_condition, (
+        'StructuralError: the list of bounds must have a proper length related '
+        + 'to the elements list. For each element but for Q 1 element is '
+        + 'equal to bound. For Q case is 1 element to 2 bounds.')
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bounds_list)
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ': there must '
+        + 'be a correspondace between each element of the element list \''
+        + str(element_list) + '\' and the correspective bound. Bound for R, '
+        + 'C or Q must have a positive number as first element, while for n'
+        + 'the second parameter must not be bigger than 1')
 
-def wrong_elements_parameters_map(elements_pre_fit, elements_post_fit):
-    """Find any missing element in the post fit element list.
+def test_bound_definitions_no_elements():
+    """Check that the output of bound_definitions() is a valid list of tuple
+    for bound conditions in the case of an invalid list of zero elements.
 
-    Parameters
-    ----------
-    elements_pre_fit : list
-        List of elements string of the fitting parameters before the fit
-    elements_post_fit : list
-        List of elements string of the fitting parameters after the fit
-
-    Returns
-    -------
-    wrong_elements : str
-        String that contains all the wrong elements, separated by a comma and
-        a whitespace
+    GIVEN: an invalid empty list of elements
+    WHEN: I call the function to get the bounds definition of a list of
+    elements
+    THEN: the output is an invalid list of bounds: an empty one
     """
-    wrong_element = ''
-    for i, element in enumerate(elements_pre_fit):
-        if element!=elements_post_fit[i]:
-            wrong_element += '\'' + element + '\', '
-    return wrong_element
+    element_list = []
+    bounds_list = bounds_definitions(element_list)
 
-def generate_example_elements_pre_fit_match():
-    """Generate examples of element lists pre fit."""
-    element_lists = [['R1'], ['C1'], ['R1', 'C1'], ['R1']]
-    return element_lists
-
-@pytest.fixture
-def example_elements_pre_fit_match():
-    return generate_example_elements_pre_fit_match()
-
-def generate_example_elements_post_fit_match():
-    """Generate examples of element lists post fit."""
-    element_lists = [['R1'], ['C1'], ['R1', 'C1'], ['C1']]
-    return element_lists
-
-@pytest.fixture
-def example_elements_post_fit_match():
-    return generate_example_elements_post_fit_match()
-
-def test_match_elements_fit(example_elements_pre_fit_match,
-                            example_elements_post_fit_match):
-    """Check that the the help function to find if the elements lists before
-    and after fit matches in element names works.
-
-    GIVEN: valid elements lists.
-    WHEN: the help function to test the fit function
-    THEN: the function works.
-    """
-    for i, elements_list in enumerate(example_elements_pre_fit_match):
-        wrong_element = wrong_elements_parameters_map(
-            elements_list, example_elements_post_fit_match[i])
-        assert not wrong_element, (
-                'StructuralError for the '+ str(i+1) + 'th example: '
-                + wrong_element + ' of pre fit elements not found in post fit'
-                + 'elements')
-
-
-def wrong_parameters_parameters_map(pre_fit_parameters_map,
-                                    post_fit_parameters_map):
-    """Find any missing parameters in the post fit element list.
-
-    Parameters
-    ----------
-    pre_fit_parameters_map : dict
-        Parameters map of the fitting parameters before the fit
-    post_fit_parameters_map : dict
-        Parameters map of the fitting parameters after the fit
-
-    Returns
-    -------
-    wrong_elements : str
-        String that contains all the wrong elements' parameter, separated by
-        a comma and a whitespace
-    wrong_parameters : str
-        String that contains all the wrong parameters, separated by a comma and
-        a whitespace
-    """
-    wrong_elements = ''
-    wrong_parameters = ''
-    for element, parameter in pre_fit_parameters_map.items():
-        if isinstance(parameter, list):
-            if not isinstance(post_fit_parameters_map[element], list):
-                wrong_elements += '\'' + element + '\', '
-                wrong_parameters += '\'' + parameter + '\', '
-        if isinstance(parameter, (int, float)):
-            if not isinstance(post_fit_parameters_map[element], (int, float)):
-                wrong_elements += '\'' + element + '\', '
-                wrong_parameters += '\'' + parameter + '\', '
-    return wrong_elements, wrong_parameters
-
-def generate_example_parameters_pre_fit_match():
-    """Generate examples of parameters lists pre fit."""
-    parameters_lists = [[200.], [1e-6], [100., 3e-6], [1000.]]
-    return parameters_lists
-
-@pytest.fixture
-def example_parameters_pre_fit_match():
-    return generate_example_parameters_pre_fit_match()
-
-def generate_example_parameters_post_fit_match():
-    """Generate examples of parameters lists post fit."""
-    parameters_lists = [[300.], [3.5e-6], [175., 4.554e-6], ['1236']]
-    return parameters_lists
-
-@pytest.fixture
-def example_parameters_post_fit_match():
-    return generate_example_parameters_post_fit_match()
-
-def test_match_parameters_fit(example_parameters_pre_fit_match,
-                              example_parameters_post_fit_match):
-    """Check that the the help function to find if the elements lists before
-    and after fit matches in element names works.
-
-    GIVEN: valid elements lists.
-    WHEN: the help function to test the fit function
-    THEN: the function works.
-    """
-    for i, parameters_lists in enumerate(example_parameters_pre_fit_match):
-        wrong_elements, wrong_parameters = wrong_parameters_parameters_map(
-            parameters_lists, example_parameters_post_fit_match[i])
-        assert not wrong_elements, (
-                'StructuralError for the '+ str(i+1) + 'th example. '
-                + 'Parameter(s) ' + wrong_parameters + 'of element'
-                + wrong_elements + ' of pre fit elements has a different type of'
-                + 'the counterpart in the post fit parameters_map')
-
-
-def generate_examples_analyzed_circuit_pre_fit():
-    """Generate examples of analyzed circuit before a fit for the fit test."""
-    function_r = lambda x, y: (x[0]+0j) * np.ones(len(y))
-    function_c = lambda x, y: 1./(1j*y*2*np.pi*x[0])
-    function_rc = lambda x, y: ((x[0]+0j) * np.ones(len(y))
-                                + 1./(1j*y*2*np.pi*x[1]))
-    functions_ = [function_r, function_c, function_rc]
-    parameters = [{'R1': 200.}, {'C1': 7e-4}, {'R1': 330., 'C2': 5e-4}]
-    diagrams = ['(R1)', '(C1)', '(R1C2)']
-    examples_circuits = []
-    for i, diagram in enumerate(diagrams):
-        circuit_ = AnalisysCircuit(diagram, impedance=functions_[i],
-                                   parameters_map=parameters[i])
-        examples_circuits.append(circuit_)
-    return examples_circuits
-
-@pytest.fixture
-def examples_analyzed_circuit_pre_fit():
-    return generate_examples_analyzed_circuit_pre_fit()
-
-def generate_examples_analyzed_circuit_post_fit():
-    """Generate examples of analyzed circuit after a fit for the fit test."""
-    example_analyzed_circuit_pre_fit = generate_examples_analyzed_circuit_pre_fit()
-    signals = [np.array([complex(100,0), complex(100,0), complex(100,0),
-                        complex(100,0)]),
-               np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
-                        complex(0,-1)]),
-               np.array([complex(500,-1000), complex(500,-100),
-                        complex(500,-10), complex(500,-1)])]
-    frequency = np.array([10, 100, 1000, 10000])
-    example_analyzed_circuit_post_fit = []
-    for i, signal in enumerate(signals):
-        circuit_ = example_analyzed_circuit_pre_fit[i]
-        _ = fit(frequency, signal, circuit_)
-        example_analyzed_circuit_post_fit.append(circuit_)
-    return example_analyzed_circuit_post_fit
-
-@pytest.fixture
-def examples_analyzed_circuit_post_fit():
-    return generate_examples_analyzed_circuit_post_fit()
-
-def test_fit_analyzed_circuit_parameters(examples_analyzed_circuit_pre_fit,
-                                         examples_analyzed_circuit_post_fit):
-    """Check that the parameters map of post fit is congruent with the one
-    of pre fit: same elements, same types of the parameters.
-
-    GIVEN: a valid pre fit analyzed circuit
-    WHEN: the fit function is called
-    THEN: the parameters map of post fit is congruent with the one of pre fit
-    """
-    for i, post_circuit in enumerate(examples_analyzed_circuit_post_fit):
-        pre_circuit = examples_analyzed_circuit_pre_fit[i]
-        assert isinstance(post_circuit.parameters_map, dict), (
-            'TypeError for post fit parameters map. It must be a dictionary')
-        assert same_length_elements_parameters_map(
-            pre_circuit.list_elements(), post_circuit.list_elements()), (
-                'StructuralError between elements list in parameter map pre '
-                + 'and post fit. They must have the same length')
-        wrong_element = wrong_elements_parameters_map(
-            pre_circuit.list_elements(),
-            post_circuit.list_elements())
-        assert not wrong_element, (
-                'StructuralError between elements list in parameter map pre '
-                + 'and post fit. ' + wrong_element + ' of pre fit elements '
-                + 'not found in post fit elements ')
-        wrong_elements, wrong_parameters = wrong_parameters_parameters_map(
-            pre_circuit.parameters_map,
-            post_circuit.parameters_map)
-        assert not wrong_elements, (
-                'StructuralError between parameter(s) in parameter map pre '
-                + 'and post fit. Parameter(s) ' + wrong_parameters + 'of element'
-                + wrong_elements + ' of pre fit elements has a different '
-                + 'type of the counterpart in the post fit parameters_map')
-
-
-
-def analyzed_circuit_parameters_and_optimized_parameters_same_length(
-        analyzed_circuit_parameters, optimized_parameters):
-    """Given the analyzed parameters list in the analysis circuit and the
-    optimized parameters list given by the fit, return wheter they have the
-    same length or not. Used for testing
-
-    Parameters
-    ----------
-    analyzed_circuit_parameters : list
-        List of initial parameters of the fit given by input
-    optimized_parameters : list
-        List of final parameters given by the fit
-
-    Returns
-    -------
-    length_equality : bool
-        Boolean of the equality length condition
-    """
-    length_equality = (len(analyzed_circuit_parameters)==len(
-        optimized_parameters))
-    return length_equality
-
-def generate_example_parameters_analyzed():
-    """Generate examples of parameters lists of the analyzed circuit after the
-    fit. Only the last one is incorrect.
-    """
-    parameters_lists = [[200.], [1e-6], [100., 3e-6], [1000.]]
-    return parameters_lists
-
-@pytest.fixture
-def example_parameters_analyzed():
-    return generate_example_parameters_analyzed()
-
-def generate_example_parameters_optimized():
-    """Generate examples of optimized parameters lists after the fit."""
-    parameters_lists = [[200.], [1e-6], [100., 3e-6], [1e14]]
-    return parameters_lists
-
-@pytest.fixture
-def example_parameters_optimized():
-    return generate_example_parameters_optimized()
-
-def test_parameters_same_length(example_parameters_analyzed,
-                                example_parameters_optimized):
-    """Check that the the help function to find if the parameters lists before
-    and after fit have the same length works.
-
-    GIVEN: valid parameters lists.
-    WHEN: the help function to test the fit function
-    THEN: the function works.
-    """
-    for i, parameters_lists in enumerate(example_parameters_analyzed):
-        assert analyzed_circuit_parameters_and_optimized_parameters_same_length(
-            parameters_lists, example_parameters_optimized[i]), (
-            'StructuralError: wrong number of optimized parameters \''
-            + str(len(example_parameters_optimized[i]))
-            + '\' (with number of initial parameters \''
-            + str(len(parameters_lists)) + '\'). They must be the same')
-
-
-def wrong_match_analyzed_circuit_parameters_optimized_parameters(
-        analyzed_circuit_parameters, optimized_parameters):
-    """Find any missing parameters in the post fit element list given the
-    optmized parameters list.
-
-    Parameters
-    ----------
-    optimized_parameters : list
-        List of optmized parameters given by the fit.
-    analyzed_circuit_parameters : list
-        List of parameters of the fitting parameters after the fit in the
-        analyzed object.
-
-    Returns
-    -------
-    missing_parameter : str
-        String that contains all the missing parameters, separated by a comma and
-        a whitespace.
-    """
-    missing_parameter = ''
-    for parameter in analyzed_circuit_parameters:
-        if parameter not in optimized_parameters:
-            missing_parameter += '\'' + str(parameter) + '\', '
-    return missing_parameter
-
-def test_parameters_wrong_match(example_parameters_analyzed,
-                                example_parameters_optimized):
-    """Check that the the help function to find if the parameters lists before
-    and after fit have the same length works.
-
-    GIVEN: valid parameters lists.
-    WHEN: the help function to test the fit function
-    THEN: the function works.
-    """
-    for i, parameters_lists in enumerate(example_parameters_analyzed):
-        missing_parameter = wrong_match_analyzed_circuit_parameters_optimized_parameters(
-            parameters_lists, example_parameters_optimized[i])
-        assert not missing_parameter, (
-            'StructuralError in ' + str(i+1) + 'th example: missing parameter '
-            + 'for optimization ' + missing_parameter)
+    assert isinstance(bounds_list, list), (
+        'TypeError in the output: it must be a list,  not a '
+        + str(type(bounds_list)))
+    assert not bounds_list, (
+        'StructuralError in the output: it is expected to be empty')
+    wrong_element_type_index = wrong_element_type_bound_definitions(
+        bounds_list)
+    assert not wrong_element_type_index, (
+        'TypeError: the output must be a list of tuples of length 2')
+    wrong_element_value_index = wrong_element_value_bound_definitions(
+        bounds_list)
+    assert not wrong_element_value_index, (
+        'StructuralError for ' + wrong_element_value_index + ': each element '
+        + 'of the output must be a tuple with as first element a non-negative'
+        + 'number, and as a second element either \'None\' or a non-negative '
+        + 'number bigger than the first element')
+    number_of_q = count_q(element_list, len(element_list)+1)
+    consistent_condition = ((len(element_list)+number_of_q)==len(
+        bounds_list))
+    assert consistent_condition, (
+        'StructuralError: the list of bounds must have a proper length related '
+        + 'to the elements list. For each element but for Q 1 element is '
+        + 'equal to bound. For Q case is 1 element to 2 bounds.')
+    wrong_match_index = bad_match_bound_definitions_elements_list(
+        element_list, bounds_list)
+    assert not wrong_match_index, (
+        'StructuralError for elements ' + wrong_match_index + ': there must '
+        + 'be a correspondace between each element of the element list \''
+        + str(element_list) + '\' and the correspective bound. Bound for R, '
+        + 'C or Q must have a positive number as first element, while for n'
+        + 'the second parameter must not be bigger than 1')
 
 
 def outside_bound_optimized_parameters(optimized_parameters, bounds_list):
@@ -804,205 +772,690 @@ def outside_bound_optimized_parameters(optimized_parameters, bounds_list):
                 outside_bound_index += '[' + str(i) + '] (second element), '
     return outside_bound_index
 
-def generate_example_bounds_fit():
-    """Generate examples of bounds for the fit. Only the last one is incorrect.
+def test_outside_bounds_empty():
+    """Check that the the help function to find if there are optimized
+    parameters outside the fi bounds (tuples) works for a no parameters or
+    bounds case.
+
+    GIVEN: two empty lists.
+    WHEN: I call the function to chek if any optimized parameters are outside
+    their own bounds
+    THEN: no invalid parameter is found
     """
-    bounds_lists = [[(1., 1e7)], [(1e-9, 1e-2)], [(1., 1e7),(1e-9, 1e-2)],
-                    [(1., 1e7)]]
-    return bounds_lists
+    optimized_parameters = []
+    bounds = []
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + ': the optimized parameters must be within '
+        + 'their bounds: ' + str(bounds))
+
+def test_outside_bounds_one_parameter():
+    """Check that the help function to find if there are optimized
+    parameters outside the bounds (tuples) works for a resistor-like
+    parameter with proper bounds.
+
+    GIVEN: a valid optimized parameter for a resisitor within the bounds
+    WHEN: I call the function to chek if any optimized parameters are outside
+    their own bounds
+    THEN: no invalid parameter is found
+    """
+    optimized_parameters = [1229.3]
+    bounds = [(10, 1e5)]
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + ': the optimized parameters must be within '
+        + 'their bounds: ' + str(bounds))
+
+def test_outside_bounds_many_parameters():
+    """Check that the help function to find if there are optimized
+    parameters outside the bounds (tuples) works for four parameters with
+    proper bounds.
+
+    GIVEN: four valid optimized parameters within the bounds
+    WHEN: I call the function to chek if any optimized parameters are outside
+    their own bounds
+    THEN: no invalid parameter is found
+    """
+    optimized_parameters = [1.2e-7, 11297.45, 7.8e-6, 0.89]
+    bounds = [(1e-10, 1e-4), (100., None), (1e-10, 1e-4), (0, 1)]
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + ': the optimized parameters must be within '
+        + 'their bounds: ' + str(bounds))
+
+def test_outside_bounds_invalid_parameters():
+    """Check that the help function to find if there are optimized
+    parameters outside the bounds (tuples) works for three parameters with
+    proper bounds, of which only two are within the bounds.
+
+    GIVEN: three valid optimized parameters, of which the second one is the
+    only one otside the bounds (lower than the lower bound)
+    WHEN: I call the function to chek if any optimized parameters are outside
+    their own bounds
+    THEN: no invalid parameter is found
+    """
+    optimized_parameters = [8.4e-7, 0.002, 3950.5] #Second element invalid
+                                                   #because lower than its
+                                                   #lower bound
+    bounds = [(1e-10, 1e-4), (1., None), (100., None)]
+    expected_result = '[1] (first element), '
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+
+    assert outside_bound_index==expected_result, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + ': the optimized parameters must be within '
+        + 'their bounds: ' + str(bounds))
+
+
+def generate_pre_fit_circuit_resistor():
+    """Generate an analyzed circuit of a resistor before a fit."""
+    diagram = '(R1)'
+    function_r = lambda x, y: (x[0]+0j) * np.ones(len(y))
+    parameters = {'R1': 200.}
+    circuit_resistor = AnalisysCircuit(diagram, impedance=function_r,
+                                       parameters_map=parameters)
+    return circuit_resistor
 
 @pytest.fixture
-def example_bounds_fit():
-    return generate_example_bounds_fit()
+def pre_fit_circuit_resistor():
+    return generate_pre_fit_circuit_resistor()
 
-def test_outside_bounds(example_parameters_optimized, example_bounds_fit):
-    """Check that the the help function to find if the parameters lists before
-    and after fit have the same length works.
-
-    GIVEN: valid parameters lists.
-    WHEN: the help function to test the fit function
-    THEN: the function works.
+def generate_post_fit_circuit_resistor():
+    """Generate a data set of a resistor and fit them using a proper analyzed
+    circuit. Return the analyzed circuit after the fit
     """
-    for i, optimized_parameters in enumerate(example_parameters_optimized):
-        outside_bound_index = outside_bound_optimized_parameters(
-            optimized_parameters, example_bounds_fit[i])
-        assert not outside_bound_index, (
-            'StructuralError for optimized parametrs with bound(s) '
-            + outside_bound_index + 'in ' + str(i+1) + 'th example: the '
-            + 'optimized parameters must be within their bounds: '
-            + str(example_bounds_fit[i]))
-
-
-def generate_examples_fit_results():
-    """Generate examples of fit results list from a valid data,
-    initial parameters, element list and impedance function, for the fit test.
-    """
-    example_analyzed_circuit_pre_fit = generate_examples_analyzed_circuit_pre_fit()
-    signals = [np.array([complex(100,0), complex(100,0), complex(100,0),
-                        complex(100,0)]),
-               np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
-                        complex(0,-1)]),
-               np.array([complex(500,-1000), complex(500,-100),
-                        complex(500,-10), complex(500,-1)])]
+    signal = np.array([complex(100,0), complex(100,0), complex(100,0),
+                        complex(100,0)])
     frequency = np.array([10, 100, 1000, 10000])
-    example_fit_results = []
-    for i, signal in enumerate(signals):
-        circuit_ = example_analyzed_circuit_pre_fit[i]
-        fit_results = fit(frequency, signal, circuit_)
-        example_fit_results.append(fit_results)
-    return example_fit_results
+    analyzed_circuit = generate_pre_fit_circuit_resistor()
+    _ = fit(frequency, signal, analyzed_circuit)
+    return analyzed_circuit
 
 @pytest.fixture
-def examples_fit_results():
-    return generate_examples_fit_results()
+def post_fit_circuit_resistor():
+    return generate_post_fit_circuit_resistor()
 
-def test_fit_optimized_parameters(examples_fit_results, example_bounds_fit,
-                                  examples_analyzed_circuit_post_fit):
-    """Check that the first argument of the output of fit() is a valid
-    parameter
-    list, with a correspondance in length and type with the initial
-    parameters, and within the bounds.
+def generate_fit_results_resistor():
+    """Generate a data set of a resistor and fit them using a proper analyzed
+    circuit. Return the fit results
+    """
+    signal = np.array([complex(100,0), complex(100,0), complex(100,0),
+                        complex(100,0)])
+    frequency = np.array([10, 100, 1000, 10000])
+    analyzed_circuit = generate_pre_fit_circuit_resistor()
+    fit_results = fit(frequency, signal, analyzed_circuit)
+    return fit_results
 
-    GIVEN: a valid data, initial parameters, element list and impedance
-    function
+@pytest.fixture
+def fit_results_resistor():
+    return generate_fit_results_resistor()
+
+def test_fit_resistor(pre_fit_circuit_resistor, post_fit_circuit_resistor,
+                      fit_results_resistor):
+    """Check that the fit() function returns proper values of the fit, given
+    a resitor-like analyzed circuit and the correspective data. The initial
+    parameter in the circuit is twice the 'real' one, that is the one that
+    would properly describe the data.
+    Have a proper values means that all the non-constant elements in the
+    analyzed circuit before and after the fit are the same, and that the
+    optimized parameters are the same of the ones in the post fit analyzed
+    circuit. At last, the parameters must be inside the fit bounds.
+
+    GIVEN: a valid analyzed circuit (resistor-like) and valid data initial
+    parameters, element list and impedance function
+    WHEN: I call the fit function to get the optimized parameters
+    THEN: the optimized parameters are all the expected ones, that well fit
+    the data
+    """
+    bounds = [(10, None)]
+    optimized_parameters = fit_results_resistor[0]
+    expected_parameters = [100.] #Expected value of the fitted resistance
+
+    assert isinstance(optimized_parameters, np.ndarray), (
+        'TypeError for parameters in fit() . It must be a list')
+    assert isinstance(post_fit_circuit_resistor.parameters_map, dict), (
+        'TypeError for post fit parameters map. It must be a dictionary')
+    pre_fit_elements = list(pre_fit_circuit_resistor.parameters_map.keys())
+    post_fit_elements = list(post_fit_circuit_resistor.parameters_map.keys())
+    assert np.all(pre_fit_elements==post_fit_elements), (
+            'StructuralError between elements list in parameter map pre '
+            + 'and post fit.')
+    optimized_parameters_circuit = post_fit_circuit_resistor.list_parameters()
+    length_equality = (len(optimized_parameters_circuit)==len(optimized_parameters))
+    assert length_equality, (
+        'StructuralError: wrong number of optimized parameters \''
+        + str(len(optimized_parameters)) + '\' (with number of initial '
+        + 'parameters \'' + str(len(post_fit_circuit_resistor.list_parameters()))
+            + '\') in output of fit() . They must be the same')
+    assert set(optimized_parameters_circuit)==set(optimized_parameters), (
+        'StructuralError in fit(): different optimized parameters between the '
+        + 'ones set into the analyzed circuit and given from the fit() '
+        + 'finction ')
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + 'in output of fit(): the '
+        + 'optimized parameters must be within their bounds: ' + str(bounds))
+    assert np.all(optimized_parameters==expected_parameters), (
+        'ValueError: optimized parameters differ from the expected ones')
+
+def generate_pre_fit_circuit_rc():
+    """Generate an analyzed circuit of a resistor and a capacitor in series
+    before a fit.
+    """
+    diagram = '(R1C2)'
+    function_rc_series = lambda x, y: ((x[0]+0j) * np.ones(len(y))
+                                      + 1./(1j*y*2*np.pi*x[1]))
+    parameters = {'R1': 200., 'C2': 1e-7}
+    circuit_rc = AnalisysCircuit(diagram, impedance=function_rc_series,
+                                       parameters_map=parameters)
+    return circuit_rc
+
+@pytest.fixture
+def pre_fit_circuit_rc():
+    return generate_pre_fit_circuit_rc()
+
+def generate_post_fit_circuit_rc():
+    """Generate a data set of a resistor and a capacitor in series and fit
+    them using a proper analyzed circuit. Return the analyzed circuit after
+    the fit
+    """
+    signal = np.array([complex(1398.2675,-30597.282), complex(1183,-3053.53),
+                       complex(1212.,-304.15), complex(1196.5468,-35.643)])
+    frequency = np.array([10, 100, 1000, 10000])
+    analyzed_circuit = generate_pre_fit_circuit_rc()
+    _ = fit(frequency, signal, analyzed_circuit)
+    return analyzed_circuit
+
+@pytest.fixture
+def post_fit_circuit_rc():
+    return generate_post_fit_circuit_rc()
+
+def generate_fit_results_rc():
+    """Generate a data set of a resistor and a capacitor in series and fit
+    them using a proper analyzed circuit. Return the fit results
+    """
+    signal = np.array([complex(1398.2675,-30597.282), complex(1183,-3053.53),
+                       complex(1212.,-304.15), complex(1196.5468,-35.643)])
+    frequency = np.array([10, 100, 1000, 10000])
+    analyzed_circuit = generate_pre_fit_circuit_rc()
+    fit_results = fit(frequency, signal, analyzed_circuit)
+    return fit_results
+
+@pytest.fixture
+def fit_results_rc():
+    return generate_fit_results_rc()
+
+def test_fit_rc_series(pre_fit_circuit_rc, post_fit_circuit_rc,
+                       fit_results_rc):
+    """Check that the fit() function returns proper values of the fit, given
+    a rc-series-like analyzed circuit and the correspective data. The initial
+    parameters in the circuit are abount one order of magnitude different of
+    'real' one, that is the one that would properly describe the data.
+    Have a proper values means that all the non-constant elements in the
+    analyzed circuit before and after the fit are the same, and that the
+    optimized parameters are the same of the ones in the post fit analyzed
+    circuit. At last, the parameters must be inside the fit bounds.
+
+    GIVEN: a valid analyzed circuit (rc-series-like) and valid data initial
+    parameters, element list and impedance function
+    WHEN: I call the fit function to get the optimized parameters
+    THEN: the optimized parameters are all the expected ones, that well fit
+    the data
+    """
+    bounds = [(10, None), (1e-9, None)]
+    optimized_parameters = fit_results_rc[0]
+    expected_parameters = [1200.6, 5.2e-7] #Expected value of the fitted rc
+
+    assert isinstance(optimized_parameters, np.ndarray), (
+        'TypeError for parameters in fit() . It must be a list')
+    assert isinstance(post_fit_circuit_rc.parameters_map, dict), (
+        'TypeError for post fit parameters map. It must be a dictionary')
+    pre_fit_elements = list(pre_fit_circuit_rc.parameters_map.keys())
+    post_fit_elements = list(post_fit_circuit_rc.parameters_map.keys())
+    assert np.all(pre_fit_elements==post_fit_elements), (
+            'StructuralError between elements list in parameter map pre '
+            + 'and post fit.')
+    optimized_parameters_circuit = post_fit_circuit_rc.list_parameters()
+    length_equality = (len(optimized_parameters_circuit)==len(optimized_parameters))
+    assert length_equality, (
+        'StructuralError: wrong number of optimized parameters \''
+        + str(len(optimized_parameters)) + '\' (with number of initial '
+        + 'parameters \'' + str(len(post_fit_circuit_rc.list_parameters()))
+            + '\') in output of fit() . They must be the same')
+    assert set(optimized_parameters_circuit)==set(optimized_parameters), (
+        'StructuralError in fit(): different optimized parameters between the '
+        + 'ones set into the analyzed circuit and given from the fit() '
+        + 'finction ')
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + 'in output of fit(): the '
+        + 'optimized parameters must be within their bounds: ' + str(bounds))
+    optimized_parameters_rounded = [round(optimized_parameters[0], 1),
+                                    round(optimized_parameters[1], 8)]
+    assert np.all(optimized_parameters_rounded==expected_parameters), (
+        'ValueError: optimized parameters differ from the expected ones')
+
+def generate_pre_fit_circuit_rq():
+    """Generate an analyzed circuit of a resistor and a cpe in parallel before
+    a fit.
+    """
+    diagram = '[R1Q2]'
+    function_rq_parallel = lambda x, y: 1./(1./((500.+0j) * np.ones(len(y))) +
+        (x[0]*(y*2*np.pi)**x[1]*np.exp(np.pi/2*x[1]*1j)))
+    parameters = {'Q2': [5e-6, 0.95]}
+    circuit_rq = AnalisysCircuit(diagram, impedance=function_rq_parallel,
+                                 parameters_map=parameters)
+    return circuit_rq
+
+@pytest.fixture
+def pre_fit_circuit_rq():
+    return generate_pre_fit_circuit_rq()
+
+def generate_post_fit_circuit_rq():
+    """Generate a data set of a resistor and a cpe in parallel and fit
+    them using a proper analyzed circuit. Return the analyzed circuit after
+    the fit
+    """
+    signal = np.array([
+        complex(499.93298,2.91446593), complex(497.440942,-4.6390736),
+        complex(499.67858,-13.8646), complex(452.5068562,-108.554184),
+        complex(120.7550,-177.1707253), complex(6.985519494,-31.0678),
+        complex(0.6873635497,-3.97560), complex(0.08247718,-0.5019773)])
+    frequency = np.array([0.1, 1, 10, 100, 1000, 1e4, 1e5, 1e6])
+    analyzed_circuit = generate_pre_fit_circuit_rq()
+    _ = fit(frequency, signal, analyzed_circuit)
+    return analyzed_circuit
+
+@pytest.fixture
+def post_fit_circuit_rq():
+    return generate_post_fit_circuit_rq()
+
+def generate_fit_results_rq():
+    """Generate a data set of a resistor and cpe in parallel and fit them
+    using a proper analyzed circuit. Return the fit results
+    """
+    signal = np.array([
+        complex(499.93298,2.91446593), complex(497.440942,-4.6390736),
+        complex(499.67858,-13.8646), complex(452.5068562,-108.554184),
+        complex(120.7550,-177.1707253), complex(6.985519494,-31.0678),
+        complex(0.6873635497,-3.97560), complex(0.08247718,-0.5019773)])
+    frequency = np.array([0.1, 1, 10, 100, 1000, 1e4, 1e5, 1e6])
+    analyzed_circuit = generate_pre_fit_circuit_rq()
+    fit_results = fit(frequency, signal, analyzed_circuit)
+    return fit_results
+
+@pytest.fixture
+def fit_results_rq():
+    return generate_fit_results_rq()
+
+def test_fit_rq_parallel(pre_fit_circuit_rq, post_fit_circuit_rq,
+                         fit_results_rq):
+    """Check that the fit() function returns proper values of the fit, given
+    an rq-parallel-like analyzed circuit and the correspective data. The
+    parameter of the resisitor is set constant (at the correct value), while
+    the initial parameters of the cpe are 5 times the correct one for q and
+    5% more for the ideality factor
+    Have a proper values means that all the non-constant elements in the
+    analyzed circuit before and after the fit are the same, and that the
+    optimized parameters are the same of the ones in the post fit analyzed
+    circuit. At last, the parameters must be inside the fit bounds.
+
+    GIVEN: a valid analyzed circuit (rq-like) and valid data initial
+    parameters, element list and impedance function
     WHEN: the fit function is called
     THEN: the first argument of the output of fit() is a proper parameter list
     """
-    caller = 'fit()'
-    for i, results in enumerate(examples_fit_results):
-        optimized_parameters = results[0] 
-        assert isinstance(optimized_parameters, np.ndarray), (
-            'TypeError for parameters in ' + caller + ' . It must be a list')
-        assert analyzed_circuit_parameters_and_optimized_parameters_same_length(
-            examples_analyzed_circuit_post_fit[i].list_parameters(),
-            optimized_parameters), (
-            'StructuralError: wrong number of optimized parameters \''
-            + str(len(optimized_parameters)) + '\' (with number of initial '
-            + 'parameters \'' + str(len(
-                examples_analyzed_circuit_post_fit[i].list_parameters()))
-                + '\') in output of ' + caller + ' . They must be the same')
-        missing_parameter = wrong_match_analyzed_circuit_parameters_optimized_parameters(
-            examples_analyzed_circuit_post_fit[i].list_parameters(),
-            optimized_parameters)
-        assert not missing_parameter, (
-            'StructuralError in ' + caller + ': missing parameter for '
-            + 'optimization ' + missing_parameter)
-        outside_bound_index = outside_bound_optimized_parameters(
-            optimized_parameters, example_bounds_fit[i])
-        assert not outside_bound_index, (
-            'StructuralError for optimized parametrs with bound(s) '
-            + outside_bound_index + 'in output of ' + caller + ': the '
-            + 'optimized parameters must be within their bounds: '
-            + str(example_bounds_fit[i]))
+    bounds = [(1e-9, None), (0, 1)]
+    optimized_parameters = fit_results_rq[0]
+    expected_parameters = [1.5e-6, 0.9] #Expected value of the fitted rc
 
+    assert isinstance(optimized_parameters, np.ndarray), (
+        'TypeError for parameters in fit() . It must be a list')
+    assert isinstance(post_fit_circuit_rq.parameters_map, dict), (
+        'TypeError for post fit parameters map. It must be a dictionary')
+    pre_fit_elements = list(pre_fit_circuit_rq.parameters_map.keys())
+    post_fit_elements = list(post_fit_circuit_rq.parameters_map.keys())
+    assert np.all(pre_fit_elements==post_fit_elements), (
+            'StructuralError between elements list in parameter map pre '
+            + 'and post fit.')
+    optimized_parameters_circuit = post_fit_circuit_rq.list_parameters()
+    length_equality = (len(optimized_parameters_circuit)==len(
+        optimized_parameters))
+    assert length_equality, (
+        'StructuralError: wrong number of optimized parameters \''
+        + str(len(optimized_parameters)) + '\' (with number of initial '
+        + 'parameters \'' + str(len(post_fit_circuit_rq.list_parameters()))
+            + '\') in output of fit() . They must be the same')
+    assert set(optimized_parameters_circuit)==set(optimized_parameters), (
+        'StructuralError in fit(): different optimized parameters between the '
+        + 'ones set into the analyzed circuit and given from the fit() '
+        + 'finction ')
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + 'in output of fit(): the '
+        + 'optimized parameters must be within their bounds: ' + str(bounds))
+    optimized_parameters_rounded = [round(optimized_parameters[0], 7),
+                                    round(optimized_parameters[1], 1)]
+    assert np.all(optimized_parameters_rounded==expected_parameters), (
+        'ValueError: optimized parameters differ from the expected ones')
 
-def test_fit_success_flag(examples_fit_results):
-    """Check that second argument of the output of fit() is a string.
-
-    GIVEN: a valid data, initial parameters, element list and impedance
-    function
-    WHEN: the fit function is called
-    THEN: second argument of the output of fit() is a string
+def generate_fit_results_bad_parameters():
+    """Generate a data set of a resistor and a capacitor in series and fit 
+    them using an analyzed circuit with correct circuit diagram but parameters
+    that differs too much. Return the fit results
     """
-    for results in examples_fit_results:
-        success_flag = results[1]
-        assert isinstance(success_flag, str), ('TypeError for output of '
-            + 'fit(): the output must be a string, not a '
-            + str(type(success_flag)))
-
-
-def generate_example_element_info_const():
-    """Generate example of constant element info strings for all the element
-    types.
-    """
-    example_elements = (['R1', 'C1', 'Q1'])
-    example_parameters = ([(1000, 1), (2e-6, 1), (([1e-6, 0.6]), 1)])
-    example_element_info_const = []
-    for i, element in enumerate(example_elements):
-        example_element_info_const.append(get_constant_parameter_info(
-            element, example_parameters[i]))
-    return example_element_info_const
+    signal = np.array([complex(60.05,-1591.), complex(48.912082,-158.71475),
+                       complex(50.29982,-15.8523), complex(49.6478,-1.79834)])
+    frequency = np.array([10, 100, 1000, 10000])
+    analyzed_circuit = generate_pre_fit_circuit_rc()
+    fit_results = fit(frequency, signal, analyzed_circuit)
+    return fit_results
 
 @pytest.fixture
-def example_element_info_const():
-    return generate_example_element_info_const()
+def fit_results_bad_parameters():
+    return generate_fit_results_bad_parameters()
 
-def test_generate_get_constant_parameter_info(example_element_info_const):
+def test_fit_bad_parameters(fit_results_bad_parameters):
+    """Check that the fit() function fails to return proper values of the fit
+    if there are few points and the initial parameters are too far from the
+    'real' ones.
+
+    GIVEN: a valid analyzed circuit (rc-series-like) but data that belongs to
+    a circuit with parameters of few order of magnitude different. Also the
+    data points are not many (4)
+    WHEN: I call the fit function to get the optimized parameters
+    THEN: there is one optimized parameter that do not fit the data
+    """
+    bounds = [(10, None), (1e-9, None)]
+    optimized_parameters = fit_results_bad_parameters[0] 
+    expected_parameters = [10.0, 1e-5] #Expected value of the fitted rc. The
+                                       #first one is different from the
+                                       #correct one (that fits the data): 50.0
+
+    assert isinstance(optimized_parameters, np.ndarray), (
+        'TypeError for parameters in fit() . It must be a list')
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + 'in output of fit(): the '
+        + 'optimized parameters must be within their bounds: ' + str(bounds))
+    optimized_parameters_rounded = [round(optimized_parameters[0], 1),
+                                    round(optimized_parameters[1], 6)]
+    assert np.all(optimized_parameters_rounded==expected_parameters), (
+        'ValueError: optimized parameters differ from the expected ones')
+
+def generate_fit_results_bad_representation():
+    """Generate a data set of a resistor and fit them using an analyzed
+    circuit with an incorrect circuit diagram (an rc parallel).
+    Return the fit results
+    """
+    signal = np.array([complex(6770, 0), complex(6770, 0),
+                       complex(6770, 0), complex(6770, 0)])
+    frequency = np.array([10, 100, 1000, 10000])
+    analyzed_circuit = generate_pre_fit_circuit_rc()
+    fit_results = fit(frequency, signal, analyzed_circuit)
+    return fit_results
+
+@pytest.fixture
+def fit_results_bad_representation():
+    return generate_fit_results_bad_representation()
+
+def test_fit_bad_representation(fit_results_bad_representation):
+    """Check that the fit() function fails to return proper values of the fit
+    if there data and the analyzed circuit describe two different circuits.
+
+    GIVEN: a valid analyzed circuit (rc-series-like) but data that belongs to
+    a resisitor-like circuit.
+    WHEN: I call the fit function to get the optimized parameters
+    THEN: there optimized parameters have a the capacitor parameters that does
+    not represent anything in the data, in fact is just insanely large. The
+    resisitor parameter instead is accurate
+    """
+    bounds = [(10, None), (1e-9, None)]
+    optimized_parameters = fit_results_bad_representation[0] 
+    expected_parameter_resistor = [6770.0] #Expected value of the fitted data.
+                                           #But there is also a second
+                                           #parameter that has no meaning
+
+    assert isinstance(optimized_parameters, np.ndarray), (
+        'TypeError for parameters in fit() . It must be a list')
+    outside_bound_index = outside_bound_optimized_parameters(
+        optimized_parameters, bounds)
+    assert not outside_bound_index, (
+        'StructuralError for optimized parametrs with bound(s) '
+        + outside_bound_index + 'in output of fit(): the '
+        + 'optimized parameters must be within their bounds: ' + str(bounds))
+    assert optimized_parameters[0]==expected_parameter_resistor, (
+        'ValueError: the optimized parameter for the resisitor differ from '
+        + 'the expected one')
+    assert optimized_parameters[1]>1, (
+        'ValueError: the optimized parameter for the cacitor is not as big as '
+        + 'expected')
+
+
+def test_generate_get_constant_parameter_info_resistor():
     """Check that element info of a constant parameter for the result string
-    is a string.
+    is a string with the element and the value of the constant parameter of a
+    resistor.
 
-    GIVEN: a example elements and constant parameters
-    WHEN: the function to get the info of a constant element is called
-    THEN: the element info is a string
+    GIVEN: a resistor element and an input parameter map element
+    WHEN: I call the function to get the info of a constant element
+    THEN: the element info is a proper string for the results
     """
-    for example in example_element_info_const:
-        assert isinstance(example, str), (
-            'TypeError for output of '
-            + 'generate_get_constant_parameter_info(). It has to be a '
-            + 'string.')
+    element = 'R1'
+    parameter = (1000.0, 1)
+    expected_result = 'R1: 1000.0 (constant)'
+    constant_info_string = get_constant_parameter_info(element, parameter)
 
+    assert isinstance(constant_info_string, str), (
+        'TypeError for output of get_constant_parameter_info(). It has to be '
+        + 'a string.')
+    assert constant_info_string==expected_result, (
+        'StructuralError for output of get_constant_parameter_info(). The '
+        + 'output string is different from the expected one')
 
-def generate_example_element_info():
-    """Generate example of non-constant element info strings for all the
-    element types.
+def test_generate_get_constant_parameter_info_capacitor():
+    """Check that element info of a constant parameter for the result string
+    is a string with the element and the value of the constant parameter of a
+    capacitor.
+
+    GIVEN: a capacitor element and an input parameter map element
+    WHEN: I call the function to get the info of a constant element
+    THEN: the element info is a proper string for the results
     """
-    example_elements = (['R1', 'C1', 'Q1'])
-    example_parameters = ([1000, 2e-6, ([1e-6, 0.6])])
-    example_element_info = []
-    for i, element in enumerate(example_elements):
-        example_element_info.append(get_optimized_parameters_info(
-            element, example_parameters[i]))
-    return example_element_info
+    element = 'C2'
+    parameter = (1e-06, 1)
+    expected_result = 'C2: 1e-06 (constant)'
+    constant_info_string = get_constant_parameter_info(element, parameter)
 
-@pytest.fixture
-def example_element_info():
-    return generate_example_element_info()
+    assert isinstance(constant_info_string, str), (
+        'TypeError for output of get_constant_parameter_info(). It has to be '
+        + 'a string.')
+    assert constant_info_string==expected_result, (
+        'StructuralError for output of get_constant_parameter_info(). The '
+        + 'output string is different from the expected one')
 
-def test_generate_get_string_optimized_parameter(example_element_info):
-    """Check that element info of an optimized parameter for the result string
-    is a string.
+def test_generate_get_constant_parameter_info_cpe():
+    """Check that element info of the constant parameters for the result string
+    is a string with the element and the value of the constant parameters of a
+    cpe.
 
-    GIVEN: a example elements and optimized parameters
-    WHEN: the function to get the info of a constant element is called
-    THEN: the element info is a string
+    GIVEN: a cpe element and the input parameter map element
+    WHEN: I call the function to get the info of a constant element
+    THEN: the element info is a proper string for the results
     """
-    for example in example_element_info:
-        assert isinstance(example, str), (
-            'TypeError for output of '
-            + 'generate_get_string_optimized_parameter(). It has to be a '
-            + 'string.')
+    element = 'Q5'
+    parameters = ([1e-07, 0.5], 1)
+    expected_result = 'Q5: 1e-07, 0.5 (constant)'
+    constant_info_string = get_constant_parameter_info(element, parameters)
+
+    assert isinstance(constant_info_string, str), (
+        'TypeError for output of get_constant_parameter_info(). It has to be '
+        + 'a string.')
+    assert constant_info_string==expected_result, (
+        'StructuralError for output of get_constant_parameter_info(). The '
+        + 'output string is different from the expected one')
 
 
-def generate_example_result_string():
-    """Generate an example of a result string."""
-    analyzed_circuits = generate_examples_analyzed_circuit_pre_fit()
-    final_errors = [0.0, 0.1, 1e-5]
-    
-    diagrams = ['(R1)', '(C1)', '(R1C2)']
-    parameters = [{'R1': (100., 0)}, {'C1': (5e-4, 0)}, 
-                  {'R1': (30., 0), 'C2': (4e-4, 0)}]
-    errors = [234.24, 112.55, 45.4]
-    examples_result_string = []
-    for i, diagram in enumerate(diagrams):
-        circuit_ = Circuit(diagram, parameters_map=parameters[i], 
-                           error=errors[i])
-        result_string = get_results_info(analyzed_circuits[i], final_errors[i],
-                                         circuit_)
-        examples_result_string.append(result_string)
-    return result_string
+def test_generate_get_optimized_parameter_info_resistor():
+    """Check that element info of a optimized parameter for the result string
+    is a string with the element and the value of the optimized parameter of a
+    resistor.
 
-@pytest.fixture
-def example_result_string():
-    return generate_example_result_string()
-
-def test_result_string(example_result_string):
-    """Check that the result string is a string.
-
-    GIVEN: a valid set of elements and parameters.
-    WHEN: the function to get the result string is called.
-    THEN: the result string is a string.
+    GIVEN: a resistor element and the optimized parameter
+    WHEN: I call the function to get the info of a optimized element
+    THEN: the element info is a proper string for the results where the
+    parameter is rounded
     """
-    for result_string in example_result_string:
-        assert isinstance(result_string, str), (
-            'TypeError for output of get_results_info(). It has to be a '
-            + 'string.')
+    element = 'R1'
+    parameter = 1034.66735
+    expected_result = 'R1: 1034.667'
+    optimized_info_string = get_optimized_parameter_info(element, parameter)
+
+    assert isinstance(optimized_info_string, str), (
+        'TypeError for output of get_optimized_parameter_info(). It has to be '
+        + 'a string.')
+    assert optimized_info_string==expected_result, (
+        'StructuralError for output of get_optimized_parameter_info(). The '
+        + 'output string is different from the expected one')
+
+def test_generate_get_optimized_parameter_info_capacitor():
+    """Check that element info of a optimized parameter for the result string
+    is a string with the element and the value of the optimized parameter of a
+    capacitor.
+
+    GIVEN: a capacitor element and the optimized parameter
+    WHEN: I call the function to get the info of a optimized element
+    THEN: the element info is a proper string for the results where the
+    parameter is rounded
+    """
+    element = 'C4'
+    parameter = 1.252574e-07
+    expected_result = 'C4: 1.2526e-07'
+    optimized_info_string = get_optimized_parameter_info(element, parameter)
+
+    assert isinstance(optimized_info_string, str), (
+        'TypeError for output of get_optimized_parameter_info(). It has to be '
+        + 'a string.')
+    assert optimized_info_string==expected_result, (
+        'StructuralError for output of get_optimized_parameter_info(). The '
+        + 'output string is different from the expected one')
+
+def test_generate_get_optimized_parameter_info_cpe():
+    """Check that element info of the optimized parameters for the result
+    string is a string with the element and the value of the optimized
+    parameters of a cpe.
+
+    GIVEN: a cpe element and the optimized parameters
+    WHEN: I call the function to get the info of a optimized element
+    THEN: the element info is a proper string for the results, where the
+    parameters are rounded
+    """
+    element = 'Q8'
+    parameter = [1.2e-06, 0.474]
+    expected_result = 'Q8: 1.2e-06, 0.474'
+    optimized_info_string = get_optimized_parameter_info(element, parameter)
+
+    assert isinstance(optimized_info_string, str), (
+        'TypeError for output of get_optimized_parameter_info(). It has to be '
+        + 'a string.')
+    assert optimized_info_string==expected_result, (
+        'StructuralError for output of get_optimized_parameter_info(). The '
+        + 'output string is different from the expected one')
+
+
+def test_results_info_resistor(post_fit_circuit_resistor):
+    """Check that the results info of a fitted circuit of a resistor (i.e. with
+    the parameter set as non-constant) is a proper result string.
+
+    GIVEN: a valid initial circuit of a resistor, its analyzed circuit after
+    the fit and the final error
+    WHEN: I call the function to get the result string of a circuit
+    THEN: the result info is a proper string for the results, where all the
+    parameters are present (both constant and non-constant). The optimized
+    parameters are rounded
+    """
+    diagram = '(R1)'
+    parameters = {'R1': (100., 0)}
+    initial_circuit = Circuit(diagram, parameters)
+    final_errors = 0.0254
+    result_string = get_results_info(post_fit_circuit_resistor, final_errors,
+                                     initial_circuit)
+    expected_result = 'R1: 100.0\nError: 0.0254'
+
+    assert isinstance(result_string, str), (
+        'TypeError for output of get_results_info(). It has to be a '
+        + 'string.')
+    assert result_string==expected_result, (
+        'StructuralError for output of get_results_info(). It differs from '
+        + 'the expected one')
+
+def test_results_info_rc(post_fit_circuit_rc):
+    """Check that the results info of a fitted circuit of an rc in series
+    (with the parameter set as non-constant) is a proper result string.
+
+    GIVEN: a valid initial circuit of an rc in series, its analyzed circuit
+    after the fit and the final error
+    WHEN: I call the function to get the result string of a circuit
+    THEN: the result info is a proper string for the results, where all the
+    parameters are present (both constant and non-constant). The optimized
+    parameters are rounded
+    """
+    diagram = '(R1C2)'
+    parameters = {'R1': (100., 0), 'C2': (1e-6, 0)}
+    initial_circuit = Circuit(diagram, parameters)
+    final_errors = 0.174
+    result_string = get_results_info(post_fit_circuit_rc, final_errors,
+                                     initial_circuit)
+    expected_result = 'R1: 1200.642\nC2: 5.2072e-07\nError: 0.1740'
+
+    assert isinstance(result_string, str), (
+        'TypeError for output of get_results_info(). It has to be a '
+        + 'string.')
+    assert result_string==expected_result, (
+        'StructuralError for output of get_results_info(). It differs from '
+        + 'the expected one')
+
+def test_results_info_rq(post_fit_circuit_rq):
+    """Check that the results info of a fitted circuit of an rq in parallel
+    (with the resistor parameter set as constant and the cpe parameters as
+    non-constant) is a proper result string.
+
+    GIVEN: a valid initial circuit of an rq in parallel, its analyzed circuit
+    after the fit and the final error
+    WHEN: I call the function to get the result string of a circuit
+    THEN: the result info is a proper string for the results, where all the
+    parameters are present (both constant and non-constant). The optimized
+    parameters are rounded
+    """
+    diagram = '[R1Q2]'
+    parameters = {'R1': (500., 1), 'Q2': ([1e-6, 0.5], 0)}
+    initial_circuit = Circuit(diagram, parameters)
+    final_errors = 0.0037
+    result_string = get_results_info(post_fit_circuit_rq, final_errors,
+                                     initial_circuit)
+    expected_result = 'R1: 500.0 (constant)\nQ2: 1.49755e-06, 0.9\nError: 0.0037'
+
+    assert isinstance(result_string, str), (
+        'TypeError for output of get_results_info(). It has to be a '
+        + 'string.')
+    assert result_string==expected_result, (
+        'StructuralError for output of get_results_info(). It differs from '
+        + 'the expected one')
