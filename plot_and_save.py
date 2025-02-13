@@ -37,7 +37,7 @@ def get_phase(impedance):
     amplitude : array
         Array containing the correspondant impedance phase
     """
-    phase_vector = np.angle(impedance) * 180/np.pi
+    phase_vector = np.angle(impedance, deg=True)
     return phase_vector
 
 def plot_data(frequency, impedance):

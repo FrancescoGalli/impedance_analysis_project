@@ -1,219 +1,296 @@
-import pytest
+"""This module containes all the test functions (and the tested help functions
+for the tests) of the plot_and_save.py module, aside from the plot funtions.
+"""
+
+
 import numpy as np
 
 import sys
 from pathlib import Path
-sys.path.append(str(Path.cwd().parent)) 
+sys.path.append(str(Path.cwd().parent))
 
 from plot_and_save import get_amplitude, get_phase, get_box_coordinates
 
 
-
-def non_positive_values_get_amplitude(amplitude):
-    """Given an impedance array, return amplitude that is not positive. Used
-    for testing.
-
-    Parameters
-    ----------
-    amplitude : array
-        Array of impedances
-
-    Returns
-    -------
-    wrong_value : list
-        List that contains all the invalid amplitude
-    wrong_value_index : list
-        List of indexes of the invalid amplitude in the array
-    """
-    wrong_value = []
-    wrong_value_index = []
-    for i, element in enumerate(amplitude):
-        if element<=0:
-            wrong_value.append(element)
-            wrong_value_index.append(i)
-    return wrong_value, wrong_value_index
-
-def generate_example_amplitudes_non_positive():
-    """Generate the amplitude of an impedance vector with simulated noise, for
-    the non_positive_values_get_amplitude test. Only the last one is incorrect.
-    """
-    example_amplitudes = [[100., 100., 100.], [1000., 100., 10., 1.],
-                          [1100., 200., 110., 101.], [-1000., 100., -10., 1.]]
-    return example_amplitudes
-
-@pytest.fixture
-def example_amplitudes_non_positive():
-    return generate_example_amplitudes_non_positive()
-
-def test_non_positive_values_get_amplitude(example_amplitudes_non_positive):
-    """Check that the help function that finds the negative amplitudes works.
-
-    GIVEN: a valid ampltitude array
-    WHEN: the function to test the amplitude of an impedance is called
-    THEN: the amplitude is valid
-    """
-    for amplitude in example_amplitudes_non_positive:
-        wrong_value, wrong_value_index = non_positive_values_get_amplitude(
-            amplitude)
-        assert not wrong_value, (
-            'ValueError for amplitude ' + str(wrong_value) + ' number '
-            + str(wrong_value_index) + ' in get_amplitude() output. Ampltudes '
-            + 'must be positive')
-
-def generate_example_amplitude():
-    """Generate examples of amplitudes arrays of an impedance array, for
-    the get_amplitude test.
-    """
-    signals = [np.array([complex(100,0), complex(100,0), complex(100,0),
-                         complex(100,0)]),
-               np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
-                         complex(0,-1)]),
-               np.array([complex(100,1000), complex(100,100), complex(100,10),
-                         complex(100,1)])]
-    examples_amplitudes = []
-    for impedance in signals:
-        amplitude = get_amplitude(impedance)
-        examples_amplitudes.append(amplitude)
-    return examples_amplitudes
-
-@pytest.fixture
-def example_amplitude():
-    return generate_example_amplitude()
-
-def test_get_amplitude(example_amplitude):
+def test_get_amplitude_zero():
     """Check that the output of get_amplitude() is a proper impedance
-    amplitude array.
+    amplitude array in the case of a zero impedance.
 
-    GIVEN: a valid ampliude array
-    WHEN: the function to exctract the amplitude of the impedance array is
-    called
-    THEN: the amplitude is a valid amplitudes array
+    GIVEN: a valid zero impedance array of one element
+    WHEN: I call the function to extract the amplitude of an impedance
+    THEN: the amplitude is a valid amplitudes array, with the expected value
+    (zero)
     """
-    for amplitude in example_amplitude:
-        assert isinstance(amplitude, np.ndarray), (
-            'TypeError in get_amplitude(): the output must be a '
-            + 'numpy.ndarray')
-        assert amplitude.size>0, (
-            'StructuralError in get_amplitude(): the output cannot be empty')
-        assert amplitude.ndim==1, (
-            'TypeError in get_amplitude(): the output must be a '
-            + 'one-dimention array, while it is ' + str(amplitude.ndim))
-        assert amplitude.dtype==float, (
-            'TypeError in get_amplitude(): the output must be a float array, '
-            + 'while it is ' + str(amplitude.dtype))
-        wrong_value, wrong_value_index = non_positive_values_get_amplitude(
-            amplitude)
-        assert not wrong_value, (
-            'ValueError for amplitude ' + str(wrong_value) + ' number '
-            + str(wrong_value_index) + ' in get_amplitude() output. '
-            + 'Ampltudes must be positive')
+    impedance = np.array([complex(0,0)])
+    amplitude = get_amplitude(impedance)
+    expected_result = np.array([0])
 
+    assert isinstance(amplitude, np.ndarray), (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'numpy.ndarray')
+    assert amplitude.size>0, (
+        'StructuralError in get_amplitude(): the output cannot be empty')
+    assert amplitude.ndim==1, (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'one-dimention array, while it is ' + str(amplitude.ndim))
+    assert amplitude.dtype==float, (
+        'TypeError in get_amplitude(): the output must be a float array, '
+        + 'while it is ' + str(amplitude.dtype))
+    assert np.all(amplitude>=0), (
+        'ValueError for get_amplitude(): the output must have all its '
+        + ' elements non-negative.')
+    assert amplitude==expected_result, (
+        'ValueError for get_amplitude(): the output is incorrect.')
 
+def test_get_amplitude_resistor():
+    """Check that the output of get_amplitude() is a proper impedance
+    amplitude array in the case of a finite resisitor-like impedance.
 
-def generate_example_phase():
-    """Generate examples of phase arrays of an impedance array, for
-    the get_amplitude test.
+    GIVEN: a valid resistor-like impedance array of one element
+    WHEN: I call the function to extract the amplitude of an impedance
+    THEN: the amplitude is a valid amplitudes array, with the expected value
     """
-    signals = [np.array([complex(100,0), complex(100,0), complex(100,0),
-                         complex(100,0)]),
-               np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
-                         complex(0,-1)]),
-               np.array([complex(100,1000), complex(100,100), complex(100,10),
-                         complex(100,1)])]
-    examples_phase = []
-    for impedance in signals:
-        phase = get_phase(impedance)
-        examples_phase.append(phase)
-    return examples_phase
+    impedance = np.array([complex(100,0)])
+    amplitude = get_amplitude(impedance)
+    expected_result = np.array([100])
 
-@pytest.fixture
-def example_phase():
-    return generate_example_phase()
+    assert isinstance(amplitude, np.ndarray), (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'numpy.ndarray')
+    assert amplitude.size>0, (
+        'StructuralError in get_amplitude(): the output cannot be empty')
+    assert amplitude.ndim==1, (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'one-dimention array, while it is ' + str(amplitude.ndim))
+    assert amplitude.dtype==float, (
+        'TypeError in get_amplitude(): the output must be a float array, '
+        + 'while it is ' + str(amplitude.dtype))
+    assert np.all(amplitude>=0), (
+        'ValueError for get_amplitude(): the output must have all its '
+        + ' elements non-negative.')
+    assert amplitude==expected_result, (
+        'ValueError for get_amplitude(): the output is incorrect.')
 
-def test_get_phase(example_phase):
-    """Check that the output of get_phase() is a valid phase array.
+def test_get_amplitude_capacitor():
+    """Check that the output of get_amplitude() is a proper impedance
+    amplitude array in the case of five capacitor-like impedances.
 
-    GIVEN: a valid impedance array
-    WHEN: the function to exctract the phase of the impedance array is called
-    THEN: the phase is a valid phase array
+    GIVEN: a valid capacitor-like impedance array of five elements
+    WHEN: I call the function to extract the amplitude of an impedance
+    THEN: the amplitude is a valid amplitudes array, with the expected value
     """
-    for phase in example_phase:
-        assert isinstance(phase, np.ndarray), (
-            'TypeError in get_phase(): the output must be a numpy.ndarray')
-        assert phase.size>0, (
-            'StructuralError in get_phase(): the output cannot be empty')
-        assert phase.ndim==1, (
-            'TypeError in get_phase(): the output must be a one-dimention '
-            + 'array, while it is ' + str(phase.ndim))
-        assert phase.dtype==float, (
-            'TypeError in get_phase(): the output must be a float array, '
-            + 'while it is ' + str(phase.dtype))
+    impedance = np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
+                          complex(0,-1)])
+    amplitude = get_amplitude(impedance)
+    expected_result = np.array([1000, 100, 10, 1])
 
+    assert isinstance(amplitude, np.ndarray), (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'numpy.ndarray')
+    assert amplitude.size>0, (
+        'StructuralError in get_amplitude(): the output cannot be empty')
+    assert amplitude.ndim==1, (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'one-dimention array, while it is ' + str(amplitude.ndim))
+    assert amplitude.dtype==float, (
+        'TypeError in get_amplitude(): the output must be a float array, '
+        + 'while it is ' + str(amplitude.dtype))
+    assert np.all(amplitude>=0), (
+        'ValueError for get_amplitude(): the output must have all its '
+        + ' elements non-negative.')
+    assert np.all(amplitude==expected_result), (
+        'ValueError for get_amplitude(): the output is incorrect.')
 
-def generate_example_frequencies_box():
-    """Generate the example frequencies for the box coordinates, for the
-    get_box test. Only the last one is incorrect.
+def test_get_amplitude_empty():
+    """Check that the output of get_amplitude() is a proper impedance
+    amplitude array in the case of an empty aray for the impedances.
+
+    GIVEN: an invalid empty impedance array
+    WHEN: I call the function to extract the amplitude of an impedance
+    THEN: the amplitude is an invalid empty array
     """
-    example_frequencies = [np.array([10, 50]), np.array([1, 10, 100, 1000]),
-                           np.array([1, 2, 3, 4]), np.array([1])]
-    return example_frequencies
+    impedance = np.array([])
+    amplitude = get_amplitude(impedance)
 
-@pytest.fixture
-def example_frequencies_box():
-    return generate_example_frequencies_box()
+    assert isinstance(amplitude, np.ndarray), (
+        'TypeError in get_amplitude(): the output must be a '
+        + 'numpy.ndarray')
+    assert amplitude.size==0, (
+        'StructuralError in get_amplitude(): the output is not empty')
 
-def generate_example_amplitudes_box():
-    """Generate the example amplitudes for the box coordinates, for the
-    get_box test. Only the last one is incorrect.
+
+def test_get_phase_zero():
+    """Check that the output of get_phase() is a proper impedance
+    phase array in the case of a zero impedance.
+
+    GIVEN: a valid zero impedance array of one element
+    WHEN: I call the function to extract the phase of an impedance
+    THEN: the phase is a valid phases array, with the expected value (zero)
     """
-    example_amplitudes = [np.array([100., 10.0]), np.array([1000, 100, 10, 1]),
-                          np.array([1100, 200, 110, 101]), np.array([1])]
-    return example_amplitudes
+    impedance = np.array([complex(0,0)])
+    phase = get_phase(impedance)
+    expected_result = np.array([0])
 
-@pytest.fixture
-def example_amplitudes_box():
-    return generate_example_amplitudes_box()
+    assert isinstance(phase, np.ndarray), (
+        'TypeError in get_phase(): the output must be a numpy.ndarray')
+    assert phase.size>0, (
+        'StructuralError in get_phase(): the output cannot be empty')
+    assert phase.ndim==1, (
+        'TypeError in get_phase(): the output must be a one-dimention array, '
+        + 'while it is ' + str(phase.ndim))
+    assert phase.dtype==float, (
+        'TypeError in get_phase(): the output must be a float array, while it '
+        + 'is ' + str(phase.dtype))
+    assert -90.< phase <90., (
+        'ValueError for get_phase(): the output must have all its elements '
+        + 'between -90 and +90')
+    assert phase==expected_result, (
+        'ValueError for get_phase(): the output is incorrect.')
 
-def generate_example_box_coordinates():
-    """Generate the box coordinates of the result string, for the get_box
-    test. Only the last one is incorrect.
+def test_get_phase_resistor():
+    """Check that the output of get_phase() is a proper impedance
+    phase array in the case of a finite resisitor-like impedance.
+
+    GIVEN: a valid resistor-like impedance array of one element
+    WHEN: I call the function to extract the phase of an impedance
+    THEN: the phase is a valid phase array, with the expected value
+    (again, zero)
     """
-    frequencies = generate_example_frequencies_box()
-    amplitudes = generate_example_amplitudes_box()
-    example_box_coordinates = []
-    for i, frequency in enumerate(frequencies):
-        coordinates = get_box_coordinates(frequency, amplitudes[i])
-        example_box_coordinates.append(coordinates)
-    return example_box_coordinates
+    impedance = np.array([complex(100,0)])
+    phase = get_phase(impedance)
+    expected_result = np.array([0])
 
-@pytest.fixture
-def example_box_coordinates():
-    return generate_example_box_coordinates()
+    assert isinstance(phase, np.ndarray), (
+        'TypeError in get_phase(): the output must be a numpy.ndarray')
+    assert phase.size>0, (
+        'StructuralError in get_phase(): the output cannot be empty')
+    assert phase.ndim==1, (
+        'TypeError in get_phase(): the output must be a one-dimention array, '
+        + 'while it is ' + str(phase.ndim))
+    assert phase.dtype==float, (
+        'TypeError in get_phase(): the output must be a float array, while it '
+        + 'is ' + str(phase.dtype))
+    assert -90.< phase <90., (
+        'ValueError for get_phase(): the output must have all its elements '
+        + 'between -90 and +90.')
+    assert phase==expected_result, (
+        'ValueError for get_phase(): the output is incorrect.')
 
-def test_get_box_coordinates(example_box_coordinates, example_frequencies_box,
-                             example_amplitudes_box):
-    """Check that the box coordinates are a float and within the data.
+def test_get_phase_capacitor():
+    """Check that the output of get_phase() is a proper impedance
+    phase array in the case of four capacitor-like impedances.
 
-    GIVEN: a valid set of data to be plotted in logarithmic scale
-    WHEN: the function to plot the fit result is called
-    THEN: the coordinates are a proper x, y set
+    GIVEN: a valid capacitor-like impedance array of four elements
+    WHEN: I call the function to extract the phase of an impedance
+    THEN: the phase is a valid phase array, with the expected value
     """
-    for i, coords in enumerate(example_box_coordinates):
-        box_x, box_y = coords
-        caller = 'get_box_coordinates()'
-        assert isinstance(box_x, float), (
-            'TypeError for box x coordinate in ' + caller +'. It must be a '
-            + 'float number.')
-        assert (np.min(example_frequencies_box[i])<box_x<np.max(
-            example_frequencies_box[i])), (
-                'ValueError for box x coordinate in ' + caller +'. It must  '
-                + 'be within the range defined by the frequency vector '
-                + '(x vector).')
-        assert isinstance(box_y, float), (
-            'TypeError for box y coordinate in ' + caller +'. It must be a '
-            + 'float number.')
-        assert (np.min(example_amplitudes_box[i])<box_y<np.max(
-            example_amplitudes_box[i])), (
-                'ValueError for box y coordinate in ' + caller +'. It must '
-                + 'be within the range defined by the amplitude vector '
-                + '(y vector).')
+    impedance = np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
+                          complex(0,-1)])
+    phase = get_phase(impedance)
+    expected_result = np.array([-90., -90., -90., -90.])
+
+    assert isinstance(phase, np.ndarray), (
+        'TypeError in get_phase(): the output must be a numpy.ndarray')
+    assert phase.size>0, (
+        'StructuralError in get_phase(): the output cannot be empty')
+    assert phase.ndim==1, (
+        'TypeError in get_phase(): the output must be a one-dimention array, '
+        + 'while it is ' + str(phase.ndim))
+    assert phase.dtype==float, (
+        'TypeError in get_phase(): the output must be a float array, while it '
+        + 'is ' + str(phase.dtype))
+    assert np.all(-90.<=phase) and np.all(phase<=90.), (
+        'ValueError for get_phase(): the output must have all its elements '
+        + 'between -90 and +90.')
+    assert np.all(phase==expected_result), (
+        'ValueError for get_phase(): the output is incorrect.')
+
+
+def test_get_box_coordinates_two_points():
+    """Check that the box coordinates are within the data for two points with
+    different amplitudes.
+
+    GIVEN: a valid set of data points (with the same y) to be plotted (2) in logarithmic scale
+    WHEN: I call the function to get the info box for the plot
+    THEN: the coordinates are a proper x, y set, within the ranges defined
+    by the data
+    """
+    frequency = np.array([10, 50])
+    amplitude = np.array([100., 10.0])
+    box_x, box_y =  get_box_coordinates(frequency, amplitude)
+    caller = 'get_box_coordinates()'
+
+    assert isinstance(box_x, float), (
+        'TypeError for box x coordinate in ' + caller +'. It must be a '
+        + 'float number.')
+    assert (np.min(amplitude)<box_x<np.max(amplitude)), (
+            'ValueError for box x coordinate in ' + caller +'. It must  '
+            + 'be within the range defined by the frequency vector '
+            + '(x vector).')
+    assert isinstance(box_y, float), (
+        'TypeError for box y coordinate in ' + caller +'. It must be a '
+        + 'float number.')
+    assert (np.min(frequency)<box_y<np.max(frequency)), (
+            'ValueError for box y coordinate in ' + caller +'. It must '
+            + 'be within the range defined by the amplitude vector '
+            + '(y vector).')
+
+def test_get_box_coordinates_many_points():
+    """Check that the box coordinates are within the data for many points
+    with different amplitudes.
+
+    GIVEN: a valid set of data points to be plotted (5) in logarithmic scale
+    WHEN: I call the function to get the info box for the plot
+    THEN: the coordinates are a proper x, y set, within the ranges defined
+    by the data
+    """
+    frequency = np.array([1, 10, 100, 1000, 10000])
+    amplitude = np.array([101., 101., 100., 50, 1])
+    box_x, box_y =  get_box_coordinates(frequency, amplitude)
+    caller = 'get_box_coordinates()'
+
+    assert isinstance(box_x, float), (
+        'TypeError for box x coordinate in ' + caller +'. It must be a '
+        + 'float number.')
+    assert (np.min(frequency)<box_x<np.max(frequency)), (
+            'ValueError for box x coordinate in ' + caller +'. It must  '
+            + 'be within the range defined by the frequency vector '
+            + '(x vector).')
+    assert isinstance(box_y, float), (
+        'TypeError for box y coordinate in ' + caller +'. It must be a '
+        + 'float number.')
+    assert (np.min(amplitude)<box_y<np.max(amplitude)), (
+            'ValueError for box y coordinate in ' + caller +'. It must '
+            + 'be within the range defined by the amplitude vector '
+            + '(y vector).')
+
+def test_get_box_coordinates_same_y_points():
+    """Check that the box coordinate y is outside the  y data range, leading
+    to a possible poor visualization, if all the points have all the same
+    amplitude.
+
+    GIVEN: a valid set of data points (with the same y) to be plotted (5) in
+    logarithmic scale
+    WHEN: I call the function to get the info box for the plot
+    THEN: the coordinates are a proper x, y set, but they are outside the
+    ranges defined by the data
+    """
+    frequency = np.array([1, 10, 100, 1000, 10000])
+    amplitude = np.array([100., 100., 100., 100., 100.])
+    box_x, box_y =  get_box_coordinates(frequency, amplitude)
+    caller = 'get_box_coordinates()'
+
+    assert isinstance(box_x, float), (
+        'TypeError for box x coordinate in ' + caller +'. It must be a '
+        + 'float number.')
+    assert (np.min(frequency)<box_x<np.max(frequency)), (
+            'ValueError for box x coordinate in ' + caller +'. It must  '
+            + 'be within the range defined by the frequency vector '
+            + '(x vector).')
+    assert isinstance(box_y, float), (
+        'TypeError for box y coordinate in ' + caller +'. It must be a '
+        + 'float number.')
+    assert box_y>np.max(amplitude), (
+            'ValueError for box y coordinate in ' + caller +'. It should '
+            + 'be within the range defined by the amplitude vector '
+            + '(y vector).')
