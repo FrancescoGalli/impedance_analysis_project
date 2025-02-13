@@ -16,7 +16,9 @@ and fit.
 
 
 import numpy as np
+np.seterr(all='raise')
 from scipy.optimize import minimize
+import sys
 
 from read import read_configuration
 from read import read_input_circuit_diagram, read_input_parameters
@@ -27,8 +29,8 @@ from plot_and_save import plot_data, plot_fit
 
 
 
-def error_function(parameters, impedance_data_vector, impedance_function,
-                   frequency_vector):
+def error_function(parameters, impedance_data, impedance_function,
+                   frequency):
     """Error function to be minimized to perform the fit. The first argument
     must be the parameters to be optimized
 
@@ -36,12 +38,12 @@ def error_function(parameters, impedance_data_vector, impedance_function,
     ----------
     parameters : list
         List of current parameters value
-    impedance_data_vector : array
+    impedance_data : array
         Complex array containing the impedance data from the data file
     impedance_function : function
         Impedance function of the circuit, depending on the frequencies and on
         the parameters
-    frequency_vector : array
+    frequency : array
         Data frequencies array from the data file
 
     Returns
@@ -50,9 +52,12 @@ def error_function(parameters, impedance_data_vector, impedance_function,
         Value of the error function, to be minimized for the fitting process
 
     """
-    impedance_calaculated = impedance_function(parameters, frequency_vector)
-    error = np.sum(np.abs(impedance_data_vector-impedance_calaculated)/np.abs(
-        impedance_data_vector))
+    try:
+        impedance_calculated = impedance_function(parameters, frequency)
+    except FloatingPointError as error:
+        sys.exit('FatalError: ' + repr(error)) 
+    error = np.sum(np.abs(impedance_data-impedance_calculated)/np.abs(
+        impedance_data))
     #print('parameters = ' + str(parameters) + ' error = ' + str(error))
     return error
 
@@ -90,7 +95,7 @@ def bounds_definitions(elements):
                             + 'the fit bounds')
     return bounds_list
 
-def fit(frequency_array, impedance_data_vector, analyzed_circuit):
+def fit(frequency_array, impedance_data, analyzed_circuit):
     """Perform the fit minimizing a specified error function, with certain
     bonds. The method used is the Nelder-Mead, with a maximum iteration of
     1000.
@@ -99,7 +104,7 @@ def fit(frequency_array, impedance_data_vector, analyzed_circuit):
     ----------
     frequency_array : array
         Data frequencies array from the data file
-    impedance_data_vector : array
+    impedance_data : array
         Complex array containing the impedance data from the data file
     analyzed_circuit : AnalyzedCircuit
         Instance of the class AnalyzedCircuit, containing the analysis of
@@ -113,9 +118,10 @@ def fit(frequency_array, impedance_data_vector, analyzed_circuit):
     succes flag : str
         String containing the convergence outcome of the algorithm
     """
-    bounds_list = bounds_definitions(analyzed_circuit.list_elements())
+    element_list = list(analyzed_circuit.parameters_map.keys())
+    bounds_list = bounds_definitions(element_list)
     result = minimize(error_function, analyzed_circuit.list_parameters(),
-        args=(impedance_data_vector, analyzed_circuit.impedance,
+        args=(impedance_data, analyzed_circuit.impedance,
               frequency_array),
         method='Nelder-Mead', options= {'maxiter': 1000, 'disp': False},
         bounds=bounds_list)
@@ -159,7 +165,7 @@ def get_constant_parameter_info(element, parameter):
     element_info += ' (constant)'
     return element_info
 
-def get_optimized_parameters_info(element, optimized_parameter):
+def get_optimized_parameter_info(element, optimized_parameter):
     """Return a string containing the element string and its (optimized)
     parameter, rounded to have a reasonable amount of significative digits.
 
@@ -203,7 +209,7 @@ def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
     analyzed_circuit_fit : AnalysisCircuit
         Instance of the class AnalysisCircuit, created from the analysis of
         the input circuit with the optimized parameters given by the fit
-    final_error : int or float
+    final_error : float
         Final error of the optimized parameters
     initial_circuit_fit : Circuit
         Initial circuit, object of the analysis and fit
@@ -224,7 +230,7 @@ def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
             element_info = get_constant_parameter_info(element, parameter)
         else:
             optimized_parameter = analyzed_circuit_fit.parameters_map[element]
-            element_info = get_optimized_parameters_info(
+            element_info = get_optimized_parameter_info(
                 element, optimized_parameter)
         parameters_string_vector.append(element_info)
     parameters_string_vector.append('Error: ' + f'{final_error:.4f}')
@@ -234,6 +240,7 @@ def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
 
 
 if __name__=="__main__":
+
     default_name = 'config_analysis'
     config = read_configuration(default_name)
 
