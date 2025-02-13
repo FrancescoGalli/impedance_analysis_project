@@ -177,10 +177,10 @@ def read_input_constant_parameter_configurations_fit(config):
         Constant conditions for the fit given in the configuration file
     """
     constant_conditions_fit = {}
-    for parameter_name in config['Constant_parameter_conditions']:
+    for parameter_name in config['Constant_conditions']:
         string_parameter_name = (str(parameter_name)).upper()
         constant_conditions_fit[string_parameter_name] = config.getint(
-            'Constant_parameter_conditions', string_parameter_name)
+            'Constant_conditions', string_parameter_name)
     return constant_conditions_fit
 
 def read_input_file_name(config):
