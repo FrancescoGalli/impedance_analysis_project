@@ -1,8 +1,7 @@
-"""This module contains all the function to read the input information given
+"""This module contains all the functions to read the input information given
 by the user. They are needed for the data generation module and fit module.
 All the input information are set with configuration files, and with a parser
-these function read them. The functions to read .txt data file are present as
-well
+to read them. The functions to read .txt data file are present as well
 """
 
 import numpy as np
@@ -54,7 +53,7 @@ def read_input_circuit_diagram(config):
     circuit_diagram : str
         Circuit diagram given in the configuration file
     """
-    circuit_diagram = config.get('Circuit','diagram')
+    circuit_diagram = config.get('Circuit', 'diagram')
     return circuit_diagram
 
 def read_input_parameters(config):
@@ -109,7 +108,7 @@ def read_input_frequencies(config):
     return frequency
 
 def read_input_seed(config):
-    """Read the seed for the pseudo-rsndom noise generation name, specified in
+    """Read the seed for the pseudo-random noise generation name, specified in
     the configuration file for the generation.
 
     Parameters
@@ -224,10 +223,10 @@ def get_number_of_columns(file_name):
     return number_of_columns
 
 def read_data(file_name):
-    """Return the (real) frequency vector and the complex impedance vector.
-    The impedance data can be a single complex column or two real
-    columns: amplitude first and phase (in deg) second. Based on the number of
-    columns in the data file, one of the two structure will be assumed.
+    """Return the (real) frequency array and the complex impedance array.
+    The impedance data can be a single complex column or two real columns:
+    amplitude first and phase (in deg) second. Based on the number of
+    columns in the data file, one of the two structures will be assumed.
 
     Parameters
     ----------

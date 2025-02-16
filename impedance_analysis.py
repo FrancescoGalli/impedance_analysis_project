@@ -1,13 +1,14 @@
 """This module takes impedance vs frequency data from a .txt file, either in
-complex impedance form of amplitude and phase form, and plots the amplitude and
-phase of the data.
-Then, starting from a circuit string and the initial parameters of the
-components of each element set by the user, a Circuit object is created.
+complex impedance form of amplitude and phase form, and plots the amplitude
+and phase of the data.
+Then, starting from a circuit diagram and the initial parameters of the
+components of each element set by the user in the configuration file, a
+Circuit object is created.
 Using the impedance function stored inside this object, a fit of the data
-can be done. The parameters of the fit are the ones inside the Circuit object
-(i.e. the ones defined by the user in this module). It is possible to not
-take into account in the fit any initial parameter through the element
-constant conditions, also defined by the user.
+can be done. The parameters of the fit are the ones inside the Circuit object.
+It is possible to not take into account in the fit any initial parameter
+through the element constant conditions, also defined in the configuration
+file.
 The fit is done minimizing a certain error function using the Nelder-Mead
 algorithm, and then the fit results are written both in the command line and
 in the final plot of the fit, containing the amplitude and phase of both data
@@ -32,7 +33,8 @@ from plot_and_save import plot_data, plot_fit
 def error_function(parameters, impedance_data, impedance_function,
                    frequency):
     """Error function to be minimized to perform the fit. The first argument
-    must be the parameters to be optimized
+    must be the parameters to be optimized. Raise a FloatingPointError if
+    there is a zero division in the calculation of the impedance. 
 
     Parameters
     ----------
@@ -41,15 +43,16 @@ def error_function(parameters, impedance_data, impedance_function,
     impedance_data : array
         Complex array containing the impedance data from the data file
     impedance_function : function
-        Impedance function of the circuit, depending on the frequencies and on
-        the parameters
+        Impedance function of the circuit, depending on the parameters and on
+        the frequencies 
     frequency : array
-        Data frequencies array from the data file
+        Frequencies from the data file
 
     Returns
     -------
     error : float
-        Value of the error function, to be minimized for the fitting process
+        Value of the error function given the input values, to be minimized
+        for the fitting process
 
     """
     try:
@@ -61,14 +64,15 @@ def error_function(parameters, impedance_data, impedance_function,
     #print('parameters = ' + str(parameters) + ' error = ' + str(error))
     return error
 
+
 def bounds_definitions(elements):
-    """Return the parameters bounds for the fit algorithm, based on the type
-    of elements.
+    """Return the parameters bounds for the fit algorithm, based on the
+    element types. Raise an Exception if any of the element names is invalid.
 
     Parameters
     ----------
     elements : list
-        List of elements (strings) that compose the circuit and that will
+        List of element names (strings) that compose the circuit and that will
         figure in the fit, in order of analysis
 
     Returns
@@ -78,32 +82,31 @@ def bounds_definitions(elements):
         parameters will not have unreasonable values
     """
     bounds_list = []
-    r_bound = (10, None)
-    c_bound = (1e-9, None)
-    q_bound = (1e-9, None)
+    resistance_bound = (10, None)
+    capacitance_bound = (1e-9, None)
     n_bound = (0, 1)
     for element in elements:
         if element.startswith('R'):
-            bounds_list.append(r_bound)
+            bounds_list.append(resistance_bound)
         elif element.startswith('C'):
-            bounds_list.append(c_bound)
+            bounds_list.append(capacitance_bound)
         elif element.startswith('Q'):
-            bounds_list.append(q_bound)
+            bounds_list.append(capacitance_bound)
             bounds_list.append(n_bound)
         else:
             raise Exception('FatalError: Invalid initial parameter name for '
                             + 'the fit bounds')
     return bounds_list
 
-def fit(frequency_array, impedance_data, analyzed_circuit):
+def fit(frequency, impedance_data, analyzed_circuit):
     """Perform the fit minimizing a specified error function, with certain
-    bonds. The method used is the Nelder-Mead, with a maximum iteration of
-    1000.
+    parameters bounds. The method used for the minimization is the
+    Nelder-Mead, with a maximum iteration of 1000.
 
     Parameters
     ----------
-    frequency_array : array
-        Data frequencies array from the data file
+    frequency : array
+        Frequencies from the data file
     impedance_data : array
         Complex array containing the impedance data from the data file
     analyzed_circuit : AnalyzedCircuit
@@ -113,19 +116,20 @@ def fit(frequency_array, impedance_data, analyzed_circuit):
     Returns
     -------
     optimized_parameters : list
-        List of optimized parameter values, i.e. the parameters value that
-        minimized the error function
+        List of optimized parameter values, i.e. the parameters values that
+        minimize the error function
     succes flag : str
         String containing the convergence outcome of the algorithm
     """
     element_list = list(analyzed_circuit.parameters_map.keys())
     bounds_list = bounds_definitions(element_list)
     result = minimize(error_function, analyzed_circuit.list_parameters(),
-        args=(impedance_data, analyzed_circuit.impedance,
-              frequency_array),
+        args=(impedance_data, analyzed_circuit.impedance, frequency),
         method='Nelder-Mead', options= {'maxiter': 1000, 'disp': False},
         bounds=bounds_list)
     optimized_parameters = result.x
+    success_flag = str(result.success)
+
     i_q = 0
     for element in analyzed_circuit.parameters_map.keys():
         index = list(analyzed_circuit.parameters_map.keys()).index(element)
@@ -136,20 +140,19 @@ def fit(frequency_array, impedance_data, analyzed_circuit):
         else:
             analyzed_circuit.parameters_map[element] = optimized_parameters[
                 index+i_q]
-    success_flag = str(result.success)
+
     return optimized_parameters, success_flag
 
 
 def get_constant_parameter_info(element, parameter):
-    """Return a string containing the element string and its parameter,
-    rounded to have a reasonable amount of significative digits, followed by
-    a '(constant)'
+    """Return a string containing the constant element name and its (initial)
+    parameter followed by a '(constant)'.
 
     Parameters
     ----------
     element : str
-        Element string
-    parameter
+        Element name
+    parameter : float or list
         Parameter of the element (constant)
 
     Returns
@@ -166,14 +169,15 @@ def get_constant_parameter_info(element, parameter):
     return element_info
 
 def get_optimized_parameter_info(element, optimized_parameter):
-    """Return a string containing the element string and its (optimized)
-    parameter, rounded to have a reasonable amount of significative digits.
+    """Return a string containing the element name and its (optimized)
+    parameter, rounded to a reasonable amount of significative digits. Raise
+    an Exception if the element name is not valid.
 
     Parameters
     ----------
     element : str
-        Element string
-    optimized_parameter
+        Element name
+    optimized_parameter : float or list
         Parameter of the element
 
     Returns
@@ -198,40 +202,40 @@ def get_optimized_parameter_info(element, optimized_parameter):
                         + 'exctract info')
     return element_info
 
-def get_results_info(analyzed_circuit_fit, final_error, initial_circuit_fit):
-    """Return a string containing all the circuit elements name followed
-    by their own optimized parameter value. Then the final error estimated
+def get_results_info(analyzed_circuit, final_error, initial_circuit):
+    """Return a string containing all the circuit element names followed
+    by their own optimized parameter value if non-constant or initial
+    prameter value if constant. Then the final error estimated
     with these values is added at the last line.
-    Used to print the optimized parameters value and the relative error.
 
     Parameters
     ----------
-    analyzed_circuit_fit : AnalysisCircuit
+    analyzed_circuit : AnalysisCircuit
         Instance of the class AnalysisCircuit, created from the analysis of
         the input circuit with the optimized parameters given by the fit
     final_error : float
         Final error of the optimized parameters
-    initial_circuit_fit : Circuit
-        Initial circuit, object of the analysis and fit
+    initial_circuit : Circuit
+        Initial circuit, target of the analysis and fit
 
     Returns
     -------
     result_string : str
-        Strings containing the name and optimized value of all the
+        Strings containing the names and optimized values of all the
         non-constant parameters. If the parameters is set constant, a
         '(constant)' follows the parameter value. Then the error estimated
-        with the optimized and constant values of the parameters is added as
-        last element.
+        with the optimized and constant values of the parameters is added at
+        the end of the string.
     """
     parameters_string_vector = []
-    for element, parameter in initial_circuit_fit.parameters_map.items():
+    for element, parameter in initial_circuit.parameters_map.items():
         constant_considtion = parameter[1]
         if constant_considtion:
             element_info = get_constant_parameter_info(element, parameter)
         else:
-            optimized_parameter = analyzed_circuit_fit.parameters_map[element]
-            element_info = get_optimized_parameter_info(
-                element, optimized_parameter)
+            optimized_parameter = analyzed_circuit.parameters_map[element]
+            element_info = get_optimized_parameter_info(element,
+                                                        optimized_parameter)
         parameters_string_vector.append(element_info)
     parameters_string_vector.append('Error: ' + f'{final_error:.4f}')
     result_string = get_string(parameters_string_vector)
@@ -249,31 +253,30 @@ if __name__=="__main__":
     frequency, impedance_data = read_data(FILE_NAME)
     plot_data(frequency, impedance_data)
 
-    CIRCUIT_DIAGRAM_FIT = read_input_circuit_diagram(config)
-    parameters_fit = read_input_parameters(config)
-    constant_conditions_fit = read_input_constant_parameter_configurations_fit(
+    CIRCUIT_DIAGRAM = read_input_circuit_diagram(config)
+    input_parameters = read_input_parameters(config)
+    constant_conditions = read_input_constant_parameter_configurations_fit(
         config)
-
-    initial_circuit_fit = generate_circuit(
-        CIRCUIT_DIAGRAM_FIT, parameters_fit, constant_conditions_fit)
-    analyzed_circuit_fit = initial_circuit_fit.generate_analyzed_circuit()
-    impedance_function = analyzed_circuit_fit.impedance
-    initials_parameters = analyzed_circuit_fit.list_parameters()
-    initial_circuit_fit.error = error_function(
-        initials_parameters, impedance_data, impedance_function, frequency)
-
-    INITIAL_PARAMETERS = initial_circuit_fit.get_parameters_info()
+    initial_circuit = generate_circuit(CIRCUIT_DIAGRAM, input_parameters,
+                                       constant_conditions)
+    
+    print('\nAnalyzing circuit . . . ')
+    analyzed_circuit = initial_circuit.generate_analyzed_circuit()
+    impedance_function = analyzed_circuit.impedance
+    initial_parameters = analyzed_circuit.list_parameters()
+    initial_circuit.error = error_function(initial_parameters, impedance_data,
+                                           impedance_function, frequency)
+    INITIAL_PARAMETERS = initial_circuit.get_parameters_info()
     print('\nInitial fit parameters:\n' + INITIAL_PARAMETERS)
 
     print('\nFitting . . . ')
     optimized_parameters, success_flag = fit(frequency, impedance_data,
-                                             analyzed_circuit_fit)
+                                             analyzed_circuit)
     print('Success flag: ' + success_flag)
     final_error = error_function(optimized_parameters, impedance_data,
                                  impedance_function, frequency)
-
-    RESULT_STRING = get_results_info(analyzed_circuit_fit, final_error,
-                                      initial_circuit_fit)
+    RESULT_STRING = get_results_info(analyzed_circuit, final_error,
+                                      initial_circuit)
     print('\nOptimized fit parameters:\n' + RESULT_STRING)
 
     print('\nPlotting results . . . ')

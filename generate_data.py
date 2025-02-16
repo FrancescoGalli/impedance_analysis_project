@@ -1,11 +1,13 @@
 """This module simulates impedance data starting from the circuit diagram, the
-initial parameters of each element and the element constant conditions.
+initial parameters of each element and the constant conditions for each
+parameter. These settings are taken from a configuration .ini file.
 These three pieces of information are stored inside of an Circuit class object
-named initial_circuit. The circuit diagram containes the elements type and
-their disposition, while their values in the parameters list. The element
+named initial_circuit. The circuit diagram contains the elements type and
+their disposition, while their values in the parameters dictionary. The
 constant conditions are all set to 1, since they are not relevant to the
 generation of the data.
-Starting from this signal, a small randomized noise is added to it.
+Starting from this signal, a small randomized noise of 1% amplitude is added
+to it.
 The final data are plotted and saved .pdf. The data are also saved in a .txt
 file, with the complex impedance format.
 """
@@ -24,26 +26,26 @@ from plot_and_save import plot_data, save_data
 ############################
 #Input data manipulation
 
-def generate_constant_conditions_data(parameters_data):
+def generate_constant_conditions_data(parameters):
     """Generate an array for constant elements conditions for the data
     generation.
 
     Parameters
     ----------
-    parameters_data : dict
+    parameters : dict
         Dictionary of the parameters of the circuit's elements given by input
 
     Returns
     -------
-    constant_conditions_data : dict
-        Dictionary of constant elements conditions, all set to 1
+    constant_conditions : dict
+        Dictionary of constant conditions, all set to 1
     """
-    elements = list(parameters_data.keys())
-    constant_conditions_data = dict.fromkeys(elements, 1)
-    return constant_conditions_data
+    elements = list(parameters.keys())
+    constant_conditions = dict.fromkeys(elements, 1)
+    return constant_conditions
 
 ############################
-#Singla generation
+#Signal generation
 
 def calculate_impedance(impedance_function, frequency):
     """Claculate the impedance data based on the final impedance function and
@@ -52,9 +54,9 @@ def calculate_impedance(impedance_function, frequency):
     Parameters
     ----------
     impedance_function : func
-        Final function of the circuit.
+        Total impedance function of the circuit.
     frequency : list
-        List of input frequency of which the impedance data are generate on.
+        Array of input frequencies of which the impedance data are generate on.
 
     Returns
     -------
@@ -69,8 +71,7 @@ def calculate_impedance(impedance_function, frequency):
     return impedance_signal
 
 def generate_random_error_component(seed_number, signal_length):
-    """Generate a random array of numbers between -1 and 1 of length
-    signal_length.
+    """Generate a random array of numbers between -1 and 1 of a certain lengt.
 
     Parameters
     ----------
@@ -82,16 +83,16 @@ def generate_random_error_component(seed_number, signal_length):
     Returns
     -------
     random_error_component : array
-        Array for simulated noise, of the same length of the signal input.
-        Its numbers ranges from -1 to 1, through a uniform distribution.
+        Array for simulated noise, of the same length of the input signal.
+        Its numbers range from -1 to 1, through a uniform distribution.
     """
     np.random.seed(seed_number)
     random_error_component = np.random.uniform(-1, 1, signal_length)
     return random_error_component
 
 def simulate_noise(seed_number, impedance_signal):
-    """For each of the real and imaginary part of the signal, add a uniform
-    probability distribution noise between 0 and 1%/np.sqrt(2) of the
+    """For each of the real and imaginary part of the complex signal, add a
+    uniform probability distribution noise between 0 and 1%/np.sqrt(2) of the
     impedance to the signal.
 
     Parameters
@@ -104,7 +105,7 @@ def simulate_noise(seed_number, impedance_signal):
     Returns
     -------
     impedance_data : array
-        Simulation of impedances with a random error component
+        Simulation of impedances with a psudo-random error component
     """
     signal_length = len(impedance_signal)
     noise_factor = 0.01/np.sqrt(2)
@@ -120,18 +121,17 @@ def simulate_noise(seed_number, impedance_signal):
 
 
 if __name__=="__main__":
+
     default_name = 'config_generation'
     config = read_configuration(default_name)
 
-    CIRCUIT_DIAGRAM_DATA = read_input_circuit_diagram(config)
-    parameters_data = read_input_parameters(config)
-    constant_conditions_data = generate_constant_conditions_data(
-        parameters_data)
-    initial_circuit_data = generate_circuit(CIRCUIT_DIAGRAM_DATA,
-                                            parameters_data,
-                                            constant_conditions_data)
-    analyzed_circuit_data = initial_circuit_data.generate_analyzed_circuit()
-    impedance_function = analyzed_circuit_data.impedance
+    CIRCUIT_DIAGRAM = read_input_circuit_diagram(config)
+    parameters = read_input_parameters(config)
+    constant_conditions = generate_constant_conditions_data(parameters)
+    initial_circuit = generate_circuit(CIRCUIT_DIAGRAM, parameters,
+                                       constant_conditions)
+    analyzed_circuit = initial_circuit.generate_analyzed_circuit()
+    impedance_function = analyzed_circuit.impedance
 
     frequency = read_input_frequencies(config)
     impedance_signal = calculate_impedance(impedance_function, frequency)
