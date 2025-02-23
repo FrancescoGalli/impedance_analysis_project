@@ -1,4 +1,4 @@
-"""This module containes all the test functions (and the tested help functions
+"""This module contains all the test functions (and the tested help functions
 for the tests) for the input data structurization functions:
 generate_circuit() of the generate_impedance.py module and
 generate_constant_conditions_data() from the generate_data.py module.
@@ -14,6 +14,7 @@ from generate_impedance import generate_circuit, Circuit
 from generate_data import generate_constant_conditions_data
 
 
+###################################
 #Tests for the circuit diagram
 
 def consistency_brackets(circuit_diagram):
@@ -23,12 +24,12 @@ def consistency_brackets(circuit_diagram):
     Parameters
     ----------
     circuit_diagram : str
-        String of the circuit given by input
+        Scheme of the circuit given by input
 
     Returns
     -------
     wrong_brackets : list
-        List of all the bracket involbed in the bracket incongruence
+        List of all the bracket involved in the bracket incongruence
     wrong_brackets_index : str
         Index in the string of all the aforementioned brackets
     """
@@ -87,14 +88,14 @@ def test_consistency_brackets_single_pair():
 
     GIVEN: the circuit diagram as a pair of round brackets
     WHEN: I check if there is a brackets inconsistency
-    THEN: there is no inconsistency
+    THEN: no inconsistency is detected
     """
     pair_brackets = '()' #A single pair of round brackets with obvious consistency
     wrong_brackets, wrong_brackets_index = consistency_brackets(pair_brackets)
 
     assert not wrong_brackets, (
-        'StructuralError: inconsistent ' + str(wrong_brackets)
-        + ' at ' + wrong_brackets_index + ': ' + pair_brackets + ' from '
+        'StructuralError: inconsistent ' + str(wrong_brackets) + ' at '
+        + wrong_brackets_index + ': ' + pair_brackets + ' from '
         + 'consistency_brackets()')
 
 def test_consistency_brackets_with_two_pairs():
@@ -105,9 +106,9 @@ def test_consistency_brackets_with_two_pairs():
 
     GIVEN: the circuit diagram as two pairs of consistent brackets
     WHEN: I check if there is a brackets inconsistency
-    THEN: there is no inconsistency
+    THEN: no inconsistency is detected
     """
-    two_pairs = '([])' #two pairs of bracket with obvious consistency
+    two_pairs = '([])' #Two pairs of bracket with obvious consistency
     wrong_brackets, wrong_brackets_index = consistency_brackets(two_pairs)
 
     assert not wrong_brackets, (
@@ -124,7 +125,7 @@ def test_consistency_brackets_complex():
 
     GIVEN: the circuit diagram with many pairs of consistent brackets
     WHEN: I check if there is a brackets inconsistency
-    THEN: there is no inconsistency
+    THEN: no inconsistency is detected
     """
     complex_pairs = '[(R1C2)[(R3Q4)R5]]' #Many consistent pairs of brackets
     wrong_brackets, wrong_brackets_index = consistency_brackets(complex_pairs)
@@ -138,7 +139,7 @@ def test_consistency_brackets_inconsistent_pairs():
     """Check that the help function to test if a string has brackets
     consistency works on a string with inconsistent brackets.
     If an inconsistency is detected, the returned strings given by the
-    function under test are contains the inconsistent group and their index in
+    function under test contain the inconsistent group and their index in
     the input string.
 
     GIVEN: the circuit diagram as four brackets that are inconsistent
@@ -160,7 +161,7 @@ def list_element_types(circuit_diagram):
     Parameters
     ----------
     circuit_diagram : str
-        String of the circuit given by input
+        Scheme of the circuit given by input
 
     Returns
     -------
@@ -275,12 +276,12 @@ def invalid_characters(circuit_diagram):
     Parameters
     ----------
     circuit_diagram : str
-        String of the circuit given by input
+        Scheme of the circuit given by input
 
     Returns
     -------
     wrong_characters : str
-        String that contains all the invald characters, separated by a
+        String that contains all the invalid characters, separated by a
         whitespace
     wrong_characters_index : list
         List of indexes of the invalid characters in the string
@@ -297,6 +298,8 @@ def invalid_characters(circuit_diagram):
 def test_invalid_characters_empty():
     """Check that the help function to find invalid characters in a diagram
     works on a pair of round brackets diagram.
+    If no invalid character is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: the circuit diagram is an empty string
     WHEN: I check if there are invalid characters inside the diagram
@@ -315,6 +318,8 @@ def test_invalid_characters_empty():
 def test_invalid_characters_single_element():
     """Check that the help function to find invalid characters in a diagram
     works on a diagram with a single element and a pair of round brackets.
+    If no invalid character is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: the circuit diagram as a single element inside a pair of brackets
     (all valid characters)
@@ -334,9 +339,11 @@ def test_invalid_characters_single_element():
 def test_invalid_characters_many_element():
     """Check that the help function to find invalid characters in a diagram
     works on a diagram with all element types and brackets.
+    If no invalid character is detected, the returned string and list given by
+    the function under test are empty.
 
-    GIVEN: the updated circuit diagram with all element types possible and
-    with both types of brackets (with all valid characters)
+    GIVEN: a circuit diagram with all element types possible and with both
+    types of brackets (thus with all valid characters)
     WHEN: I check if there are invalid characters inside the diagram
     THEN: no invalid character is detected
     """
@@ -353,6 +360,9 @@ def test_invalid_characters_many_element():
 def test_invalid_characters_invalid_characters():
     """Check that the help function to find invalid characters in a diagram
     works on a diagram with multiple invalid characters.
+    If invalid characters are detected, the returned string given by the
+    function under test contain the invalid characters while the returned list
+    their index in the input string.
 
     GIVEN: the circuit diagram with multiple invalid characters and some valid
     characters
@@ -373,14 +383,14 @@ def test_invalid_characters_invalid_characters():
 
 
 def inconsistent_elements(circuit_diagram):
-    """Given a circuit diagram, return any inconsistent element character: each
-    element is composed by a capital letter among {'C', 'Q', 'R'} followed
-    by a natural number. Used for testing.
+    """Given a circuit diagram, return any inconsistent element character:
+    each element is composed by a capital letter among {'C', 'Q', 'R'}
+    followed by a natural number. Used for testing.
 
     Parameters
     ----------
     circuit_diagram : str
-        String of the circuit given by input
+        Scheme of the circuit given by input
 
     Returns
     -------
@@ -408,6 +418,8 @@ def inconsistent_elements(circuit_diagram):
 def test_inconsistent_elements_no_element():
     """Check that the help function to find inconsistent elements in a diagram
     works on a diagram with a no element but only a pair of round brackets.
+    If no inconsistent element is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: the circuit diagram is just a pair of round brackets, with no
     (invalid) element
@@ -427,6 +439,8 @@ def test_inconsistent_elements_no_element():
 def test_inconsistent_elements_single_element():
     """Check that the help function to find invalid characters in a diagram
     works on a diagram with a single element and a pair of round brackets.
+    If no inconsistent element is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: the circuit diagram as a single (valid) element inside a pair of
     brackets
@@ -446,6 +460,8 @@ def test_inconsistent_elements_single_element():
 def test_inconsistent_elements_many_element():
     """Check that the help function to find invalid characters in a diagram
     works on a diagram with multiple elements and a many brackets.
+    If no inconsistent element is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: the circuit diagram as a three (valid) element inside two sets of
     brackets
@@ -465,17 +481,20 @@ def test_inconsistent_elements_many_element():
 def test_inconsistent_elements_invalid_element():
     """Check that the help function to find invalid elements in a diagram
     works on a diagram with multiple invalid elements.
+    If invalid elements are detected, the returned string given by the
+    function under test contain the invalid elements and the returned list
+    their index in the input string.
 
-    GIVEN: the circuit diagram with two invalid elements and a valid
-    element
+    GIVEN: the circuit diagram with two invalid elements (the last two) and a
+    valid element (the first one)
     WHEN: I check if there are invalid elements inside the diagram
     THEN: all and only the invalid characters are reported as such
     """
-    invalid_element_diagram = '(C1R[2G3])' #R2 is split across a brackets,
-                                           #G3 not a valid element type
-    expected_result = 'R[ [2 G3 '
+    invalid_element_diagram = '(C1R[2G3])' #R2 is split across a bracket,
+                                           #G3 has an invalid element type
     wrong_elements, wrong_element_index = inconsistent_elements(
         invalid_element_diagram)
+    expected_result = 'R[ [2 G3 '
 
     assert wrong_elements==expected_result, (
         'StructuralError: element inconsistency for '+ wrong_elements
@@ -492,7 +511,7 @@ def inconsistent_numbers(circuit_diagram):
     Parameters
     ----------
     circuit_diagram : str
-        String of the circuit given by input
+        Scheme of the circuit given by input
 
     Returns
     -------
@@ -518,7 +537,9 @@ def test_inconsistent_numbers_single_element():
     """Check that the help function to find invalid numbers in a diagram
     works on a diagram with a single element. I recall here that a number
     of an element must not only be a numeric char, but also it must correspond
-    to the order of apparition
+    to the order of apparition.
+    If no invalid number is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: the circuit diagram with a single elements (that has a valid number)
     WHEN: I check if there are invalid numbers inside the diagram
@@ -532,13 +553,15 @@ def test_inconsistent_numbers_single_element():
         'StructuralError: wrong number for element(s) '+ wrong_numbers
         + 'at ' + str(wrong_numbers_index) + ' in ' + single_element_diagram
         + 'from inconsistent_numbers(). Element numbers must increase of '
-        + '1 uint per time')
+        + '1 unit per time')
 
 def test_inconsistent_numbers_two_elements():
     """Check that the help function to find invalid numbers in a diagram
     works on a diagram with a two elements. I recall here that a number
     of an element must not only be a numeric char, but also it must correspond
     to the order of apparition
+    If no invalid number is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: the circuit diagram with two elements (that have valid numbers)
     WHEN: I check if there are invalid numbers inside the diagram
@@ -552,13 +575,15 @@ def test_inconsistent_numbers_two_elements():
         'StructuralError: wrong number for element(s) '+ wrong_numbers
         + 'at ' + str(wrong_numbers_index) + ' in ' + two_element_diagram
         + 'from inconsistent_numbers(). Element numbers must increase of '
-        + '1 uint per time')
+        + '1 unit per time')
 
 def test_inconsistent_numbers_two_elements_same_type():
     """Check that the help function to find invalid numbers in a diagram
     works on a diagram with a two elements that have the same type. I will
     recall here that a number of an element must not only be a numeric char,
-    but also it must correspond to the order of apparition
+    but also it must correspond to the order of apparition.
+    If no invalid number is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: the circuit diagram with two elements and the same type (that have
     valid numbers)
@@ -573,24 +598,27 @@ def test_inconsistent_numbers_two_elements_same_type():
         'StructuralError: wrong number for element(s) '+ wrong_numbers
         + 'at ' + str(wrong_numbers_index) + ' in ' + same_element_type_diagram
         + 'from inconsistent_numbers(). Element numbers must increase of '
-        + '1 uint per time')
+        + '1 unit per time')
 
 def test_inconsistent_numbers_gap_number():
     """Check that the help function to find invalid numbers in a diagram
     works on a diagram with a two elements that have a gap in number between
     them. I recall here that a number of an element must not only be
     a numeric char, but also it must correspond to the order of apparition,
-    thus if there is a gap in number at least one of the to must be wrong
+    thus if there is a gap in number at least one of the to must be wrong.
+    If invalid numbers are detected, the returned string given by the
+    function under test contain the elements with the invalid number, while
+    the returned string their index in the sinput string.
 
     GIVEN: the circuit diagram with two elements that have a gap in number
     (the second one has an invalid numbers)
     WHEN: I check if there are invalid numbers inside the diagram
     THEN: an invalid number is detected for the second element
     """
-    same_element_type_diagram = '[Q1C3]'  #no number 2 but a number 3 for C
-    expected_result = 'C3 '
+    same_element_type_diagram = '[Q1C3]'  #No number 2 but a number 3 for C
     wrong_numbers, wrong_numbers_index = inconsistent_numbers(
         same_element_type_diagram)
+    expected_result = 'C3 '
 
     assert wrong_numbers==expected_result, (
         'StructuralError: wrong number for element(s) '+ wrong_numbers
@@ -602,7 +630,10 @@ def test_inconsistent_numbers_wrong_numbers():
     """Check that the help function to find invalid numbers in a diagram
     works on a diagram with a three elements that two of them have invalid
     numbers. I recall here that a number of an element must not only be
-    a numeric char, but also it must correspond to the order of apparition
+    a numeric char, but also it must correspond to the order of apparition.
+    If invalid numbers are detected, the returned string given by the
+    function under test contain the elements with the invalid number, while
+    the returned string their index in the sinput string.
 
     GIVEN: the circuit diagram with three elements, where the first and the
     last ones have invalid numbers
@@ -610,9 +641,9 @@ def test_inconsistent_numbers_wrong_numbers():
     THEN: an invalid number is detected for the first and third elements
     """
     same_element_type_diagram = '(R2[R3C3])' #1 is skipped and there is 3 twice
-    expected_result = 'R2 R3 '
     wrong_numbers, wrong_numbers_index = inconsistent_numbers(
         same_element_type_diagram)
+    expected_result = 'R2 R3 '
 
     assert wrong_numbers==expected_result, (
         'StructuralError: wrong number for element(s) '+ wrong_numbers
@@ -622,7 +653,7 @@ def test_inconsistent_numbers_wrong_numbers():
 
 
 def generate_circuit_single_element():
-    """Generate a valid Circuit object with one elements."""
+    """Generate a valid Circuit object with one (resistor) element."""
     diagram = '(R1)'
     parameters = {'R1': 100.0}
     constant_conditions = {'R1': 0}
@@ -632,13 +663,14 @@ def generate_circuit_single_element():
 
 @pytest.fixture
 def circuit_single_element():
+    """Fixture for the single element Circuit."""
     return generate_circuit_single_element()
 
 def test_initial_circuit_circuit_diagram_single_element(
         circuit_single_element):
     """Check if the circuit diagram inside the Circuit object created by
-    the generate_circuit() has a valid circuit diagram, in the case of an input
-    circuit diagram with just one elements.
+    the generate_circuit() has a valid circuit diagram, in the case of an
+    input circuit diagram with just one element.
     A circuit diagram is made of elements (a letter among {'R', 'C', 'Q'}
     followed by a single digit number) and round and/or square brackets. This
     means that the string must not be empty, and must contain only valid
@@ -648,10 +680,11 @@ def test_initial_circuit_circuit_diagram_single_element(
     appearence.
 
     GIVEN: the input circuit diagram, the parameters and the constant
-    conditions are valid, they all concerns one elment
-    WHEN: the Circuit object is created
-    THEN: the Circuit object has a valid circuit diagram, the same as the ones
-    in input
+    conditions are valid, they all concern one elment
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
+    THEN: the Circuit object has a valid circuit diagram, the same as the
+    input one
     """
     input_circuit_diagram = '(R1)'
 
@@ -662,15 +695,13 @@ def test_initial_circuit_circuit_diagram_single_element(
 
     circuit_diagram = circuit_single_element.circuit_diagram
     assert isinstance(circuit_diagram, str), (
-        'TypeError for circuit scheme in ' + caller
-        + '. It must be a string')
-    assert circuit_diagram, 'empty string in ' + caller
+        'TypeError for circuit diagram in ' + caller + '. It must be a string')
+    assert circuit_diagram, ('empty string in ' + caller)
     assert (circuit_diagram.startswith('(')
             or circuit_diagram.startswith('[')), (
                 'StructuralError: no initial open bracket detected in '
                 + caller)
-    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(
-        ']')), (
+    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(']')), (
         'StructuralError: no final close bracket detected' + caller)
     wrong_brackets, wrong_brackets_index = consistency_brackets(
         circuit_diagram)
@@ -680,8 +711,8 @@ def test_initial_circuit_circuit_diagram_single_element(
     elements_types = list_element_types(circuit_diagram)
     assert elements_types, (
         'StructuralError: no element found in ' + circuit_diagram + ' from '
-        + caller + '. An element begins with one of the three letter C, Q '
-        + 'or ' + 'R')
+        + caller + '. An element begins with one of the three letter C, Q or '
+        + 'R')
     wrong_characters, wrong_characters_index = invalid_characters(
         circuit_diagram)
     assert not wrong_characters, (
@@ -692,21 +723,19 @@ def test_initial_circuit_circuit_diagram_single_element(
     wrong_elements, wrong_element_index = inconsistent_elements(
         circuit_diagram)
     assert not wrong_elements, (
-        'StructuralError: element inconsistency for '+ wrong_elements
-        + ' at ' + str(wrong_element_index) + ': ' + circuit_diagram
-        + '. An element is composed by a valid letter followed by a '
-        + 'natural number in ' + caller)
-    wrong_numbers, wrong_numbers_index = inconsistent_numbers(
-        circuit_diagram)
+        'StructuralError: element inconsistency for '+ wrong_elements + ' at '
+        + str(wrong_element_index) + ': ' + circuit_diagram + '. An element '
+        + 'is composed by a valid letter followed by a natural number in '
+        + caller)
+    wrong_numbers, wrong_numbers_index = inconsistent_numbers(circuit_diagram)
     assert not wrong_numbers, (
-        'StructuralError: wrong number for element(s) '+ wrong_numbers
-        + 'at ' + str(wrong_numbers_index) + ' in ' + circuit_diagram
-        + 'from ' + caller + '. Element numbers must increase of 1 uint '
-        + 'per time')
+        'StructuralError: wrong number for element(s) '+ wrong_numbers + 'at '
+        + str(wrong_numbers_index) + ' in ' + circuit_diagram + 'from '
+        + caller + '. Element numbers must increase of 1 unit per time')
 
     assert circuit_diagram==input_circuit_diagram, (
     'StructuralError for attribute \'circuit_diagram\' output of '
-    + caller + '. It must be the same of the input circuit_diagram')
+    + caller + '. It must be the same of the input circuit diagram')
 
 
 def generate_circuit_two_elements():
@@ -720,6 +749,7 @@ def generate_circuit_two_elements():
 
 @pytest.fixture
 def circuit_two_elements():
+    """Fixture for the two elements Circuit."""
     return generate_circuit_two_elements()
 
 def test_initial_circuit_circuit_diagram_two_elements(circuit_two_elements):
@@ -736,28 +766,27 @@ def test_initial_circuit_circuit_diagram_two_elements(circuit_two_elements):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns two elements
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has a valid circuit diagram, the same as the ones
     in input
     """
     input_circuit_diagram = '(R1C2)'
-    caller = 'generate_circuit()'
 
+    caller = 'generate_circuit()'
     assert isinstance(circuit_two_elements, Circuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'Circuit\' class')
 
     circuit_diagram = circuit_two_elements.circuit_diagram
     assert isinstance(circuit_diagram, str), (
-        'TypeError for circuit scheme in ' + caller
-        + '. It must be a string')
+        'TypeError for circuit scheme in ' + caller + '. It must be a string')
     assert circuit_diagram, 'empty string in ' + caller
     assert (circuit_diagram.startswith('(')
             or circuit_diagram.startswith('[')), (
                 'StructuralError: no initial open bracket detected in '
                 + caller)
-    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(
-        ']')), (
+    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(']')), (
         'StructuralError: no final close bracket detected' + caller)
     wrong_brackets, wrong_brackets_index = consistency_brackets(
         circuit_diagram)
@@ -767,8 +796,8 @@ def test_initial_circuit_circuit_diagram_two_elements(circuit_two_elements):
     elements_types = list_element_types(circuit_diagram)
     assert elements_types, (
         'StructuralError: no element found in ' + circuit_diagram + ' from '
-        + caller + '. An element begins with one of the three letter C, Q '
-        + 'or ' + 'R')
+        + caller + '. An element begins with one of the three letter C, Q or'
+        + 'R')
     wrong_characters, wrong_characters_index = invalid_characters(
         circuit_diagram)
     assert not wrong_characters, (
@@ -779,21 +808,19 @@ def test_initial_circuit_circuit_diagram_two_elements(circuit_two_elements):
     wrong_elements, wrong_element_index = inconsistent_elements(
         circuit_diagram)
     assert not wrong_elements, (
-        'StructuralError: element inconsistency for '+ wrong_elements
-        + ' at ' + str(wrong_element_index) + ': ' + circuit_diagram
-        + '. An element is composed by a valid letter followed by a '
-        + 'natural number in ' + caller)
-    wrong_numbers, wrong_numbers_index = inconsistent_numbers(
-        circuit_diagram)
+        'StructuralError: element inconsistency for '+ wrong_elements + ' at '
+        + str(wrong_element_index) + ': ' + circuit_diagram + '. An element '
+        + 'is composed by a valid letter followed by a natural number in '
+        + caller)
+    wrong_numbers, wrong_numbers_index = inconsistent_numbers(circuit_diagram)
     assert not wrong_numbers, (
-        'StructuralError: wrong number for element(s) '+ wrong_numbers
-        + 'at ' + str(wrong_numbers_index) + ' in ' + circuit_diagram
-        + 'from ' + caller + '. Element numbers must increase of 1 uint '
-        + 'per time')
+        'StructuralError: wrong number for element(s) '+ wrong_numbers + 'at '
+        + str(wrong_numbers_index) + ' in ' + circuit_diagram + 'from '
+        + caller + '. Element numbers must increase of 1 unit per time')
 
     assert circuit_diagram==input_circuit_diagram, (
     'StructuralError for attribute \'circuit_diagram\' output of '
-    + caller + '. It must be the same of the input circuit_diagram')
+    + caller + '. It must be the same of the input circuit diagram')
 
 
 def generate_circuit_many_elements():
@@ -808,6 +835,7 @@ def generate_circuit_many_elements():
 
 @pytest.fixture
 def circuit_many_elements():
+    """Fixture for the four elements Circuit."""
     return generate_circuit_many_elements()
 
 def test_initial_circuit_circuit_diagram_many_elements(circuit_many_elements):
@@ -824,28 +852,27 @@ def test_initial_circuit_circuit_diagram_many_elements(circuit_many_elements):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns four elements
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has a valid circuit diagram, the same as the ones
     in input
     """
     input_circuit_diagram = '(R1C2[R3Q4])'
-    caller = 'generate_circuit()'
 
+    caller = 'generate_circuit()'
     assert isinstance(circuit_many_elements, Circuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'Circuit\' class')
 
     circuit_diagram = circuit_many_elements.circuit_diagram
     assert isinstance(circuit_diagram, str), (
-        'TypeError for circuit scheme in ' + caller
-        + '. It must be a string')
+        'TypeError for circuit scheme in ' + caller + '. It must be a string')
     assert circuit_diagram, 'empty string in ' + caller
     assert (circuit_diagram.startswith('(')
             or circuit_diagram.startswith('[')), (
                 'StructuralError: no initial open bracket detected in '
                 + caller)
-    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(
-        ']')), (
+    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(']')), (
         'StructuralError: no final close bracket detected' + caller)
     wrong_brackets, wrong_brackets_index = consistency_brackets(
         circuit_diagram)
@@ -855,8 +882,8 @@ def test_initial_circuit_circuit_diagram_many_elements(circuit_many_elements):
     elements_types = list_element_types(circuit_diagram)
     assert elements_types, (
         'StructuralError: no element found in ' + circuit_diagram + ' from '
-        + caller + '. An element begins with one of the three letter C, Q '
-        + 'or ' + 'R')
+        + caller + '. An element begins with one of the three letter C, Q or'
+        + 'R')
     wrong_characters, wrong_characters_index = invalid_characters(
         circuit_diagram)
     assert not wrong_characters, (
@@ -867,27 +894,25 @@ def test_initial_circuit_circuit_diagram_many_elements(circuit_many_elements):
     wrong_elements, wrong_element_index = inconsistent_elements(
         circuit_diagram)
     assert not wrong_elements, (
-        'StructuralError: element inconsistency for '+ wrong_elements
-        + ' at ' + str(wrong_element_index) + ': ' + circuit_diagram
-        + '. An element is composed by a valid letter followed by a '
-        + 'natural number in ' + caller)
-    wrong_numbers, wrong_numbers_index = inconsistent_numbers(
-        circuit_diagram)
+        'StructuralError: element inconsistency for '+ wrong_elements + ' at '
+        + str(wrong_element_index) + ': ' + circuit_diagram + '. An element '
+        + 'is composed by a valid letter followed by a natural number in '
+        + caller)
+    wrong_numbers, wrong_numbers_index = inconsistent_numbers(circuit_diagram)
     assert not wrong_numbers, (
-        'StructuralError: wrong number for element(s) '+ wrong_numbers
-        + 'at ' + str(wrong_numbers_index) + ' in ' + circuit_diagram
-        + 'from ' + caller + '. Element numbers must increase of 1 uint '
-        + 'per time')
+        'StructuralError: wrong number for element(s) '+ wrong_numbers + 'at '
+        + str(wrong_numbers_index) + ' in ' + circuit_diagram + 'from '
+        + caller + '. Element numbers must increase of 1 unit per time')
 
     assert circuit_diagram==input_circuit_diagram, (
     'StructuralError for attribute \'circuit_diagram\' output of '
-    + caller + '. It must be the same of the input circuit_diagram')
+    + caller + '. It must be the same of the input circuit diagram')
 
 
 def generate_circuit_wrong_parameters():
     """Generate a Circuit object with two elements. The second element in the
-    diagram is invalid. Are also invalid the second values of the parameters
-    and the first of the constant conditions.
+    diagram is invalid. Are also invalid the second value of the parameters
+    and the first one of the constant conditions.
     """
     diagram = '(R1Ce)'
     parameters = {'R1': 2.1, 'Ce': '1'} #Ce is an invalid element name, '1' is
@@ -899,10 +924,10 @@ def generate_circuit_wrong_parameters():
 
 @pytest.fixture
 def circuit_wrong_parameters():
+    """Fixture for the invalid Circuit."""
     return generate_circuit_wrong_parameters()
 
-def test_initial_circuit_circuit_diagram_wrong_input(
-        circuit_wrong_parameters):
+def test_initial_circuit_circuit_diagram_wrong_input(circuit_wrong_parameters):
     """Check if the circuit diagram inside the Circuit object created by
     the generate_circuit() has an invalid circuit diagram, in the case of an
     input circuit diagram that is invalid. They should however be the same.
@@ -917,28 +942,27 @@ def test_initial_circuit_circuit_diagram_wrong_input(
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are invalid, they all concerns two elements, of which the last
     one is invalid
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has an invalid circuit diagram, the same as
     the one in input
     """
     input_circuit_diagram = '(R1Ce)'
-    caller = 'generate_circuit()'
 
+    caller = 'generate_circuit()'
     assert isinstance(circuit_wrong_parameters, Circuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'Circuit\' class')
 
     circuit_diagram = circuit_wrong_parameters.circuit_diagram
     assert isinstance(circuit_diagram, str), (
-        'TypeError for circuit scheme in ' + caller
-        + '. It must be a string')
+        'TypeError for circuit scheme in ' + caller + '. It must be a string')
     assert circuit_diagram, 'empty string in ' + caller
     assert (circuit_diagram.startswith('(')
             or circuit_diagram.startswith('[')), (
                 'StructuralError: no initial open bracket detected in '
                 + caller)
-    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(
-        ']')), (
+    assert (circuit_diagram.endswith(')') or circuit_diagram.endswith(']')), (
         'StructuralError: no final close bracket detected' + caller)
     wrong_brackets, wrong_brackets_index = consistency_brackets(
         circuit_diagram)
@@ -948,37 +972,35 @@ def test_initial_circuit_circuit_diagram_wrong_input(
     elements_types = list_element_types(circuit_diagram)
     assert elements_types, (
         'StructuralError: no element found in ' + circuit_diagram + ' from '
-        + caller + '. An element begins with one of the three letter C, Q '
-        + 'or ' + 'R')
-    expected_result_first = 'e '
+        + caller + '. An element begins with one of the three letter C, Q or '
+        + 'R')
+    expected_result_wrong_characters = 'e '
     wrong_characters, wrong_characters_index = invalid_characters(
         circuit_diagram)
-    assert wrong_characters==expected_result_first, (
+    assert wrong_characters==expected_result_wrong_characters, (
         'StructuralError: invalid character(s) ' + wrong_characters
         + ' at ' + str(wrong_characters_index) + ' in '
         + circuit_diagram + ' from invalid_characters() are not '
-        + 'the ones expected ' + expected_result_first + '. Only round and square '
-        + 'brackets, C, Q, R and natural numbers are allowed')
-    expected_result_second = 'Ce '
+        + 'the ones expected ' + expected_result_wrong_characters + '. Only '
+        + 'round and square brackets, C, Q, R and natural numbers are allowed')
+    expected_result_elements = 'Ce '
     wrong_elements, wrong_element_index = inconsistent_elements(
         circuit_diagram)
-    assert wrong_elements==expected_result_second, (
+    assert wrong_elements==expected_result_elements, (
         'StructuralError: element inconsistency for '+ wrong_elements
         + ' at ' + str(wrong_element_index) + ' in ' + circuit_diagram
         + '. An element is composed by a valid letter followed by a natural '
         + 'number in inconsistent_elements()')
-    wrong_numbers, wrong_numbers_index = inconsistent_numbers(
-        circuit_diagram)
+    wrong_numbers, wrong_numbers_index = inconsistent_numbers(circuit_diagram)
     assert not wrong_numbers, (
         'StructuralError: wrong number for element(s) '+ wrong_numbers
         + 'at ' + str(wrong_numbers_index) + ' in ' + circuit_diagram
-        + 'from ' + caller + '. Element numbers must increase of 1 uint '
+        + 'from ' + caller + '. Element numbers must increase of 1 unit '
         + 'per time')
 
     assert circuit_diagram==input_circuit_diagram, (
     'StructuralError for attribute \'circuit_diagram\' output of '
-    + caller + '. It must be the same of the input circuit_diagram')
-
+    + caller + '. It must be the same of the input circuit diagram')
 
 
 ##############################################################################
@@ -1015,6 +1037,8 @@ def invalid_elements_type(element_list):
 def test_invalid_elements_type_no_element():
     """Check that the help function to find the elements with the wrong type
     works on an empty list.
+    If no invalid element type is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: an empty list
     WHEN: I check if there are invalid elements inside the list
@@ -1031,6 +1055,8 @@ def test_invalid_elements_type_no_element():
 def test_invalid_elements_type_two_elements():
     """Check that the help function to find the elements with the wrong type
     works on a list of strings.
+    If no invalid element type is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: a list of two strings, with right type and length
     WHEN: I check if there are invalid elements inside the list
@@ -1047,12 +1073,14 @@ def test_invalid_elements_type_two_elements():
 def test_invalid_elements_type_three_elements():
     """Check that the help function to find the elements with the wrong type
     works on a list of strings, with an element that is not a circuit element.
+    If no invalid element type is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: a list of three strings, with right type and length
     WHEN: I check if there are invalid elements inside the list
     THEN: no invalid element type is found
     """
-    three_elements = ['Q1', 'C2', '&w']
+    three_elements = ['Q1', 'C2', '&w'] #Last element not invalid by type
     wrong_types, wrong_types_index = invalid_elements_type(three_elements)
 
     assert not wrong_types, (
@@ -1065,6 +1093,9 @@ def test_invalid_elements_type_wrong_element():
     works on a list of strings, with the first three elements that have a wrong
     type or length (two of them are not a string, and the third one is only
     1 char long).
+    If invalid element types are detected, the returned string contains the
+    invalid elements, and the returned list contains their index in the input
+    string.
 
     GIVEN: a list of four objects, with only the last one that has a right
     type and length
@@ -1073,8 +1104,8 @@ def test_invalid_elements_type_wrong_element():
     """
     three_elements = [1.2, ['C2'], 'R', 'R4'] #The only valid element type is
                                               #a string of length 2
-    expected_result = '1.2 [\'C2\'] R '
     wrong_types, wrong_types_index = invalid_elements_type(three_elements)
+    expected_result = '1.2 [\'C2\'] R '
 
     assert wrong_types==expected_result, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
@@ -1086,8 +1117,7 @@ def test_invalid_elements_type_wrong_element():
 def invalid_elements_character(elements_circuit):
     """Given an element list, return any character that as a fist character
     invalid, i.e. any outside R, C, Q, or as a second character invalid, i.e.
-    not numerical.
-    Used for testing.
+    not numerical. Used for testing.
 
     Parameters
     ----------
@@ -1118,7 +1148,9 @@ def invalid_elements_character(elements_circuit):
 
 def test_invalid_elements_characters_no_element():
     """Check that the help function to find the elements with the wrong letter
-    or number works on an empty list
+    or number works on an empty list.
+    If no invalid element character is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: an empty list
     WHEN: I check if there are invalid characters inside the element of the
@@ -1129,16 +1161,17 @@ def test_invalid_elements_characters_no_element():
     wrong_char, wrong_char_index = invalid_elements_character(no_element)
 
     assert not wrong_char, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_index) + ' ' + wrong_char + ' in '
-        + 'the empty list in invalid_elements_char_letter(). All '
-        + 'elements must begin with a letter among \'C\', \'R\' ' + 'and '
-        + '\'Q\' and must end with a natural number and each element '
-        + 'number must be unique')
+        'StructuralError for element(s) number ' + str(wrong_char_index)
+        + ' ' + wrong_char + ' in the empty list in '
+        + 'invalid_elements_char_letter(). All elements must begin with a '
+        + 'letter among \'C\', \'R\' ' + 'and \'Q\' and must end with a '
+        + 'natural number and each element number must be unique')
 
 def test_invalid_elements_characters_one_element():
     """Check that the help function to find the elements with the wrong letter
-    or number works on a list with one valid element
+    or number works on a list with one valid element.
+    If no invalid element character is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: an list of an string of length 2 that is a valid elements
     WHEN: I check if there are invalid characters inside the element of the
@@ -1149,15 +1182,17 @@ def test_invalid_elements_characters_one_element():
     wrong_char, wrong_char_index = invalid_elements_character(one_element)
 
     assert not wrong_char, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_index) + ' ' + wrong_char + ' in ' + str(one_element)
-        + 'in invalid_elements_char_letter(). All elements must begin with'
-        + 'a letter among \'C\', \'R\' and \'Q\' and must end with a natural'
-        + 'number and each element number must be unique')
+        'StructuralError for element(s) number ' + str(wrong_char_index)
+        + ' ' + wrong_char + ' in ' + str(one_element) + 'in '
+        + 'invalid_elements_char_letter(). All elements must begin with a '
+        + 'letter among \'C\', \'R\' ' + 'and \'Q\' and must end with a '
+        + 'natural number and each element number must be unique')
 
 def test_invalid_elements_characters_three_elements():
     """Check that the help function to find the elements with the wrong letter
-    or number works on a list with three valid elements
+    or number works on a list with three valid elements.
+    If no invalid element character is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: an list of three strings of length 2 with only valid elements
     WHEN: I check if there are invalid characters inside the element of the
@@ -1168,17 +1203,18 @@ def test_invalid_elements_characters_three_elements():
     wrong_char, wrong_char_index = invalid_elements_character(three_elements)
 
     assert not wrong_char, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_index) + ' ' + wrong_char + ' in '
-        + str(three_elements) + 'in invalid_elements_char_letter(). All '
-        + 'elements must begin with a letter among \'C\', \'R\' and \'Q\' '
-        + 'and must end with a natural number and each element number must be '
-        + 'unique')
+        'StructuralError for element(s) number ' + str(wrong_char_index)
+        + ' ' + wrong_char + ' in ' + str(three_elements) + 'in '
+        + 'invalid_elements_char_letter(). All elements must begin with a '
+        + 'letter among \'C\', \'R\' ' + 'and \'Q\' and must end with a '
+        + 'natural number and each element number must be unique')
 
 def test_invalid_elements_type_invalid_characters():
     """Check that the help function to find the elements with the wrong letter
     or number works on a list with three elements, of which only the first one
-    is valid
+    is valid.
+    If invalid element characters are detected, the returned string contain
+    the invalid elements, and the returned list their positions in the string.
 
     GIVEN: an list of three strings of length 2 with only valid element, the
     first one
@@ -1188,8 +1224,8 @@ def test_invalid_elements_type_invalid_characters():
     """
     three_elements = ['R1', '1C', 'r3'] #First the (capitol) letter, then the
                                         #number
-    expected_result = '1C r3 '
     wrong_char, wrong_char_index = invalid_elements_character(three_elements)
+    expected_result = '1C r3 '
 
     assert wrong_char==expected_result, (
         'StructuralError for element(s) number ' + str(wrong_char_index) + ' '
@@ -1208,16 +1244,17 @@ def test_initial_circuit_elements_single_element(circuit_single_element):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns one elment
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has a valid element, the same as the ones in input
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_single_element.parameters_map
     input_elements = ['R1']
+    parameters_map = circuit_single_element.parameters_map
 
+    caller = 'generate_circuit()'
     assert isinstance(parameters_map, dict), (
-        'TypeError for attribute \'parameters_map\' in output of '
-        + caller + '. It must be a dictionary')
+        'TypeError for attribute \'parameters_map\' in output of ' + caller
+        + '. It must be a dictionary')
 
     elements_list = list(parameters_map.keys())
     assert isinstance(elements_list, list), (
@@ -1226,22 +1263,19 @@ def test_initial_circuit_elements_single_element(circuit_single_element):
     assert not wrong_types, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
         + wrong_types + ' in ' + str(elements_list) + ' in ' + caller
-        + '. Elements (here dictionary keys) can only be strings of '
-        + 'length 2')
-    wrong_char, wrong_char_index = invalid_elements_character(
-            elements_list)
+        + '. Elements (here dictionary keys) can only be strings of length 2')
+
+    wrong_char, wrong_char_index = invalid_elements_character(elements_list)
     assert not wrong_char, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_index) + ' ' + wrong_char + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and '
-        + 'must end with a natural number and each element number must '
-        + 'be unique')
+        'StructuralError for element(s) number ' + str(wrong_char_index)
+        + ' ' + wrong_char + ' in ' + str(elements_list) + ' in ' + caller
+        + '. All elements must begin with a letter among \'C\', \'R\' and '
+        + '\'Q\', and must end with a natural number and each element number '
+        + 'must be unique')
 
     assert elements_list==input_elements, (
-    'StructuralError for elements in attribute \'parameters_map\' in '
-    + 'output of ' + caller + '. The elements must be the same that '
-    + 'compose the output of generate_circuit_string()')
+    'StructuralError for elements in attribute \'parameters_map\' in output '
+    + 'of ' + caller + '. The elements must be the same of the input one')
 
 def test_initial_circuit_elements_two_elements(circuit_two_elements):
     """Check if the circuit diagram inside the Circuit object created by
@@ -1252,16 +1286,17 @@ def test_initial_circuit_elements_two_elements(circuit_two_elements):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns two elements
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid elements, the same as the oness in input
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_two_elements.parameters_map
     input_elements = ['R1', 'C2']
+    parameters_map = circuit_two_elements.parameters_map
 
+    caller = 'generate_circuit()'
     assert isinstance(parameters_map, dict), (
-        'TypeError for attribute \'parameters_map\' in output of '
-        + caller + '. It must be a dictionary')
+        'TypeError for attribute \'parameters_map\' in output of ' + caller
+        + '. It must be a dictionary')
 
     elements_list = list(parameters_map.keys())
     assert isinstance(elements_list, list), (
@@ -1270,22 +1305,18 @@ def test_initial_circuit_elements_two_elements(circuit_two_elements):
     assert not wrong_types, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
         + wrong_types + ' in ' + str(elements_list) + ' in ' + caller
-        + '. Elements (here dictionary keys) can only be strings of '
-        + 'length 2')
-    wrong_char, wrong_char_index = invalid_elements_character(
-            elements_list)
+        + '. Elements (here dictionary keys) can only be strings of length 2')
+    wrong_char, wrong_char_index = invalid_elements_character(elements_list)
     assert not wrong_char, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_index) + ' ' + wrong_char + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and '
-        + 'must end with a natural number and each element number must '
-        + 'be unique')
+        'StructuralError for element(s) number ' + str(wrong_char_index)
+        + ' ' + wrong_char + ' in ' + str(elements_list) + ' in ' + caller
+        + '. All elements must begin with a letter among \'C\', \'R\' and '
+        + '\'Q\', and must end with a natural number and each element number '
+        + 'must be unique')
 
     assert elements_list==input_elements, (
-    'StructuralError for elements in attribute \'parameters_map\' in '
-    + 'output of ' + caller + '. The elements must be the same that '
-    + 'compose the output of generate_circuit_string()')
+    'StructuralError for elements in attribute \'parameters_map\' in output '
+    + 'of ' + caller + '. The elements must be the same of the input one')
 
 def test_initial_circuit_elements_many_elements(circuit_many_elements):
     """Check if the circuit diagram inside the Circuit object created by
@@ -1296,16 +1327,17 @@ def test_initial_circuit_elements_many_elements(circuit_many_elements):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns four elements
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid elements, the same as the oness in input
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_many_elements.parameters_map
     input_elements = ['R1', 'C2', 'R3', 'Q4']
+    parameters_map = circuit_many_elements.parameters_map
 
+    caller = 'generate_circuit()'
     assert isinstance(parameters_map, dict), (
-        'TypeError for attribute \'parameters_map\' in output of '
-        + caller + '. It must be a dictionary')
+        'TypeError for attribute \'parameters_map\' in output of ' + caller
+        + '. It must be a dictionary')
 
     elements_list = list(parameters_map.keys())
     assert isinstance(elements_list, list), (
@@ -1314,22 +1346,18 @@ def test_initial_circuit_elements_many_elements(circuit_many_elements):
     assert not wrong_types, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
         + wrong_types + ' in ' + str(elements_list) + ' in ' + caller
-        + '. Elements (here dictionary keys) can only be strings of '
-        + 'length 2')
-    wrong_char, wrong_char_index = invalid_elements_character(
-            elements_list)
+        + '. Elements (here dictionary keys) can only be strings of length 2')
+    wrong_char, wrong_char_index = invalid_elements_character(elements_list)
     assert not wrong_char, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_index) + ' ' + wrong_char + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and '
-        + 'must end with a natural number and each element number must '
-        + 'be unique')
+        'StructuralError for element(s) number ' + str(wrong_char_index)
+        + ' ' + wrong_char + ' in ' + str(elements_list) + ' in ' + caller
+        + '. All elements must begin with a letter among \'C\', \'R\' and '
+        + '\'Q\', and must end with a natural number and each element number '
+        + 'must be unique')
 
     assert elements_list==input_elements, (
     'StructuralError for elements in attribute \'parameters_map\' in '
-    + 'output of ' + caller + '. The elements must be the same that '
-    + 'compose the output of generate_circuit_string()')
+    + 'of ' + caller + '. The elements must be the same of the input one')
 
 def test_initial_circuit_elements_wrong_elements(circuit_wrong_parameters):
     """Check if the circuit diagram inside the Circuit object created by
@@ -1342,15 +1370,16 @@ def test_initial_circuit_elements_wrong_elements(circuit_wrong_parameters):
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid only for the first element, while the second element
     has all of the invalid, included the element's name
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has a valid element, corresponding to the valid
     input element, while the second element is the same of the one in input,
     thus invalid
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_wrong_parameters.parameters_map
     input_elements = ['R1', 'Ce']
+    parameters_map = circuit_wrong_parameters.parameters_map
 
+    caller = 'generate_circuit()'
     assert isinstance(parameters_map, dict), (
         'TypeError for attribute \'parameters_map\' in output of '
         + caller + '. It must be a dictionary')
@@ -1375,9 +1404,7 @@ def test_initial_circuit_elements_wrong_elements(circuit_wrong_parameters):
 
     assert elements_list==input_elements, (
     'StructuralError for elements in attribute \'parameters_map\' in '
-    + 'output of ' + caller + '. The elements must be the same that '
-    + 'compose the output of generate_circuit_string()')
-
+    + 'of ' + caller + '. The elements must be the same of the input one')
 
 
 ##############################################################################
@@ -1409,11 +1436,13 @@ def wrong_tuples_circuit(parameters_map):
 
 def test_wrong_tuples_circuit_no_element():
     """Check that the help function that returns any item in a dictionary that
-    is not a tuple of length 2 works on an empty dictionary
+    is not a tuple of length 2 works on an empty dictionary.
+    If no invalid value is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: an empty dictionary
     WHEN: I check if there are invalid values inside the dictionary (any that
-    is not a tuple)
+    is not a tuple of length 2)
     THEN: no invalid value is found
     """
     no_element = {}
@@ -1427,11 +1456,13 @@ def test_wrong_tuples_circuit_no_element():
 def test_wrong_tuples_circuit_single_element():
     """Check that the help function that returns any item in a dictionary that
     is not a tuple of length 2 works on a dictionary with one (valid) object
-    inside
+    inside.
+    If no invalid value is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: a dictionary with one tuple of length 2 as a value
     WHEN: I check if there are invalid values inside the dictionary (any that
-    is not a tuple)
+    is not a tuple of length 2)
     THEN: no invalid value is found
     """
     single_element = {'C1': (1e-6, 0)}
@@ -1445,11 +1476,13 @@ def test_wrong_tuples_circuit_single_element():
 def test_wrong_tuples_circuit_two_elements():
     """Check that the help function that returns any item in a dictionary that
     is not a tuple of length 2 works on a dictionary with two (valid) objects
-    inside
+    inside.
+    If no invalid value is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: a dictionary with two tuples of length 2 as values
     WHEN: I check if there are invalid values inside the dictionary (any that
-    is not a tuple)
+    is not a tuple of length 2)
     THEN: no invalid value is found
     """
     two_elements = {'Q1': ([1e-6, 0.5], 1), 'R2': ('100', 22.4)}
@@ -1463,11 +1496,14 @@ def test_wrong_tuples_circuit_two_elements():
 def test_wrong_tuples_circuit_wrong_elements():
     """Check that the help function that returns any item in a dictionary that
     is not a tuple of length 2 works on a dictionary with three objects inside,
-    where only the last one is valid
+    where only the last one is valid.
+    If invalid values are detected, the returned string given by the function
+    under test contain the element (key of the dictionary) of the invalid
+    value.
 
     GIVEN: a dictionary with only as second value a tuple of length 2
     WHEN: I check if there are invalid values inside the dictionary (any that
-    is not a tuple)
+    is not a tuple of length 2)
     THEN: only the first two values are detected as wrong
     """
     wrong_elements = {'Q1': ([1e-6, 0.5]), 'C1': (1e-6, 3, 0.5),
@@ -1483,8 +1519,8 @@ def test_wrong_tuples_circuit_wrong_elements():
 
 def invalid_parameters_type(parameters_list):
     """Given a parameters list, return any wrong type parameter: each
-    parameter can be a float or a list of length 2. The objects inside the
-    list must be floats. Used for testing.
+    parameter can be a float or a list of length 2 that contains only floats.
+    Used for testing.
 
     Parameters
     ----------
@@ -1520,7 +1556,9 @@ def invalid_parameters_type(parameters_list):
 
 def test_invalid_parameters_type_no_parameters():
     """Check that the help function to find the invalid parameters types (not
-    float nor float lists of length 2) works on an empty list
+    float nor float lists of length 2) works on an empty list.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: an empty list
     WHEN: I check if there are parameters of the invalid type
@@ -1531,13 +1569,14 @@ def test_invalid_parameters_type_no_parameters():
 
     assert not wrong_type, (
         'TypeError for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + 'in the empty list in '
-        + 'invalid_parameters_type(). Cannot have an invalid parameter '
-        + 'because there are no elements ')
+        + ' ' + wrong_type + 'in the empty list in invalid_parameters_type(). '
+        + 'Cannot have an invalid parameter because there are no elements ')
 
 def test_invalid_parameters_type_float_parameter():
     """Check that the help function to find the invalid parameters types (not
-    float nor float lists of length 2) works on a list with a float parameter
+    float nor float lists of length 2) works on a list with a float parameter.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: a list with just one float parameter
     WHEN: I check if there are parameters of the invalid type
@@ -1549,13 +1588,15 @@ def test_invalid_parameters_type_float_parameter():
     assert not wrong_type, (
         'TypeError for parameter(s) number ' + str(wrong_type_index)
         + ' ' + wrong_type + 'in ' + str(float_parameter) + ' in '
-        + 'invalid_parameters_type(). Parameters can only be floats '
-            + 'or float lists with exactly two floats')
+        + 'invalid_parameters_type(). Parameters can only be floats or float '
+        + 'lists with exactly two floats')
 
 def test_invalid_parameters_type_list_parameter():
     """Check that the help function to find the invalid parameters types (not
     float nor float lists of length 2) works on a list with a float list of
-    length 2 as parameter
+    length 2 as parameter.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: a list with just one float list of length 2 as parameter
     WHEN: I check if there are parameters of the invalid type
@@ -1565,15 +1606,17 @@ def test_invalid_parameters_type_list_parameter():
     wrong_type, wrong_type_index = invalid_parameters_type(list_parameter)
 
     assert not wrong_type, (
-        'TypeError for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + 'in ' + str(list_parameter) + ' in '
-        + 'invalid_parameters_type().  Parameters can only be floats '
-            + 'or float lists with exactly two floats')
+        'TypeError for parameter(s) number ' + str(wrong_type_index) + ' '
+        + wrong_type + 'in ' + str(list_parameter) + ' in '
+        + 'invalid_parameters_type().  Parameters can only be floats or float '
+        + 'lists with exactly two floats')
 
 def test_invalid_parameters_type_multiple_parameters():
     """Check that the help function to find the invalid parameters types (not
     float nor float lists of length 2) works on a list with a float list of
-    length 2 and two floats as parameters
+    length 2 and two floats as parameters.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: a list with one float list (of length 2) parameter and two float
     parameters (of which one is negative)
@@ -1584,24 +1627,28 @@ def test_invalid_parameters_type_multiple_parameters():
     wrong_type, wrong_type_index = invalid_parameters_type(list_parameter)
 
     assert not wrong_type, (
-        'TypeError for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + 'in ' + str(list_parameter) + ' in '
-        + 'invalid_parameters_type().  Parameters can only be floats '
-            + 'or float lists with exactly two floats')
+        'TypeError for parameter(s) number ' + str(wrong_type_index) + ' '
+        + wrong_type + 'in ' + str(list_parameter) + ' in '
+        + 'invalid_parameters_type(). Parameters can only be floats or float '
+        + 'lists with exactly two floats')
 
 def test_invalid_parameters_type_wrong_parameters():
     """Check that the help function to find the invalid parameters types (not
     float nor float lists of length 2) works on a list with a float list of
-    length 3, an integer, a string and only one float as parameters
+    length 3, an integer, a string and only one float as parameters.
+    If invalid parameter are detected, the returned string contains the
+    invalid parameters and the returned list their index in the parameters
+    list.
 
     GIVEN: a list with a float list of length 3, an integer, a string and only
     one float as parameters. Only the last element is correct
     WHEN: I check if there are parameters of the invalid type
     THEN: all the parameters but the last one are detected as invalid
     """
-    list_parameter = [[1e-05, 100.0, 300.0], 1, '6', 10.] #Only floats are valid
-    expected_result = '[1e-05, 100.0, 300.0] 1 6 '
+    #Only floats or float lists of length 2 are valid
+    list_parameter = [[1e-05, 100.0, 300.0], 1, '6', 10.]
     wrong_type, wrong_type_index = invalid_parameters_type(list_parameter)
+    expected_result = '[1e-05, 100.0, 300.0] 1 6 '
 
     assert wrong_type==expected_result, (
         'TypeError for parameter(s) number ' + str(wrong_type_index)
@@ -1612,16 +1659,21 @@ def test_invalid_parameters_type_wrong_parameters():
 def test_invalid_parameters_type_wrong_list_parameters():
     """Check that the help function to find the invalid parameters types (not
     float nor float lists of length 2) works on a list with a list of length
-    2 that has a float and an integer, and a list of length 2 with both floats.
+    2 that has a float and an integer, and a list of length 2 with both
+    floats.
+    If invalid parameters are detected, the returned string contains the
+    invalid parameters and the returned list their index in the parameters
+    list.
 
     GIVEN: a list with a list of length 2 that has a float and an integer, and
     a list of length 2 with both floats. Only the last element is correct
     WHEN: I check if there are parameters of the invalid type
     THEN: only the second element of the first list is detected as invalid
     """
+    #Only floats or float lists of length 2 are valid
     list_parameter = [[50., 100], [47.3e-5, 23.]]
-    expected_result = '100 in [50.0, 100] '
     wrong_type, wrong_type_index = invalid_parameters_type(list_parameter)
+    expected_result = '100 in [50.0, 100] '
 
     assert wrong_type==expected_result, (
         'TypeError for parameter(s) number ' + str(wrong_type_index)
@@ -1673,7 +1725,9 @@ def test_invalid_parameters_value_no_parameters():
     on an empty list.
     The parameters must be positive for float parameters and for the first
     element of the list parameters and within 0 and 1 for the second element
-    of the list parameters
+    of the list parameters.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: an empty list
     WHEN: I check if there are parameters of invalid value
@@ -1692,7 +1746,9 @@ def test_invalid_parameters_value_float_parameters():
     works on a list with two float parameters.
     The parameters must be positive for float parameters and for the first
     element of the list parameters and within 0 and 1 for the second element
-    of the list parameters
+    of the list parameters.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: a list with two positve float parameters
     WHEN: I check if there are parameters of the invalid type
@@ -1714,7 +1770,9 @@ def test_invalid_parameters_value_list_parameter():
     works on a list with a float list parameter.
     The parameters must be positive for float parameters and for the first
     element of the list parameters and within 0 and 1 for the second element
-    of the list parameters
+    of the list parameters.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: a list with just one float list of a positive float and a bumber
     within 0 and 1 as parameter
@@ -1737,7 +1795,10 @@ def test_invalid_parameters_value_wrong_parameters():
     element a flot bigger than 1, and a positive float parameter.
     The parameters must be positive for float parameters and for the first
     element of the list parameters and within 0 and 1 for the second element
-    of the list parameters
+    of the list parameters.
+    If invalid parameters are detected, the returned string contains the
+    invalid parameters and the returned list their index in the parameters
+    list.
 
     GIVEN: a list with a negative float parameter, a list with as secon
     element a flot bigger than 1, and a positive float parameter. The first
@@ -1748,13 +1809,13 @@ def test_invalid_parameters_value_wrong_parameters():
     are detectd as invalid
     """
     list_parameter = [-200.0, [1e-05, 100.0], 23.45]
-    expected_result = '-200.0 1e-05 in [1e-05, 100.0] '
+    expected_result = '-200.0 100.0 in [1e-05, 100.0] '
     wrong_value, wrong_value_index = invalid_parameters_value(list_parameter)
 
-    assert wrong_value==wrong_value, (
+    assert wrong_value==expected_result, (
         'ValueError for parameter(s) number ' + str(wrong_value_index) + ' '
         + wrong_value + ' in ' + str(list_parameter)
-        + ' in invalid_parameters_value(). The dtected invalid parameters'
+        + ' in invalid_parameters_value(). The detected invalid parameters'
         + 'differ from the expected ones: ' + expected_result)
 
 
@@ -1798,6 +1859,8 @@ def test_elements_parameters_match_no_parameters():
     type and parameters in the parameters dictionary works on an empty
     dictionary.
     R and C elements must have a float as parameter, Q must have a list.
+    If no invalid parameter is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: an empty dictionary
     WHEN: I check if there are invalid parameters matches between the type of
@@ -1819,6 +1882,8 @@ def test_elements_parameters_match_single_parameter():
     type and parameters in the parameters dictionary works on a dictionary with
     one (valid) item.
     R and C elements must have a float as parameter, Q must have a list.
+    If no invalid match is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: a dictionary with one valid item, a capacitor one
     WHEN: I check if there are invalid parameters matches between the type of
@@ -1841,6 +1906,8 @@ def test_elements_parameters_match_two_parameters():
     type and parameters in the parameters dictionary works on a dictionary with
     two (valid) items.
     R and C elements must have a float as parameter, Q must have a list.
+    If no invalid match is detected, the returned string and list given by
+    the function under test are empty.
 
     GIVEN: a dictionary with two valid items, a cpe and a resistor ones
     WHEN: I check if there are invalid parameters matches between the type of
@@ -1859,9 +1926,12 @@ def test_elements_parameters_match_two_parameters():
 
 def test_elements_parameters_match_wrong_parameters():
     """Check that the help function to find the invalid match between elements
-    type and parameters in the parameters dictionary works on a dictionary with
-    three items, of which only the last one is valid.
+    type and parameters in the parameters dictionary works on a dictionary
+    with three items, of which only the last one is valid.
     R and C elements must have a float as parameter, Q must have a list.
+    If invalid matches are detected, the returned string conatin the invalid
+    elements and parameters, while the returned list their indexes in the
+    listing.
 
     GIVEN: a dictionary with three items, but the first two (a resistor and a
     cpe) have a bad match, while the last one (a resistor) has a vlid match
@@ -1873,9 +1943,9 @@ def test_elements_parameters_match_wrong_parameters():
     """
     wrong_parameters = {'R1': ([1e-06, 0.5], 0), 'Q2': (10.0, 1),
                         'R2': (2000., 0)}
-    expected_result = 'R1 and [1e-06, 0.5] Q2 and 10.0 '
     wrong_match, wrong_match_index = elements_parameters_match(
         wrong_parameters)
+    expected_result = 'R1 and [1e-06, 0.5] Q2 and 10.0 '
 
     assert wrong_match==expected_result, (
         'StructuralError: bad match for '+ wrong_match + ' in '
@@ -1898,50 +1968,48 @@ def test_initial_circuit_parameters_single_parameter(circuit_single_element):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns one valid elment
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid parameters, the same as the ones in
     input
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_single_element.parameters_map
     input_parameters = [100.]
+    parameters_map = circuit_single_element.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
-    parameters_values= list(parameters_map.values())
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
+    parameters_values = list(parameters_map.values())
     parameters_list = [parameter[0] for parameter in parameters_values]
 
     wrong_type, wrong_type_index = invalid_parameters_type(
         parameters_list)
     assert not wrong_type, (
-        'TypeError for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + 'in ' + str(parameters_list) + ' in '
-        + caller + '. Parameters can only be floats or float lists'
-        + 'which contains exactly 2 parameters')
+        'TypeError for parameter(s) number ' + str(wrong_type_index) + ' '
+        + wrong_type + 'in ' + str(parameters_list) + ' in ' + caller
+        + '. Parameters can only be floats or float lists which contains '
+        + 'exactly 2 parameters')
 
-    wrong_value, wrong_value_index = invalid_parameters_value(
-        parameters_list)
+    wrong_value, wrong_value_index = invalid_parameters_value(parameters_list)
     assert not wrong_value, (
         'ValueError for parameter(s) number ' + str(wrong_value_index) + ' '
         + wrong_value + ' in ' + str(parameters_list) + ' in ' + caller
-        + '. Float parameters must be positive, lists parameters '
-        + 'must contain as first parameter a positive number and as second '
-        + 'parameter a number between 0 and 1')
-    wrong_match, wrong_match_index = elements_parameters_match(
-        parameters_map)
+        + '. Float parameters must be positive, lists parameters must contain '
+        + 'as first parameter a positive number and as second parameter a '
+        + 'number between 0 and 1')
+    wrong_match, wrong_match_index = elements_parameters_match(parameters_map)
     assert not wrong_match, (
         'StructuralError: bad match for '+ wrong_match + ' in '
-        + str(wrong_match_index) + 'for dictonary \''
-        + str(parameters_map) + '\' from invalid_parameters_value() . \'R'
-        + '\' and \'C\' elements must have a float as parameter, \'Q\''
-        + 'must have a list')
+        + str(wrong_match_index) + 'for dictonary \'' + str(parameters_map)
+        + '\' from invalid_parameters_value() . \'R\' and \'C\' elements must '
+        + 'have a float as parameter, \'Q\' must have a list')
 
     assert parameters_list==input_parameters, (
-    'StructuralError for parameters of output of ' + caller
-    + '. It must be the same of the input parameters')
+    'StructuralError for parameters of output of ' + caller + '. It must be '
+    + 'the same of the input parameters')
 
 def test_initial_circuit_parameters_two_parameters(circuit_two_elements):
     """Check if the parameters map inside the Circuit object created by
@@ -1957,50 +2025,47 @@ def test_initial_circuit_parameters_two_parameters(circuit_two_elements):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns two valid elements
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid parameters, the same as the ones in
     input
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_two_elements.parameters_map
     input_parameters = [1000., 1e-6]
+    parameters_map = circuit_two_elements.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
-    parameters_values= list(parameters_map.values())
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
+    parameters_values = list(parameters_map.values())
     parameters_list = [parameter[0] for parameter in parameters_values]
 
-    wrong_type, wrong_type_index = invalid_parameters_type(
-        parameters_list)
+    wrong_type, wrong_type_index = invalid_parameters_type(parameters_list)
     assert not wrong_type, (
-        'TypeError for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + 'in ' + str(parameters_list) + ' in '
-        + caller + '. Parameters can only be floats or float lists'
-        + 'which contains exactly 2 parameters')
+        'TypeError for parameter(s) number ' + str(wrong_type_index) + ' '
+        + wrong_type + 'in ' + str(parameters_list) + ' in ' + caller
+        + '. Parameters can only be floats or float lists which contains '
+        + 'exactly 2 parameters')
 
-    wrong_value, wrong_value_index = invalid_parameters_value(
-        parameters_list)
+    wrong_value, wrong_value_index = invalid_parameters_value(parameters_list)
     assert not wrong_value, (
         'ValueError for parameter(s) number ' + str(wrong_value_index) + ' '
         + wrong_value + ' in ' + str(parameters_list) + ' in ' + caller
-        + '. Float parameters must be positive, lists parameters '
-        + 'must contain as first parameter a positive number and as second '
-        + 'parameter a number between 0 and 1')
-    wrong_match, wrong_match_index = elements_parameters_match(
-        parameters_map)
+        + '. Float parameters must be positive, lists parameters must contain '
+        + 'as first parameter a positive number and as second parameter a '
+        + 'number between 0 and 1')
+    wrong_match, wrong_match_index = elements_parameters_match(parameters_map)
     assert not wrong_match, (
         'StructuralError: bad match for '+ wrong_match + ' in '
-        + str(wrong_match_index) + 'for dictonary \''
-        + str(parameters_map) + '\' from invalid_parameters_value() . \'R'
-        + '\' and \'C\' elements must have a float as parameter, \'Q\''
-        + 'must have a list')
+        + str(wrong_match_index) + 'for dictonary \'' + str(parameters_map)
+        + '\' from invalid_parameters_value() . \'R\' and \'C\' elements '
+        + 'must have a float as parameter, \'Q\' must have a list')
 
     assert parameters_list==input_parameters, (
-    'StructuralError for parameters of output of ' + caller
-    + '. It must be the same of the input parameters')
+        'StructuralError for parameters of output of ' + caller
+        + '. It must be the same of the input parameters')
 
 def test_initial_circuit_parameters_many_parameters(circuit_many_elements):
     """Check if the parameters map inside the Circuit object created by
@@ -2016,50 +2081,47 @@ def test_initial_circuit_parameters_many_parameters(circuit_many_elements):
 
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns four valid elements
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid parameters, the same as the ones in
     input
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_many_elements.parameters_map
     input_parameters = [7100.0, 2e-6, 10000.0, [0.1e-6, 0.87]]
+    parameters_map = circuit_many_elements.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
-    parameters_values= list(parameters_map.values())
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
+    parameters_values = list(parameters_map.values())
     parameters_list = [parameter[0] for parameter in parameters_values]
 
-    wrong_type, wrong_type_index = invalid_parameters_type(
-        parameters_list)
+    wrong_type, wrong_type_index = invalid_parameters_type(parameters_list)
     assert not wrong_type, (
-        'TypeError for parameter(s) number ' + str(wrong_type_index)
-        + ' ' + wrong_type + 'in ' + str(parameters_list) + ' in '
-        + caller + '. Parameters can only be floats or float lists'
-        + 'which contains exactly 2 parameters')
+        'TypeError for parameter(s) number ' + str(wrong_type_index) + ' '
+        + wrong_type + 'in ' + str(parameters_list) + ' in ' + caller
+        + '. Parameters can only be floats or float lists which contains '
+        + 'exactly 2 parameters')
 
-    wrong_value, wrong_value_index = invalid_parameters_value(
-        parameters_list)
+    wrong_value, wrong_value_index = invalid_parameters_value(parameters_list)
     assert not wrong_value, (
         'ValueError for parameter(s) number ' + str(wrong_value_index) + ' '
         + wrong_value + ' in ' + str(parameters_list) + ' in ' + caller
-        + '. Float parameters must be positive, lists parameters '
-        + 'must contain as first parameter a positive number and as second '
-        + 'parameter a number between 0 and 1')
-    wrong_match, wrong_match_index = elements_parameters_match(
-        parameters_map)
+        + '. Float parameters must be positive, lists parameters must contain '
+        + 'as first parameter a positive number and as second parameter a '
+        + 'number between 0 and 1')
+    wrong_match, wrong_match_index = elements_parameters_match(parameters_map)
     assert not wrong_match, (
         'StructuralError: bad match for '+ wrong_match + ' in '
-        + str(wrong_match_index) + 'for dictonary \''
-        + str(parameters_map) + '\' from invalid_parameters_value() . \'R'
-        + '\' and \'C\' elements must have a float as parameter, \'Q\''
-        + 'must have a list')
+        + str(wrong_match_index) + 'for dictonary \'' + str(parameters_map)
+        + '\' from invalid_parameters_value() . \'R\' and \'C\' elements '
+        + 'must have a float as parameter, \'Q\' must have a list')
 
     assert parameters_list==input_parameters, (
-    'StructuralError for parameters of output of ' + caller
-    + '. It must be the same of the input parameters')
+        'StructuralError for parameters of output of ' + caller
+        + '. It must be the same of the input parameters')
 
 def test_initial_circuit_parameters_wrong_parameters(circuit_wrong_parameters):
     """Check if the parameters map inside the Circuit object created by
@@ -2076,20 +2138,21 @@ def test_initial_circuit_parameters_wrong_parameters(circuit_wrong_parameters):
     GIVEN: the input circuit diagram, the parameters and the constant
     conditions are valid, they all concerns two valid elements. The second
     parameter has an invalid type
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has one and only one invalid parameter (by type),
     the same as the one in input, thus also has a bad match
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_wrong_parameters.parameters_map
     input_parameters = [2.1, '1']
+    parameters_map = circuit_wrong_parameters.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
-    parameters_values= list(parameters_map.values())
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
+    parameters_values = list(parameters_map.values())
     parameters_list = [parameter[0] for parameter in parameters_values]
 
     expected_result_type = '1 '
@@ -2100,37 +2163,33 @@ def test_initial_circuit_parameters_wrong_parameters(circuit_wrong_parameters):
         + 'invalid_parameters_type(). The detected invalid parameters are'
         + 'different from the expected ones: ' + expected_result_type)
 
-    wrong_value, wrong_value_index = invalid_parameters_value(
-        parameters_list)
+    wrong_value, wrong_value_index = invalid_parameters_value(parameters_list)
     assert not wrong_value, (
         'ValueError for parameter(s) number ' + str(wrong_value_index) + ' '
         + wrong_value + ' in ' + str(parameters_list) + ' in ' + caller
-        + '. Float parameters must be positive, lists parameters '
-        + 'must contain as first parameter a positive number and as second '
-        + 'parameter a number between 0 and 1')
+        + '. Float parameters must be positive, lists parameters must contain '
+        + 'as first parameter a positive number and as second parameter a '
+        + 'number between 0 and 1')
 
     expected_result_match = 'Ce and 1 '
-    wrong_match, wrong_match_index = elements_parameters_match(
-        parameters_map)
+    wrong_match, wrong_match_index = elements_parameters_match(parameters_map)
     assert wrong_match==expected_result_match, (
         'StructuralError: bad match for '+ wrong_match + ' in '
         + str(wrong_match_index) + 'for ' + str(parameters_map)  + ' from '
-        + 'invalid_parameters_value(). The invalid matches found are '
-        + 'different from the expected ones: ' + expected_result_match)
+        + 'invalid_parameters_value(). The invalid matches found are different '
+        + 'from the expected ones: ' + expected_result_match)
 
     assert parameters_list==input_parameters, (
-    'StructuralError for parameters of output of ' + caller
-    + '. It must be the same of the input parameters')
-
+        'StructuralError for parameters of output of ' + caller
+        + '. It must be the same of the input parameters')
 
 
 ##############################################################################
 #Constant conditions tests
 
 def invalid_constant_cond(constant_conditions_list):
-    """Given a constant conditions list, return any wrong
-    constant conditions: they can only be 0 or 1 in integer format.
-    Used for testing.
+    """Given a constant conditions list, return any wrong constant conditions:
+    they can only be 0 or 1 in integer format. Used for testing.
 
     Parameters
     ----------
@@ -2140,11 +2199,10 @@ def invalid_constant_cond(constant_conditions_list):
     Returns
     -------
     wrong_conds : str
-        String that contains all the invalid constant conditions,
-        separated by a whitespace
+        String that contains all the invalid constant conditions, separated by
+        a whitespace
     wrong_conds_index : list
-        List of indexes of the invalid invalid constant conditions in
-        the list
+        List of indexes of the invalid invalid constant conditions in the list
     """
     wrong_conds = ''
     wrong_conds_index = []
@@ -2161,6 +2219,8 @@ def invalid_constant_cond(constant_conditions_list):
 def test_invalid_constant_cond_no_const_cond():
     """Check that the help function to test if a list (which element are named
     constant conditions) contains all integers works on an empty list.
+    If no invalid constant condition is detected, the returned string and list
+    given by the function under test are empty.
 
     GIVEN: an empty list
     WHEN: I check if there are invalid constant conditions
@@ -2171,17 +2231,19 @@ def test_invalid_constant_cond_no_const_cond():
 
     assert not wrong_conds, (
         'TypeError for constant condition(s) ' + str(wrong_conds)
-        + ' number ' + str(wrong_conds_index) + ' in the empty list '
-        + ' from invalid_constant_type(). Cannot find invalid constant '
-        + 'condition type because there are in constant conditions')
+        + ' number ' + str(wrong_conds_index) + ' in the empty list from '
+        + 'invalid_constant_type(). Cannot find invalid constant condition '
+        + 'type because there are in constant conditions')
 
 def test_invalid_constant_type_single_const_cond():
     """Check that the help function to test if a list (which element are named
     constant conditions) contains all integers works on a list contaiinng only
     one (valid) constant condition. Valid constant condition are only be 0
     or 1 in integer format.
+    If no invalid constant condition is detected, the returned string and list
+    given by the function under test are empty.
 
-    GIVEN: a list contaiinng only one valid constant condition.
+    GIVEN: a list contaiinng only one valid constant condition
     WHEN: I check if there are invalid constant conditions
     THEN: no invalid constant condition found
     """
@@ -2199,8 +2261,10 @@ def test_invalid_constant_type_many_const_cond():
     constant conditions) contains all integers works on a list contaiinng five
     valid constant conditions. Valid constant condition are only be 0
     or 1 in integer format.
+    If no invalid constant condition is detected, the returned string and list
+    given by the function under test are empty.
 
-    GIVEN: a list contaiinng five valid constant conditions.
+    GIVEN: a list contaiinng five valid constant conditions
     WHEN: I check if there are invalid constant conditions
     THEN: no invalid constant condition by type found
     """
@@ -2219,6 +2283,8 @@ def test_invalid_constant_type_wrong_const_cond():
     constant conditions, of which the only the first one has valid type and
     value. Instead, the second has valid type but invalid value, while the
     last three have invalid type.
+    If invalid constant conditions are detected, the returned string contains
+    the invalid constant conditions, and the list their indexes in the list.
 
     GIVEN: a list contaiinng five constant conditions. The first one is the
     only one that has both valid type and value. the second one has invalid
@@ -2228,8 +2294,8 @@ def test_invalid_constant_type_wrong_const_cond():
     invalid
     """
     wrong_const_cond = [1, -1, 1.0, '0', [0]]
-    expected_result = '-1 1.0 0 [0] '
     wrong_conds, wrong_conds_index = invalid_constant_cond(wrong_const_cond)
+    expected_result = '-1 1.0 0 [0] '
 
     assert wrong_conds==expected_result, (
         'TypeError for constant condition(s) ' + str(wrong_conds)
@@ -2244,6 +2310,8 @@ def test_generate_constant_conditions_data_no_parameters():
     parameters is an empty dictionary.
     Each value has to be an integer, and can be either 0 or 1. The constant
     conditions list must have the same number of objects of the parameters.
+    If invalid constant conditions are detected, the returned string contains
+    the invalid constant conditions, and the list their indexes in the list.
 
     GIVEN: an empty dictionary as parameters
     WHEN: I check if the output of the constant condition generation in the
@@ -2252,8 +2320,8 @@ def test_generate_constant_conditions_data_no_parameters():
     """
     no_parameters = {}
     no_constant_cond = generate_constant_conditions_data(no_parameters)
-    caller = 'generate_constant_conditions_data()'
 
+    caller = 'generate_constant_conditions_data()'
     assert isinstance(no_constant_cond, dict), (
         'TypeError for constant conditions in ' + caller + '. It must be a '
         + 'dictionary')
@@ -2262,13 +2330,13 @@ def test_generate_constant_conditions_data_no_parameters():
     wrong_types, wrong_types_index = invalid_constant_cond(conditions)
     assert not wrong_types, (
         'TypeError for constant condition(s) ' + str(wrong_types)
-        + ' number ' + str(wrong_types_index) + ' in the empty list '
-        + ' from invalid_constant_type(). Cannot find invalid constant '
-        + 'condition type because there are in constant conditions')
+        + ' number ' + str(wrong_types_index) + ' in the empty list from '
+        + 'invalid_constant_type(). Cannot find invalid constant condition '
+        + 'type because there are in constant conditions')
     length_equality = (len(no_parameters)==len(conditions))
     assert length_equality, (
-        'StructuralError: error from ' + caller + ': parameters and '
-        + 'constant array list size must be the same. Parameters size: '
+        'StructuralError: error from ' + caller + ': parameters and constant '
+        + 'array list size must be the same. Parameters size: '
         + str(len(no_parameters)) + ', constant conditions size: '
         + str(len(conditions)))
 
@@ -2296,9 +2364,9 @@ def test_generate_constant_conditions_data_single_parameter():
     wrong_types, wrong_types_index = invalid_constant_cond(conditions)
     assert not wrong_types, (
         'TypeError for constant element(s) ' + str(wrong_types) + ' number '
-        + str(wrong_types_index) + ' in ' + str(conditions)
-        + ' from ' + caller + '. Constant conditions must be all '
-        + 'integers, with value either 0 or 1')
+        + str(wrong_types_index) + ' in ' + str(conditions) + ' from '
+        + caller + '. Constant conditions must be all integers, with value '
+        + 'either 0 or 1')
     length_equality = (len(single_parameter)==len(conditions))
     assert length_equality, (
         'StructuralError: error from ' + caller + ': parameters and '
@@ -2320,8 +2388,8 @@ def test_generate_constant_conditions_data_multiple_parameters():
     """
     three_parameters = {'R1': 100., 'C2': 1e-6, 'R3': 1000.}
     three_constant_cond = generate_constant_conditions_data(three_parameters)
-    caller = 'generate_constant_conditions_data()'
 
+    caller = 'generate_constant_conditions_data()'
     assert isinstance(three_constant_cond, dict), (
         'TypeError for constant conditions in ' + caller + '. It must be a '
         + 'dictionary')
@@ -2330,9 +2398,9 @@ def test_generate_constant_conditions_data_multiple_parameters():
     wrong_types, wrong_types_index = invalid_constant_cond(conditions)
     assert not wrong_types, (
         'TypeError for constant element(s) ' + str(wrong_types) + ' number '
-        + str(wrong_types_index) + ' in ' + str(conditions)
-        + ' from ' + caller + '. Constant conditions must be all '
-        + 'integers, with value either 0 or 1')
+        + str(wrong_types_index) + ' in ' + str(conditions) + ' from '
+        + caller + '. Constant conditions must be all integers, with value '
+        +'either 0 or 1')
     length_equality = (len(three_parameters)==len(conditions))
     assert length_equality, (
         'StructuralError: error from ' + caller + ': parameters and '
@@ -2341,10 +2409,9 @@ def test_generate_constant_conditions_data_multiple_parameters():
         + str(len(conditions)))
 
 def same_input_constant_cond(input_constant_conditions, parameters_map):
-    """Given an input constant conditions dictionary, return any
-    constant condition inside a parameters_map dictionary, that has constant
-    conditions in the second element of the values (that are tuples).
-    Used for testing.
+    """Given an input constant conditions dictionary, return any constant
+    condition inside a parameters_map dictionary, that has constant conditions
+    in the second element of the values (that are tuples). Used for testing.
 
     Parameters
     ----------
@@ -2380,7 +2447,9 @@ def test_same_input_constant_cond_no_const_cond():
     dictionaries.
     In the input_dictionary the constant conditions are the values, while in
     the other one the constant conditions are the first element of the tuple,
-    and the tuples are the values
+    and the tuples are the values.
+    If no bad match is detected, the returned string and list given by the
+    function under test are empty.
 
     GIVEN: two empty dictionaries
     WHEN: I check if there is a mismatch of constant conditions
@@ -2403,7 +2472,9 @@ def test_same_input_constant_cond_single_const_cond():
     dictionaries that have the same constant condition.
     In the input_dictionary the constant conditions are the values, while in
     the other one the constant conditions are the first element of the tuple,
-    and the tuples are the values
+    and the tuples are the values.
+    If no bad match is detected, the returned string and list given by the
+    function under test are empty.
 
     GIVEN: two dictionaries that have the same constant condition
     WHEN: I check if there is a mismatch of constant conditions
@@ -2418,8 +2489,8 @@ def test_same_input_constant_cond_single_const_cond():
         'StrucutralError for the constant conditions: mismatch '
         + str(bad_match) + ' , ' + str(bad_match_element) + ' in '
         + str(bad_match_element) + ' from same_input_constant_cond(). '
-        + 'Cannot have a mismatch because both of them are empty '
-        + 'dictionaries. They must be the same')
+        + 'Cannot have a mismatch because both of them are empty dictionaries. '
+        + 'They must be the same')
 
 def test_same_input_constant_cond_two_const_cond():
     """Check that the help function to test if two dictionaries with the same
@@ -2427,7 +2498,9 @@ def test_same_input_constant_cond_two_const_cond():
     dictionaries that have the same three constant conditions.
     In the input_dictionary the constant conditions are the values, while in
     the other one the constant conditions are the first element of the tuple,
-    and the tuples are the values
+    and the tuples are the values.
+    If no bad match is detected, the returned string and list given by the
+    function under test are empty.
 
     GIVEN: two dictionaries that have the same three constant conditions
     WHEN: I check if there is a mismatch of constant conditions
@@ -2452,7 +2525,9 @@ def test_same_input_constant_cond_mismatch_const_cond():
     condition that is different.
     In the input_dictionary the constant conditions are the values, while in
     the other one the constant conditions are the first element of the tuple,
-    and the tuples are the values
+    and the tuples are the values.
+    If bad matches are detected, the returned string contains the bad
+    matches and the list contains their position in the listing.
 
     GIVEN: one constant condition that is different (the first one)  and two
     dictionaries that have two equal constant conditions (the last two)
@@ -2462,9 +2537,9 @@ def test_same_input_constant_cond_mismatch_const_cond():
     input_two_const_cond = {'R1': 1, 'C2': 0, 'R3': 0}
     parameter_map_two_const_cond = {'R1': (100., 0), 'C2': (1e-6, 0),
                                     'R3': (2e3, 0)}
-    expected_result = '1 '
     bad_match, bad_match_element = same_input_constant_cond(
         input_two_const_cond, parameter_map_two_const_cond)
+    expected_result = '1 '
 
     assert bad_match==expected_result, (
         'StrucutralError for the constant conditions: mismatch '
@@ -2480,19 +2555,20 @@ def test_initial_circuit_constant_conditions_single_element(
     and thus one valid constant condition.
 
     GIVEN: a valid constant condition dictionary with one condition inside
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid constant conditions, the same of the
     input ones
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_single_element.parameters_map
     input_constant_conditions = {'R1': 0}
+    parameters_map = circuit_single_element.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
     parameters_values = list(parameters_map.values())
     constant_conditions_list = [parameter[1] for parameter in
                                 parameters_values]
@@ -2502,8 +2578,8 @@ def test_initial_circuit_constant_conditions_single_element(
     assert not wrong_types, (
         'TypeError for constant element(s) ' + str(wrong_types) + ' number '
         + str(wrong_types_index) + ' in ' + str(constant_conditions_list)
-        + ' from ' + caller + '. Constant conditions must be all '
-        + 'integers, with value either 0 or 1')
+        + ' from ' + caller + '. Constant conditions must be all integers, '
+        + 'with value either 0 or 1')
 
     bad_match, bad_match_element = same_input_constant_cond(
         input_constant_conditions, parameters_map)
@@ -2521,19 +2597,20 @@ def test_initial_circuit_constant_conditions_two_elements(
     and thus two valid constant conditions.
 
     GIVEN: a valid constant condition dictionary with two conditions inside
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid constant conditions, the same of the
     input ones
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_two_elements.parameters_map
     input_constant_conditions = {'R1': 1, 'C2': 0}
+    parameters_map = circuit_two_elements.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
     parameters_values = list(parameters_map.values())
     constant_conditions_list = [parameter[1] for parameter in
                                 parameters_values]
@@ -2543,8 +2620,8 @@ def test_initial_circuit_constant_conditions_two_elements(
     assert not wrong_types, (
         'TypeError for constant element(s) ' + str(wrong_types) + ' number '
         + str(wrong_types_index) + ' in ' + str(constant_conditions_list)
-        + ' from ' + caller + '. Constant conditions must be all '
-        + 'integers, with value either 0 or 1')
+        + ' from ' + caller + '. Constant conditions must be all integers, '
+        + 'with value either 0 or 1')
 
     bad_match, bad_match_element = same_input_constant_cond(
         input_constant_conditions, parameters_map)
@@ -2562,14 +2639,15 @@ def test_initial_circuit_constant_conditions_many_elements(
     and thus four valid constant conditions.
 
     GIVEN: a valid constant condition dictionary with four conditions inside
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object has valid constant conditions, the same of the
     input ones
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_many_elements.parameters_map
     input_constant_conditions = {'R1': 0, 'C2': 0, 'R3': 1, 'Q4': 0}
+    parameters_map = circuit_many_elements.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
@@ -2584,8 +2662,8 @@ def test_initial_circuit_constant_conditions_many_elements(
     assert not wrong_types, (
         'TypeError for constant element(s) ' + str(wrong_types) + ' number '
         + str(wrong_types_index) + ' in ' + str(constant_conditions_list)
-        + ' from ' + caller + '. Constant conditions must be all '
-        + 'integers, with value either 0 or 1')
+        + ' from ' + caller + '. Constant conditions must be all integers, '
+        + 'with value either 0 or 1')
 
     bad_match, bad_match_element = same_input_constant_cond(
         input_constant_conditions, parameters_map)
@@ -2593,8 +2671,8 @@ def test_initial_circuit_constant_conditions_many_elements(
         'StrucutralError for the constant conditions: mismatch between the '
         + 'constant condition of the class onject and the input counterpart '
         + 'for' + str(bad_match) + ' , ' + str(bad_match_element) + ' in '
-        + str(bad_match_element) + ' from ' + caller + '. '
-        + 'They must be the same')
+        + str(bad_match_element) + ' from ' + caller + '. They must be the '
+        + 'same')
 
 def test_initial_circuit_constant_conditions_wrong_parameters(
         circuit_wrong_parameters):
@@ -2604,18 +2682,19 @@ def test_initial_circuit_constant_conditions_wrong_parameters(
 
     GIVEN: a constant condition dictionary with a valid condition (the second
     one) and an invalid (by value) first constant condition
-    WHEN: the Circuit object is created
+    WHEN: the Circuit object is created through the generate_circuit()
+    function
     THEN: the Circuit object's first constant condition is detected as invalid
     """
-    caller = 'generate_circuit()'
-    parameters_map = circuit_wrong_parameters.parameters_map
     input_constant_conditions = {'R1': -1, 'Ce': 1}
+    parameters_map = circuit_wrong_parameters.parameters_map
 
+    caller = 'generate_circuit()'
     wrong_tuples = wrong_tuples_circuit(parameters_map)
     assert not wrong_tuples, (
         'TypeError in output of get_impedance_const_input_element_type() '
-        + 'for element \'' + wrong_tuples + '\'. Its value in the '
-        + 'dictionary have to be a tuple')
+        + 'for element \'' + wrong_tuples + '\'. Its value in the dictionary '
+        + 'have to be a tuple')
     parameters_values = list(parameters_map.values())
     constant_conditions_list = [parameter[1] for parameter in
                                 parameters_values]
