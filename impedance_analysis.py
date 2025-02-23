@@ -34,7 +34,7 @@ def error_function(parameters, impedance_data, impedance_function,
                    frequency):
     """Error function to be minimized to perform the fit. The first argument
     must be the parameters to be optimized. Raise a FloatingPointError if
-    there is a zero division in the calculation of the impedance. 
+    there is a zero division in the calculation of the impedance.
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def error_function(parameters, impedance_data, impedance_function,
         Complex array containing the impedance data from the data file
     impedance_function : function
         Impedance function of the circuit, depending on the parameters and on
-        the frequencies 
+        the frequencies
     frequency : array
         Frequencies from the data file
 
@@ -58,7 +58,7 @@ def error_function(parameters, impedance_data, impedance_function,
     try:
         impedance_calculated = impedance_function(parameters, frequency)
     except FloatingPointError as error:
-        sys.exit('FatalError: ' + repr(error)) 
+        sys.exit('FatalError: ' + repr(error))
     error = np.sum(np.abs(impedance_data-impedance_calculated)/np.abs(
         impedance_data))
     #print('parameters = ' + str(parameters) + ' error = ' + str(error))
@@ -245,8 +245,8 @@ def get_results_info(analyzed_circuit, final_error, initial_circuit):
 
 if __name__=="__main__":
 
-    default_name = 'config_analysis'
-    config = read_configuration(default_name)
+    DEFAULT_NAME = 'config_analysis'
+    config = read_configuration(DEFAULT_NAME)
 
     FILE_NAME = read_input_file_name(config)
     print('\nReading data . . . ')
@@ -259,7 +259,7 @@ if __name__=="__main__":
         config)
     initial_circuit = generate_circuit(CIRCUIT_DIAGRAM, input_parameters,
                                        constant_conditions)
-    
+
     print('\nAnalyzing circuit . . . ')
     analyzed_circuit = initial_circuit.generate_analyzed_circuit()
     impedance_function = analyzed_circuit.impedance

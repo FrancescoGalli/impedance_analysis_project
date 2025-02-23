@@ -53,7 +53,7 @@ def generate_circuit(circuit_diagram, parameters, constant_conditions,
     if set(elements)!=set(parameters.keys()):
         raise Exception('InputError: Mismatch between the elements in the '
                         + 'diagram and the element names of the parameters')
-    elif set(elements)!=set(parameters.keys()):
+    if set(elements)!=set(parameters.keys()):
         raise Exception('InputError: Mismatch between the elements in the '
                         + 'diagram and the element names of the parameters')
     for element in elements:
@@ -505,8 +505,7 @@ def impedance_capacitor(capacitance, frequency):
     if (capacitance==0. or 0. in frequency):
         raise ZeroDivisionError('Zero Division in capacitance impedance '
                                 + 'definition')
-    else:
-        impedance = 1./(1j*frequency*2*np.pi*capacitance)
+    impedance = 1./(1j*frequency*2*np.pi*capacitance)
     return impedance
 
 
@@ -533,10 +532,9 @@ def impedance_cpe(q_parameter, ideality_factor, frequency):
     impedance = 0.
     if (q_parameter==0. or 0. in frequency):
         raise ZeroDivisionError('Zero Division in cpe impedance definition')
-    else:
-        phase_factor = np.exp(np.pi/2*ideality_factor*1j)
-        impedance = 1./(
-            q_parameter*(frequency*2*np.pi)**ideality_factor*phase_factor)
+    phase_factor = np.exp(np.pi/2*ideality_factor*1j)
+    impedance = 1./(
+        q_parameter*(frequency*2*np.pi)**ideality_factor*phase_factor)
     return impedance
 
 
@@ -596,7 +594,7 @@ def reciprocal(function_):
     reciprocal_function : function
         Reciprocal function of the input function
     """
-    reciprocal_function = lambda x, y: 1./function_(x, y) 
+    reciprocal_function = lambda x, y: 1./function_(x, y)
     return reciprocal_function
 
 

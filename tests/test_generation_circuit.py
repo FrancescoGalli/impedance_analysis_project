@@ -83,8 +83,9 @@ def consistency_brackets(circuit_diagram):
 
 def test_consistency_brackets_single_pair():
     """Check that the help function to test if a string has brackets
-    consistency works on a single pair of brackets. If no inconsistency is
-    detected, the returned strings given by the function under test are empty.
+    consistency works on a single pair of brackets.
+    If no inconsistency is detected, the returned strings given by the
+    function under test are empty.
 
     GIVEN: the circuit diagram as a pair of round brackets
     WHEN: I check if there is a brackets inconsistency

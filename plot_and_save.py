@@ -11,7 +11,7 @@ OHM_CHARACTER_UNICODE = u'\u03A9'
 
 def get_amplitude(impedance):
     """Given a complex impedance, return its amplitude.
-    
+
     Parameters
     ----------
     impedance : array
@@ -27,7 +27,7 @@ def get_amplitude(impedance):
 
 def get_phase(impedance):
     """Given a complex impedance, return its phase in deg.
-    
+
     Parameters
     ----------
     impedance : array
@@ -79,6 +79,7 @@ def plot_data(frequency, impedance):
     plt.tight_layout()
     plt.savefig('Data.pdf')
     plt.show()
+    plt.close()
 
 
 def save_data(file_name, number_of_columns, frequency, impedance):
@@ -197,3 +198,4 @@ def plot_fit(frequency, impedance_data_vector, impedance_fit, result_info):
     plt.tight_layout()
     plt.savefig('Fit.pdf')
     plt.show()
+    plt.close()

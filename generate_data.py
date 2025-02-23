@@ -67,7 +67,7 @@ def calculate_impedance(impedance_function, frequency):
         impedance_signal = impedance_function([], frequency)
     except ZeroDivisionError as error:
         print('FatalError: ' + repr(error))
-        sys.exit(0) 
+        sys.exit(0)
     return impedance_signal
 
 def generate_random_error_component(seed_number, signal_length):
@@ -122,8 +122,8 @@ def simulate_noise(seed_number, impedance_signal):
 
 if __name__=="__main__":
 
-    default_name = 'config_generation'
-    config = read_configuration(default_name)
+    DEFAULT_NAME = 'config_generation'
+    config = read_configuration(DEFAULT_NAME)
 
     CIRCUIT_DIAGRAM = read_input_circuit_diagram(config)
     parameters = read_input_parameters(config)
