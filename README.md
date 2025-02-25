@@ -49,6 +49,7 @@ following standard libraries:
 - `sys`
 - `os.path`
 - `pathlib`
+
 and on the following scientific libraries:
 - `numpy`
 - `scipy.optimize`
@@ -71,11 +72,12 @@ the command
 ```
 python3 <module_name>.py --config=<configuration_file_name>
 ```
-where `<confi_file_name>` is the name, without the `.ini` extention, of the
-configuration file. This is done in order to keep track of the input settings
-given to the program. This command is optional, and the default value is
-`config_generation` for the generation module and `config_analysis` for the
-analysis module.
+where `<module_name>` is either the generation module `generate_data` or
+`impedance_analysis`, while `<confi_file_name>` is the name, without the
+`.ini` extention, of the configuration file. This is done in order to keep
+track of the input settings given to the program. This command is optional,
+and the default value is `config_generation` for the generation module and
+`config_analysis` for the analysis module.
 
 ## Structure
 The library is divided in 5 modules:
