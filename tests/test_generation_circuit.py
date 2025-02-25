@@ -1413,7 +1413,7 @@ def test_initial_circuit_elements_wrong_elements(circuit_wrong_parameters):
 
 def wrong_tuples_circuit(parameters_map):
     """Return any element inside a dictionary that has not a tuple of length
-    2 as a value.
+    2 as a value. Used for testing.
 
     Parameters
     ----------

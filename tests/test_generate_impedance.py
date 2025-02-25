@@ -21,6 +21,7 @@ from generate_impedance import (
     reciprocal, parallel_comb, get_position_opening_bracket, get_string,
     list_elements_circuit)
 
+
 ################################
 #Test impedance definitions
 
@@ -33,7 +34,7 @@ def test_impedance_resistor_type(resistance, frequency):
     valid type of impedance array.
 
     GIVEN: the value of resistance and frequencies are valid
-    WHEN: I call the definition of resisitive impedance
+    WHEN: I call the definition of resistive impedance
     THEN: the impedance is an array of complex impedances of the same size of
     the fequency array.
     """
@@ -56,7 +57,7 @@ def test_impedance_resistor_value_single_zero():
 
     GIVEN: a valid (zero) resistance and a valid frequency list with just one
     value
-    WHEN: I call the definition of resisitive impedance
+    WHEN: I call the definition of resistive impedance
     THEN: the amplitude and phase of the impedence are the ones expected
     (valid ones)
     """
@@ -82,7 +83,7 @@ def test_impedance_resistor_value_many_zeros():
 
     GIVEN: a valid (zero) resistance and a valid frequency list with five
     values
-    WHEN: I call the definition of resisitive impedance
+    WHEN: I call the definition of resistive impedance
     THEN: the amplitude and phase of the impedence are the ones expected
     (valid ones)
     """
@@ -107,7 +108,7 @@ def test_impedance_resistor_value_positive_value():
     resistance, while the phase is always zero.
 
     GIVEN: a valid resistance and a valid frequency list with five values
-    WHEN: I call the definition of resisitive impedance
+    WHEN: I call the definition of resistive impedance
     THEN: the amplitude and phase of the impedence are the ones expected
     (valid ones)
     """
@@ -132,7 +133,7 @@ def test_impedance_resistor_value_invalid_negative_value():
     resistance, while the phase is always zero.
 
     GIVEN: an invalid resistance and a valid frequency list with three values
-    WHEN: I call the definition of resisitive impedance
+    WHEN: I call the definition of resistive impedance
     THEN: the amplitude and phase of the impedance are the expected invalid
     ones, up to a certain high precision
     """
@@ -140,7 +141,7 @@ def test_impedance_resistor_value_invalid_negative_value():
     frequency = [1., 10., 100]
     impedance = impedance_resistor(resistance, frequency)
     expected_amplitude = [2., 2., 2.]
-    expected_phase = np.ones(3)*180. #Invalid phase: it is 180. instead of 0
+    expected_phase = np.ones(3)*180. #Invalid phase: it is 180 instead of 0
 
     assert np.all(abs(impedance)==expected_amplitude), (
         'ValueError from the definition of impedance of the ' + str(resistance)
@@ -179,7 +180,7 @@ def test_impedance_capacitor_value_single_value():
     single frequency point.
     For a capacitor, the amplitude is the absolute value of one over the
     product of the value of the capacitance and the fequencies, and then
-    divided by 2*pi. The phase is always -90 deg or -pi/2
+    divided by 2pi. The phase is always -90 deg (or -pi/2 in rad).
 
     GIVEN: a valid capacitance and a valid frequency list with just one
     value
@@ -206,7 +207,7 @@ def test_impedance_capacitor_value_many_values():
     five frequency points.
     For a capacitor, the amplitude is the absolute value of one over the
     product of the value of the capacitance and the fequencies, and then
-    divided by 2*pi. The phase is always -90 deg or -pi/2
+    divided by 2*pi. The phase is always -90 deg (or -pi/2 in rad).
 
     GIVEN: a valid capacitance and a valid frequency list with five values
     WHEN: I call the definition of capacitative impedance
@@ -234,7 +235,7 @@ def test_impedance_capacitor_negative_value():
     capacitance and three frequency points.
     For a capacitor, the amplitude is the absolute value of one over the
     product of the value of the capacitance and the fequencies, and then
-    divided by 2*pi. The phase is always -90 deg or -pi/2
+    divided by 2*pi. The phase is always -90 deg (or -pi/2 in rad).
 
     GIVEN: an invalid negative capacitance and a valid frequency list with
     three values
@@ -263,7 +264,7 @@ def test_impedance_capacitor_zero_capacitance():
     """Check that the definition of the impedance of capacitors raises an
     Exception with a certain message when the value of the capacitance is zero.
     Since the impedance goes as 1/capacitance, that would lead to a division
-    by 0
+    by 0.
 
     GIVEN: an invalid zero capacitance and a valid frequency list with one
     value
@@ -284,7 +285,7 @@ def test_impedance_capacitor_zero_frequency():
     Exception with a certain message when the value of the capacitance is
     finite but one of the frequencies is zero.
     Since the impedance goes as 1/frequency, that would lead to a division
-    by 0
+    by 0.
 
     GIVEN: a valid capacitance but an invalid zero frequency in a list with
     three values
@@ -327,14 +328,15 @@ def test_impedance_cpe_type(q_parameter, ideality_factor, frequency):
 def test_impedance_cpe_value_resistor_like():
     """Check that the definition of the impedance of cpe returns a
     proper impedance value in the case of a valid positive Q, an iedality
-    factor of 0 and a single frequency point. If ideality_factor is zero, the impedance
-    behaviour is similar to a resistor one, with 1/q_factor as "resistance".
+    factor of 0 and a single frequency point. If ideality_factor is zero, the
+    impedance behaviour is similar to a resistor one, with 1/q_factor as
+    "resistance".
     For a cpe, the amplitude is inversely proportional to Q and frequency
-    to the power of ideality_factor, while the phase ranges from -90 to 0, depending
-    on the value of ideality_factor (that ranges between 0 and 1)
+    to the power of ideality_factor, while the phase ranges from -90 to 0,
+    depending on the value of ideality_factor (that ranges between 0 and 1).
 
-    GIVEN: a valid Q, a valid (zero) ideality_factor and a valid frequency list with just one
-    value
+    GIVEN: a valid Q, a valid (zero) ideality factor n and a valid frequency
+    list with just one value
     WHEN: I call the definition of cpe impedance
     THEN: the amplitude and phase of the impedance are the ones expected
     (valid ones)
@@ -356,14 +358,15 @@ def test_impedance_cpe_value_resistor_like():
 def test_impedance_cpe_value_capacitor_like():
     """Check that the definition of the impedance of cpe returns a
     proper impedance value in the case of a valid positive Q, an iedality
-    factor of 1 and a five frequency points. If ideality_factor is 1, the impedance
-    behaviour is similar to a capacitor one, with q_factor as "capacitance".
+    factor of 1 and a five frequency points. If ideality_factor is 1, the
+    impedance behaviour is similar to a capacitor one, with q_factor as
+    "capacitance".
     For a cpe, the amplitude is inversely proportional to Q and frequency
-    to the power of ideality_factor, while the phase ranges from -90 to 0, depending
-    on the value of ideality_factor (that ranges between 0 and 1)
+    to the power of ideality_factor, while the phase ranges from -90 to 0,
+    depending on the value of ideality_factor (that ranges between 0 and 1).
 
-    GIVEN: a valid Q, a valid (one) ideality_factor and a valid frequency list with just one
-    value
+    GIVEN: a valid Q, a valid (one) ideality factor and a valid frequency list
+    with just one value
     WHEN: I call the definition of cpe impedance
     THEN: the amplitude and phase of the impedance are the ones expected
     (valid ones)
@@ -373,7 +376,7 @@ def test_impedance_cpe_value_capacitor_like():
     frequency = np.array([0.1, 1., 10., 100., 1000.])
     impedance = impedance_cpe(q_factor, ideality_factor, frequency)
     rounded_amplitude = np.ndarray.round(np.array(abs(impedance)), 5)
-    expected_amplitude =  np.array([1e4, 1e3, 1e2, 1e1, 1.])/(2*np.pi)
+    expected_amplitude = np.array([1e4, 1e3, 1e2, 1e1, 1.])/(2*np.pi)
     rounded_expected_amplitude = np.ndarray.round(expected_amplitude, 5)
     expected_phase = np.ones(5)*[-90.]
 
@@ -387,15 +390,15 @@ def test_impedance_cpe_value_capacitor_like():
 def test_impedance_cpe_value_half_way():
     """Check that the definition of the impedance of cpe returns a
     proper impedance value in the case of a valid positive Q, an iedality
-    factor of 0.5 and a a frequency point. If ideality_factor is 0.5, the impedance
-    behaviour has not an easy interpretation, but we could say that, it is
-    half-way beteween a resisitor and a capacitor.
+    factor of 0.5 and a a frequency point. If ideality_factor is 0.5, the
+    impedance behaviour has not an easy interpretation, but we could say that,
+    it is half-way beteween a resistor and a capacitor.
     For a cpe, the amplitude is inversely proportional to Q and frequency
-    to the power of ideality_factor, while the phase ranges from -90 to 0, depending
-    on the value of ideality_factor (that ranges between 0 and 1)
+    to the power of ideality_factor, while the phase ranges from -90 to 0,
+    depending on the value of ideality_factor (that ranges between 0 and 1).
 
-    GIVEN: a valid Q, a valid (0.5) ideality_factor and a valid frequency list with just one
-    value
+    GIVEN: a valid Q, a valid (0.5) ideality factor and a valid frequency list
+    with just one value
     WHEN: I call the definition of cpe impedance
     THEN: the amplitude and phase of the impedance are the ones expected
     (valid ones)
@@ -420,10 +423,11 @@ def test_impedance_cpe_value_half_way():
 def test_impedance_cpe_zero_q():
     """Check that the definition of the impedance of cpe raises an
     Exception with a certain message when the value of q_factor is zero.
-    Since the impedance goes as 1/q_factor, that would lead to a division by 0
+    Since the impedance goes as 1/q_factor, that would lead to a division by
+    0.
 
-    GIVEN: an invalid (zero) Q, a valid (one) ideality_factor and a valid frequency list
-    with one value
+    GIVEN: an invalid (zero) Q, a valid (one) ideality_factor and a valid
+    frequency list with one value
     WHEN: I call the definition of capacitative impedance
     THEN: the impedance definition function raises an Exception with a message
     that states the division by 0
@@ -439,13 +443,13 @@ def test_impedance_cpe_zero_q():
 
 def test_impedance_cpe_zero_frequency():
     """Check that the definition of the impedance of cpe raises an
-    Exception with a certain message when the value of q_factor is finite but one of
-    the frequencies is zero.
+    Exception with a certain message when the value of q_factor is finite but
+    one of the frequencies is zero.
     Since the impedance goes as 1/frequency, that would lead to a division
-    by 0
+    by 0.
 
-    GIVEN: a valid q_factor and ideality_factor, but an invalid zero frequency in a list with
-    three values
+    GIVEN: a valid q_factor and ideality_factor, but an invalid zero frequency
+    in a list with three values
     WHEN: I call the definition of capacitative impedance
     THEN: the impedance definition function raises an Exception with a message
     that states the division by 0
@@ -464,10 +468,10 @@ def test_add_double_zero():
     """Check that the add function returns a valid sum function in the case of
     two functions that are always zero.
 
-    GIVEN: two functions that are always zero (zero function).
+    GIVEN: two functions that are always zero (zero functions).
     WHEN: the add function is called
     THEN: the result of the add function is a proper sum function that is
-    always zero.
+    always zero
     """
     first_zero_function = lambda x, y: 0
     second_zero_function = lambda x, y: 0
@@ -489,7 +493,7 @@ def test_add_one_zero():
 
     GIVEN: a function that is just the first input and a zero function
     WHEN: the add function is called
-    THEN: the result of the add function is a proper sum function.
+    THEN: the result of the add function is a proper sum function
     """
     first_function = lambda x, y: x
     zero_function = lambda x, y: 0
@@ -507,13 +511,13 @@ def test_add_one_zero():
 
 def test_add_directly_proportional():
     """Check that the add function returns a valid sum function in the case of
-    a function that returns just the first input and a secod one that returns
-    the second input.
+    a function that returns the first input and a secod one that returns the
+    second input.
 
     GIVEN: a function that returns just the first input and a secod one that
     returns the second input
     WHEN: the add function is called
-    THEN: the result of the add function is a proper sum function.
+    THEN: the result of the add function is a proper sum function
     """
     first_function = lambda x, y: x
     second_function = lambda x, y: y
@@ -537,7 +541,7 @@ def test_serial_comb_single_function():
     GIVEN: a list of functions with just one function
     WHEN: the function to perform the serial comb is called
     THEN: the result of the serial comb function is a proper sum function, in
-    this case the input function.
+    this case the input function
     """
     singe_function = lambda x, y: x + y
     serial_comb_function = serial_comb([singe_function])
@@ -549,8 +553,8 @@ def test_serial_comb_single_function():
         'TypeError for the output of function of serial_comb() test. It must '
         + 'be a function')
     assert np.all(serial_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'serial_comb() test. The output is incorrect')
+        'ValueError for the output of function of function of the '
+        + 'serial_comb() test. The output is incorrect')
 
 def test_serial_comb_two_functions():
     """Check that the serial comb function returns a valid sum function in the
@@ -571,8 +575,8 @@ def test_serial_comb_two_functions():
         'TypeError for the output of function of serial_comb() test. It must '
         + 'be a function')
     assert np.all(serial_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'serial_comb() test. The output is incorrect')
+        'ValueError for the output of function of function of the '
+        + 'serial_comb() test. The output is incorrect')
 
 def test_serial_comb_three_functions():
     """Check that the serial comb function returns a valid sum function in the
@@ -580,7 +584,7 @@ def test_serial_comb_three_functions():
 
     GIVEN: a list of functions with three functions
     WHEN: the function to perform the serial comb is called
-    THEN: the result of the serial comb function is a proper sum function.
+    THEN: the result of the serial comb function is a proper sum function
     """
     first_function = lambda x, y: (x + y)/2
     second_function = lambda x, y: y**2/4
@@ -595,8 +599,8 @@ def test_serial_comb_three_functions():
         'TypeError for the output of function of serial_comb() test. It must '
         + 'be a function')
     assert np.all(serial_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'serial_comb() test. The output is incorrect')
+        'ValueError for the output of function of function of the '
+        + 'serial_comb() test. The output is incorrect')
 
 def test_serial_comb_no_functions():
     """Check that the serial comb function returns a valid sum function in the
@@ -616,9 +620,8 @@ def test_serial_comb_no_functions():
         'TypeError for the output of function of serial_comb() test. It must '
         + 'be a function')
     assert np.all(serial_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'serial_comb() test. The output is different than the one '
-            + 'expected')
+        'ValueError for the output of function of function of the '
+        + 'serial_comb() test. The output is different than the one expected')
 
 
 def test_reciprocal_constant():
@@ -627,14 +630,13 @@ def test_reciprocal_constant():
 
     GIVEN: a valid constant of function
     WHEN: the functions to get the reciprocal of a function is called
-    THEN: the output function is the reciprocal function of the input one.
+    THEN: the output function is the reciprocal function of the input one
     """
     input_function = lambda x, y: 3
     reciprocal_function = reciprocal(input_function)
     x_inputs = [0, 1, 2, 4]
     y_inputs = [0, 1, 5, 10]
     expected_result = 1/3
-    second_reciprocal = reciprocal(reciprocal_function)
 
     assert inspect.isfunction(reciprocal_function), (
         'TypeError for the output function of reciprocal() test. It must be a '
@@ -642,6 +644,7 @@ def test_reciprocal_constant():
     assert reciprocal_function(x_inputs, y_inputs)==expected_result, (
         'ValueError for the output function of the reciprocal() test. The '
         + 'output is incorrect')
+    second_reciprocal = reciprocal(reciprocal_function)
     assert second_reciprocal(x_inputs, y_inputs)==(
         input_function(x_inputs, y_inputs)), (
         'ValueError for the output function of the reciprocal() test. The '
@@ -653,14 +656,13 @@ def test_reciprocal_x():
 
     GIVEN: a valid x function
     WHEN: the functions to get the reciprocal of a function is called
-    THEN: the output function is the reciprocal function of the input one.
+    THEN: the output function is the reciprocal function of the input one
     """
     input_function = lambda x, y: x
     reciprocal_function = reciprocal(input_function)
     x_inputs = np.array([0.5, 1, 2, 4 ])
     y_inputs = np.array([1, 5, 6, 10])
     expected_result = [2., 1., 0.5, 0.25]
-    second_reciprocal = reciprocal(reciprocal_function)
 
     assert inspect.isfunction(reciprocal_function), (
         'TypeError for the output function of reciprocal() test. It must be a '
@@ -668,6 +670,7 @@ def test_reciprocal_x():
     assert np.all(reciprocal_function(x_inputs, y_inputs)==expected_result), (
         'ValueError for the output function of the reciprocal() test. The '
         + 'output is incorrect')
+    second_reciprocal = reciprocal(reciprocal_function)
     assert np.all(second_reciprocal(x_inputs, y_inputs)==(
         input_function(x_inputs, y_inputs))), (
         'ValueError for the output function of the reciprocal() test. The '
@@ -679,14 +682,13 @@ def test_reciprocal_one_over_x():
 
     GIVEN: a valid 1/x function
     WHEN: the functions to get the reciprocal of a function is called
-    THEN: the output function is the reciprocal function of the input one.
+    THEN: the output function is the reciprocal function of the input one
     """
     input_function = lambda x, y: 1/x
     reciprocal_function = reciprocal(input_function)
     x_inputs = np.array([0.5, 1, 2, 4 ])
     y_inputs = np.array([1, 5, 6, 10])
     expected_result = np.copy(x_inputs)
-    second_reciprocal = reciprocal(reciprocal_function)
 
     assert inspect.isfunction(reciprocal_function), (
         'TypeError for the output function of reciprocal() test. It must be a '
@@ -694,6 +696,7 @@ def test_reciprocal_one_over_x():
     assert np.all(reciprocal_function(x_inputs, y_inputs)==expected_result), (
         'ValueError for the output function of the reciprocal() test. The '
         + 'output is incorrect')
+    second_reciprocal = reciprocal(reciprocal_function)
     assert np.all(second_reciprocal(x_inputs, y_inputs)==(
         input_function(x_inputs, y_inputs))), (
         'ValueError for the output function of the reciprocal() test. The '
@@ -713,18 +716,18 @@ def test_parallel_comb_single_function():
     parallel_comb_function = parallel_comb([singe_function])
     x_inputs = np.array([1, 2, 4, 5])
     y_inputs = np.array([1, 5, 10, 15])
-    expected_result = [2, 7, 14, 20]
+    expected_result = [2, 7, 14, 20] #Also output of the input function
 
     assert inspect.isfunction(parallel_comb_function), (
         'TypeError for the output of function of parallel_comb() test. It must '
         + 'be a function')
     assert np.all(parallel_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'parallel_comb() test. The output is incorrect')
+        'ValueError for the output of function of function of the '
+        + 'parallel_comb() test. The output is incorrect')
 
 def test_parallel_comb_two_functions():
-    """Check that the parallel comb function returns a valid sum function in the
-    case of two functions.
+    """Check that the parallel comb function returns a valid sum function in
+    the case of two functions.
 
     GIVEN: a list of functions with two functions
     WHEN: the function to perform the parallel comb is called
@@ -741,12 +744,12 @@ def test_parallel_comb_two_functions():
         'TypeError for the output of function of parallel_comb() test. It must '
         + 'be a function')
     assert np.all(parallel_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'parallel_comb() test. The output is incorrect')
+        'ValueError for the output of function of function of the '
+        + 'parallel_comb() test. The output is incorrect')
 
 def test_parallel_comb_three_functions():
-    """Check that the parallel comb function returns a valid sum function in the
-    case of three functions.
+    """Check that the parallel comb function returns a valid sum function in
+    the case of three functions.
 
     GIVEN: a list of functions with three functions
     WHEN: the function to perform the parallel comb is called
@@ -765,8 +768,9 @@ def test_parallel_comb_three_functions():
         'TypeError for the output of function of parallel_comb() test. It must '
         + 'be a function')
     assert np.all(parallel_comb_function(x_inputs, y_inputs)==expected_result), (
-            'ValueError for the output of function of function of the '
-            + 'parallel_comb() test. The output is incorrect')
+        'ValueError for the output of function of function of the '
+        + 'parallel_comb() test. The output is incorrect')
+
 
 ################################
 #Test mischellanous functions
@@ -784,16 +788,16 @@ def test_get_position_opening_bracket_single_cell():
     """
     diagram = '(R1)'
     i_end = 3
-    position_barcket = get_position_opening_bracket(diagram, i_end)
+    position_bracket = get_position_opening_bracket(diagram, i_end)
     expected_result = 0
 
-    assert isinstance(position_barcket, int), (
+    assert isinstance(position_bracket, int), (
         'TypeError in output of get_position_opening_bracket(). Last '
         + 'opening bracket position must be an integer')
-    assert position_barcket>=0, ('ValueError in output of '
+    assert position_bracket>=0, ('ValueError in output of '
         + 'get_position_opening_bracket(). Last opening bracket position '
         + 'must be non-negative')
-    assert position_barcket==expected_result, (
+    assert position_bracket==expected_result, (
         'ValueError for the output of the get_position_opening_bracket() '
         + 'test. It does not match the correct position')
 
@@ -811,16 +815,16 @@ def test_get_position_opening_bracket_nested_cells():
     """
     diagram = '(C1R2[R3])'
     i_end = 8
-    position_barcket = get_position_opening_bracket(diagram, i_end)
+    position_bracket = get_position_opening_bracket(diagram, i_end)
     expected_result = 5
 
-    assert isinstance(position_barcket, int), (
+    assert isinstance(position_bracket, int), (
         'TypeError in output of get_position_opening_bracket(). Last '
         + 'opening bracket position must be an integer')
-    assert position_barcket>=0, ('ValueError in output of '
+    assert position_bracket>=0, ('ValueError in output of '
         + 'get_position_opening_bracket(). Last opening bracket position '
         + 'must be non-negative')
-    assert position_barcket==expected_result, (
+    assert position_bracket==expected_result, (
         'ValueError for the output of the get_position_opening_bracket() '
         + 'test. It does not match the correct position')
 
@@ -838,16 +842,16 @@ def test_get_position_opening_bracket_complex():
     """
     diagram = '(C1R2[R3Q4][R5C6])'
     i_end = 10
-    position_barcket = get_position_opening_bracket(diagram, i_end)
+    position_bracket = get_position_opening_bracket(diagram, i_end)
     expected_result = 5
 
-    assert isinstance(position_barcket, int), (
+    assert isinstance(position_bracket, int), (
         'TypeError in output of get_position_opening_bracket(). Last '
         + 'opening bracket position must be an integer')
-    assert position_barcket>=0, ('ValueError in output of '
+    assert position_bracket>=0, ('ValueError in output of '
         + 'get_position_opening_bracket(). Last opening bracket position '
         + 'must be non-negative')
-    assert position_barcket==expected_result, (
+    assert position_bracket==expected_result, (
         'ValueError for the output of the get_position_opening_bracket() '
         + 'test. It does not match the correct position')
 
@@ -885,23 +889,23 @@ def test_get_string_empty():
     expected_result = ''
 
     assert isinstance(joined_string, str), (
-        'TypeError for output of get_string(): the output must be a '
-        + 'string, not a ' + str(type(joined_string)))
+        'TypeError for output of get_string(): the output must be a string, '
+        + 'not a ' + str(type(joined_string)))
     assert (joined_string==expected_result), (
         'ValueError for the output of get_string(): the output does not '
         + 'match the correct string')
 
 def test_get_string_single_element():
     """Check that the output of get_string() is a valid joined string in the
-    case of a list with just one string element
+    case of a list with just one string element.
 
     GIVEN: a list with just one string element
     WHEN: I call the function to concatenate strings from a list of strings
     THEN: the output of get_string() is the expected joined string, as
     expected
     """
-    empty_list = ['1']
-    joined_string = get_string(empty_list)
+    single_element_list = ['1']
+    joined_string = get_string(single_element_list)
     expected_result = '1'
 
     assert isinstance(joined_string, str), (
@@ -913,15 +917,15 @@ def test_get_string_single_element():
 
 def test_get_string_many_element():
     """Check that the output of get_string() is a valid joined string in the
-    case of a list with three string elements
+    case of a list with three string elements.
 
     GIVEN: a list with three one string elements
     WHEN: I call the function to concatenate strings from a list of strings
     THEN: the output of get_string() is the expected joined string, as
     expected
     """
-    empty_list = ['1', 'and', '2']
-    joined_string = get_string(empty_list)
+    many_element_list = ['1', 'and', '2']
+    joined_string = get_string(many_element_list)
     expected_result = '1\nand\n2'
 
     assert isinstance(joined_string, str), (
@@ -942,7 +946,7 @@ def wrong_match_element_initial_circuit_final_parameters(initial_parameters,
     must be present in the final parameters_map with the same element name a
     key. No constant element of the initial circuit must be present in the
     final parameters_map and no element that is not present in the initial
-    parameters must be present in the final parameters map
+    parameters must be present in the final parameters map. Used for testing.
 
     Parameters
     ----------
@@ -976,7 +980,9 @@ def test_wrong_match_element_initial_final_parameters_no_element():
     input parameters dictionaries and final parameters dictionaries works in
     the case of two empty dictionaries.
     All and only the initial parameters elements that are not constant must be
-    in the final parameters elements
+    in the final parameters elements.
+    If no invalid match is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: two empty dictionaries
     WHEN: I check if the final parameters elements are correctly set from the
@@ -989,10 +995,9 @@ def test_wrong_match_element_initial_final_parameters_no_element():
         input_parameters_map, final_parameters_map)
 
     assert not wrong_elements, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found. Cannot find any bad match because the dictionaries are both '
-        + 'empty')
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found. '
+        + 'Cannot find any bad match because the dictionaries are both empty')
 
 def test_wrong_match_element_initial_final_parameters_single_element():
     """Check that the help function that finds the element mismatch between
@@ -1000,7 +1005,9 @@ def test_wrong_match_element_initial_final_parameters_single_element():
     the case of a non constant element in the initial dictionary and the same
     element in the final dictonary.
     All and only the initial parameters elements that are not constant must be
-    in the final parameters elements
+    in the final parameters elements.
+    If no invalid match is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: a non constant element in the initial dictionary and the same
     element in the final dictonary
@@ -1014,9 +1021,8 @@ def test_wrong_match_element_initial_final_parameters_single_element():
         input_parameters_map, final_parameters_map)
 
     assert not wrong_elements, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found. ')
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found. ')
 
 def test_wrong_match_element_initial_final_parameters_two_elements():
     """Check that the help function that finds the element mismatch between
@@ -1024,7 +1030,8 @@ def test_wrong_match_element_initial_final_parameters_two_elements():
     the case of both a non constant element a constant element in the initial
     dictionary and only the non constant element in the final dictonary.
     All and only the initial parameters elements that are not constant must be
-    in the final parameters elements
+    If no invalid match is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: a non constant element  and a constant element in the initial
     dictionary and only the non constant element in the final dictonary
@@ -1038,9 +1045,8 @@ def test_wrong_match_element_initial_final_parameters_two_elements():
         input_parameters_map, final_parameters_map)
 
     assert not wrong_elements, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found. ')
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found. ')
 
 def test_wrong_match_element_initial_final_parameters_missing_element():
     """Check that the help function that finds the element mismatch between
@@ -1048,7 +1054,9 @@ def test_wrong_match_element_initial_final_parameters_missing_element():
     the case of two non constant elements in the initial dictionary and only
     one of them in the final dictonary.
     All and only the initial parameters elements that are not constant must be
-    in the final parameters elements
+    in the final parameters elements.
+    If invalid matches (by element) are detected, the returned string given
+    by the function under test contains the elements of the bad matches.
 
     GIVEN: a non constant element and a constant element in the initial
     dictionary and only one of them in the final dictonary
@@ -1058,9 +1066,9 @@ def test_wrong_match_element_initial_final_parameters_missing_element():
     """
     input_parameters_map = {'R1': (300., 0), 'R2': (100., 0)}
     final_parameters_map = {'R1': 200.}
-    expected_result = 'R2 '
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'R2 '
 
     assert wrong_elements==expected_result, (
         'Bad match between non constant elements of the initial circuit '
@@ -1075,7 +1083,9 @@ def test_wrong_match_element_initial_final_parameters_extra_element():
     dictionary, while the final dictonary has the same non-constant element
     but also an entirely new element.
     All and only the initial parameters elements that are not constant must be
-    in the final parameters elements
+    in the final parameters elements.
+    If invalid matches (by element) are detected, the returned string given
+    by the function under test contains the elements of the bad matches.
 
     GIVEN: one non constant element and a constant one in the initial
     dictionary, while the final dictonary has the same non-constant element
@@ -1087,9 +1097,9 @@ def test_wrong_match_element_initial_final_parameters_extra_element():
     """
     input_parameters_map = {'R1': (300., 0), 'R2': (100., 0)}
     final_parameters_map = {'R1': 300., 'C2': 100.}
-    expected_result = 'Extra element in the final parameters '
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'Extra element in the final parameters '
 
     assert wrong_elements==expected_result, (
         'Bad match between non constant elements of the initial circuit '
@@ -1104,7 +1114,9 @@ def test_wrong_match_element_initial_final_parameters_bad_match():
     dictionary, while the final dictonary has the same non-constant element
     but also an entirely new element.
     All and only the initial parameters elements that are not constant must be
-    in the final parameters elements
+    in the final parameters elements.
+    If invalid matches (by element) are detected, the returned string given
+    by the function under test contains the elements of the bad matches.
 
     GIVEN: one non constant element and a constant one in the initial
     dictionary, while the final dictonary has the the same elements (though
@@ -1116,9 +1128,9 @@ def test_wrong_match_element_initial_final_parameters_bad_match():
     """
     input_parameters_map = {'R1': (300., 1), 'R2': (100., 0)}
     final_parameters_map = {'R1': 300., 'R2': 100.}
-    expected_result = 'R1 '
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'R1 '
 
     assert wrong_elements==expected_result, (
         'Bad match between non constant elements of the initial circuit '
@@ -1134,7 +1146,7 @@ def wrong_match_parameter_initial_circuit_final_parameters(initial_parameters,
     must be present in the final parameters_map with the same element name a
     key. No constant parameter of the initial circuit must be present in the
     final parameters_map and no parameter that is not present in the initial
-    parameter must be present in the final parameters map
+    parameter must be present in the final parameters map. Used for testing.
 
     Parameters
     ----------
@@ -1178,7 +1190,9 @@ def test_wrong_match_parameter_initial_final_parameters_no_element():
     input parameters dictionaries and final parameters dictionaries works in
     the case of two empty dictionaries.
     All and only the initial parameters that are not constant must be in the
-    final parameters
+    final parameters.
+    If no invalid match is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: two empty dictionaries
     WHEN: I check if the final parameters are correctly set from the initial
@@ -1202,7 +1216,9 @@ def test_wrong_match_parameter_initial_final_parameters_single_element():
     the case of a non constant parameter in the initial dictionary and the
     same parameter in the final dictonary.
     All and only the initial parameters that are not constant must be
-    in the final parameters
+    in the final parameters.
+    If no invalid match is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: a non constant parameter in the initial dictionary and the same
     parameter (with the same element name) in the final dictonary
@@ -1227,7 +1243,9 @@ def test_wrong_match_parameter_initial_final_parameters_two_elements():
     initial dictionary and only the non constant parameter in the final
     dictonary.
     All and only the initial parameters that are not constant must be
-    in the final parameters
+    in the final parameters.
+    If no invalid match is detected, the returned string given by the function
+    under test is empty.
 
     GIVEN: a non constant parameter and a constant parameter in the initial
     dictionary and only the non constant parameter in the final dictonary
@@ -1252,7 +1270,10 @@ def test_wrong_match_parameter_initial_final_parameters_missing_parameter():
     the case of two non constant parameters in the initial dictionary and only
     one of them in the final dictonary.
     All and only the initial parameters that are not constant must be
-    in the final parameters
+    in the final parameters.
+    If invalid matches (by parameter) are detected, the returned string given
+    by the function under test contains the correspondant elements of the bad
+    matches.
 
     GIVEN: a non constant parameter and a constant parameter in the initial
     dictionary and only one of them in the final dictonary (with the same
@@ -1263,9 +1284,9 @@ def test_wrong_match_parameter_initial_final_parameters_missing_parameter():
     """
     input_parameters_map = {'R1': (300., 0), 'R2': (100., 0)}
     final_parameters_map = {'R1': 300.}
-    expected_result = 'R2 '
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'R2 '
 
     assert wrong_parameters==expected_result, (
         'Bad match between non constant parameters of the initial circuit '
@@ -1281,7 +1302,10 @@ def test_wrong_match_parameter_initial_final_parameters_extra_parameter():
     but also an entirely new parameter (with the same element of the constant
     element).
     All and only the initial parameters that are not constant must be
-    in the final parameters
+    in the final parameters.
+    If invalid matches (by parameter) are detected, the returned string given
+    by the function under test contains the correspondant elements of the bad
+    matches.
 
     GIVEN: one non constant parameter and a constant one in the initial
     dictionary, while the final dictonary has the same non-constant parameter
@@ -1294,9 +1318,9 @@ def test_wrong_match_parameter_initial_final_parameters_extra_parameter():
     """
     input_parameters_map = {'R1': (300., 0), 'R2': (100., 1)}
     final_parameters_map = {'R1': 300., 'R2': 200.}
-    expected_result = 'Extra parameter in the final parameters '
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'Extra parameter in the final parameters '
 
     assert wrong_parameters==expected_result, (
         'Bad match between non constant parameters of the initial circuit '
@@ -1311,7 +1335,10 @@ def test_wrong_match_parameter_initial_final_parameters_bad_match():
     dictionary, while the final dictonary has the same non-constant parameter
     but also an entirely new parameter.
     All and only the initial parameters that are not constant must be
-    in the final parameters
+    in the final parameters.
+    If invalid matches (by parameter) are detected, the returned string given
+    by the function under test contains the correspondant elements of the bad
+    matches.
 
     GIVEN: one non constant parameter and a constant one in the initial
     dictionary, while the final dictonary has the the same parameters (though
@@ -1323,9 +1350,9 @@ def test_wrong_match_parameter_initial_final_parameters_bad_match():
     """
     input_parameters_map = {'R1': (300., 1), 'R2': (100., 0)}
     final_parameters_map = {'R1': 300., 'R2': 100.}
-    expected_result = 'R1 '
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'R1 '
 
     assert wrong_parameters==expected_result, (
         'Bad match between non constant parameters of the initial circuit '
@@ -1342,7 +1369,10 @@ def test_wrong_match_parameter_initial_final_parameters_duplicates():
     the first initial parameters, thus leaving the second parameters (that
     should be in the final parameters too since it is not constant) behind.
     All and only the initial parameters that are not constant must be
-    in the final parameters
+    in the final parameters.
+    If invalid matches (by parameter) are detected, the returned string given
+    by the function under test contains the correspondant elements of the bad
+    matches.
 
     GIVEN: two non constant parameters in the initial dictionary and two
     parameters in the final dictonary, but even tough the elements are correct,
@@ -1354,9 +1384,9 @@ def test_wrong_match_parameter_initial_final_parameters_duplicates():
     """
     input_parameters_map = {'C1': (1e-6, 0), 'C2': (2e-6, 0)}
     final_parameters_map = {'C1': 1e-6, 'C2': 1e-6}
-    expected_result = 'C2 '
     wrong_parameter = wrong_match_parameter_initial_circuit_final_parameters(
         input_parameters_map, final_parameters_map)
+    expected_result = 'C2 '
 
     assert wrong_parameter==expected_result, (
         'Bad match between non constant parameters of the initial circuit '
@@ -1376,27 +1406,28 @@ def generate_valid_circuit_resistor():
 
 @pytest.fixture
 def valid_circuit_resistor():
+    """Fixture for the single resistor Circuit."""
     return generate_valid_circuit_resistor()
 
 def test_generate_analyzed_circuit_circuit_resistor(valid_circuit_resistor):
-    """Check that the generate_analyzed_circuit() method return a
-    valid AnalysisCircuit instance in the case of a single resisitor circuit.
+    """Check that the generate_analyzed_circuit() method return a valid
+    AnalysisCircuit instance in the case of a single resistor circuit.
 
-    GIVEN: a valid initial circuit of a single resisitor.
-    WHEN: function to generate the AnalisysCircuit object to analyze the
+    GIVEN: a valid initial circuit of a single resistor.
+    WHEN: the function to generate the AnalisysCircuit object to analyze the
     circuit is called
     THEN: the output is a valid AnalysisCircuit instance.
     """
     analyzed_circuit = valid_circuit_resistor.generate_analyzed_circuit()
-    caller = 'generate_analyzed_circuit()'
 
+    caller = 'generate_analyzed_circuit()'
     assert isinstance(analyzed_circuit, AnalisysCircuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'AnalisysCircuit\' class')
 
     diagram_analyzed_circuit = analyzed_circuit.circuit_diagram
     assert isinstance(diagram_analyzed_circuit, str), (
-        'TypeError for the circuit string of the output of ' + caller
+        'TypeError for the circuit diagram of the output of ' + caller
         + ' It must be a string')
     assert inspect.isfunction(analyzed_circuit.impedance), (
         'TypeError for the final impedance of the output of ' + caller
@@ -1410,15 +1441,14 @@ def test_generate_analyzed_circuit_circuit_resistor(valid_circuit_resistor):
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert not wrong_elements, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found')
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found')
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert not wrong_parameters, (
-        'Bad match between parameters of the initial circuit and the '
-        + 'final analysis parameter. Parameter of element '
-        + wrong_elements + 'not found')
+        'Bad match between parameters of the initial circuit and the final '
+        + 'analysis parameter. Parameter of element ' + wrong_elements
+        + 'not found')
 
 def generate_valid_circuit_rc():
     """Generate an AnalysisCircuit object of a circuit with one valid constant
@@ -1431,28 +1461,29 @@ def generate_valid_circuit_rc():
 
 @pytest.fixture
 def valid_circuit_rc():
+    """Fixture for the RC Circuit."""
     return generate_valid_circuit_rc()
 
 def test_generate_analyzed_circuit_circuit_rc(valid_circuit_rc):
-    """Check that the generate_analyzed_circuit() method return a
-    valid AnalysisCircuit instance in the case of a RC circuit.
+    """Check that the generate_analyzed_circuit() method return a valid
+    AnalysisCircuit instance in the case of a RC circuit.
 
-    GIVEN: a valid initial circuit of a comstant resisitor and a non-constant
-    capacitor.
-    WHEN: function to generate the AnalisysCircuit object to analyze the
+    GIVEN: a valid initial circuit of a constant resistor and a non-constant
+    capacitor in series.
+    WHEN: the function to generate the AnalisysCircuit object to analyze the
     circuit is called
     THEN: the output is a valid AnalysisCircuit instance.
     """
     analyzed_circuit = valid_circuit_rc.generate_analyzed_circuit()
-    caller = 'generate_analyzed_circuit()'
 
+    caller = 'generate_analyzed_circuit()'
     assert isinstance(analyzed_circuit, AnalisysCircuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'AnalisysCircuit\' class')
 
     diagram_analyzed_circuit = analyzed_circuit.circuit_diagram
     assert isinstance(diagram_analyzed_circuit, str), (
-        'TypeError for the circuit string of the output of ' + caller
+        'TypeError for the circuit diagram of the output of ' + caller
         + ' It must be a string')
     assert inspect.isfunction(analyzed_circuit.impedance), (
         'TypeError for the final impedance of the output of ' + caller
@@ -1466,19 +1497,18 @@ def test_generate_analyzed_circuit_circuit_rc(valid_circuit_rc):
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert not wrong_elements, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found')
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found')
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert not wrong_parameters, (
-        'Bad match between parameters of the initial circuit and the '
-        + 'final analysis parameter. Parameter of element '
-        + wrong_elements + 'not found')
+        'Bad match between parameters of the initial circuit and the final '
+        + 'analysis parameter. Parameter of element ' + wrong_elements
+        + 'not found')
 
 def generate_valid_circuit_complex():
-    """Generate an AnalysisCircuit object of a circuit with many valid constant
-    and non-constant elements.
+    """Generate an AnalysisCircuit object of a circuit with many valid
+    constant and non-constant elements.
     """
     diagram = '(R1C2[R3Q4])'
     parameter_map = {'R1': (100., 0), 'C2': (1e-6, 0), 'R3': (10000., 1),
@@ -1488,29 +1518,30 @@ def generate_valid_circuit_complex():
 
 @pytest.fixture
 def valid_circuit_complex():
+    """Fixture for the many elements Circuit."""
     return generate_valid_circuit_complex()
 
 def test_generate_analyzed_circuit_circuit_complex(valid_circuit_complex):
-    """Check that the generate_analyzed_circuit() method return a
-    valid AnalysisCircuit instance in the case of a circuit with many valid
+    """Check that the generate_analyzed_circuit() method return a valid
+    AnalysisCircuit instance in the case of a circuit with many valid
     elements.
 
     GIVEN: a valid initial circuit of many valid constant and non-constant
     elements
-    WHEN: function to generate the AnalisysCircuit object to analyze the
+    WHEN: the function to generate the AnalisysCircuit object to analyze the
     circuit is called
     THEN: the output is a valid AnalysisCircuit instance.
     """
     analyzed_circuit = valid_circuit_complex.generate_analyzed_circuit()
-    caller = 'generate_analyzed_circuit()'
 
+    caller = 'generate_analyzed_circuit()'
     assert isinstance(analyzed_circuit, AnalisysCircuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'AnalisysCircuit\' class')
 
     diagram_analyzed_circuit = analyzed_circuit.circuit_diagram
     assert isinstance(diagram_analyzed_circuit, str), (
-        'TypeError for the circuit string of the output of ' + caller
+        'TypeError for the circuit diagram of the output of ' + caller
         + ' It must be a string')
     assert inspect.isfunction(analyzed_circuit.impedance), (
         'TypeError for the final impedance of the output of ' + caller
@@ -1524,42 +1555,41 @@ def test_generate_analyzed_circuit_circuit_complex(valid_circuit_complex):
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert not wrong_elements, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found')
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found')
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert not wrong_parameters, (
-        'Bad match between parameters of the initial circuit and the '
-        + 'final analysis parameter. Parameter of element '
-        + wrong_elements + 'not found')
+        'Bad match between parameters of the initial circuit and the final '
+        + 'analysis parameter. Parameter of element ' + wrong_elements
+        + 'not found')
 
 def test_generate_analyzed_circuit_circuit_extra_parameter():
-    """Check that the generate_analyzed_circuit() method return an
-    invalid AnalysisCircuit instance in the case of a circuit with an extra
-    parameter in the initial parameters dictionary
+    """Check that the generate_analyzed_circuit() method return an invalid
+    AnalysisCircuit instance in the case of a circuit with an extra parameter
+    in the initial parameters dictionary.
 
     GIVEN: an valid initial circuit with an extra non-constant parameter in
     the initial parameters dictionary
-    WHEN: function to generate the AnalisysCircuit object to analyze the
+    WHEN: the function to generate the AnalisysCircuit object to analyze the
     circuit is called
     THEN: the output is an AnalysisCircuit that is missing the extra
     parameter.
     """
     diagram = '(R1)'
-    bad_match_parameter_map = {'R1': (100., 1), 'C2': (1e-6, 0)}
+    bad_match_parameter_map = {'R1': (100., 1), 'C2': (1e-6, 0)} #Extra C2
     bad_match_circuit = Circuit(diagram, bad_match_parameter_map)
     analyzed_circuit = bad_match_circuit.generate_analyzed_circuit()
     expected_result = 'C2 '
-    caller = 'generate_analyzed_circuit()'
 
+    caller = 'generate_analyzed_circuit()'
     assert isinstance(analyzed_circuit, AnalisysCircuit), (
         'TyperError for output of ' + caller + ' method. It must be an '
         + 'instance of the \'AnalisysCircuit\' class')
 
     diagram_analyzed_circuit = analyzed_circuit.circuit_diagram
     assert isinstance(diagram_analyzed_circuit, str), (
-        'TypeError for the circuit string of the output of ' + caller
+        'TypeError for the circuit diagram of the output of ' + caller
         + ' It must be a string')
     assert inspect.isfunction(analyzed_circuit.impedance), (
         'TypeError for the final impedance of the output of ' + caller
@@ -1573,26 +1603,26 @@ def test_generate_analyzed_circuit_circuit_extra_parameter():
     wrong_elements = wrong_match_element_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert wrong_elements==expected_result, (
-        'Bad match between non constant elements of the initial circuit '
-        + 'and the final analysis parameter. ' + wrong_elements + 'not '
-        + 'found. Invalid elements fpund differs from the expected ones: '
+        'Bad match between non constant elements of the initial circuit and '
+        + 'the final analysis parameter. ' + wrong_elements + 'not found. '
+        + 'Invalid elements fpund differs from the expected ones: '
         + expected_result)
     wrong_parameters = wrong_match_parameter_initial_circuit_final_parameters(
         initial_parameters_map, parameters_map)
     assert wrong_parameters==expected_result, (
-        'Bad match between parameters of the initial circuit and the '
-        + 'final analysis parameter. Parameter of element '
-        + wrong_elements + 'not found. Invalid elements fpund differs from '
-        + 'the expected ones: ' + expected_result)
+        'Bad match between parameters of the initial circuit and the final '
+        + 'analysis parameter. Parameter of element ' + wrong_elements
+        + 'not found. Invalid elements fpund differs from the expected ones: '
+        + expected_result)
 
 def test_generate_analyzed_circuit_no_closing_bracket():
-    """Check that the generate_analyzed_circuit() method raises an
-    Exception with a certain message in the case of a circuit with a diagram
-    with no closing brackets
+    """Check that the generate_analyzed_circuit() method raises an Exception
+    with a certain message in the case of a circuit with a diagram with no
+    closing brackets.
 
     GIVEN: an invalid initial circuit with a diagram with no closing brackets
     (invalid diagram)
-    WHEN: function to generate the AnalisysCircuit object to analyze the
+    WHEN: the function to generate the AnalisysCircuit object to analyze the
     circuit is called
     THEN: the function raises an Exception with a message that states the
     invalidity of the diagram
@@ -1608,13 +1638,13 @@ def test_generate_analyzed_circuit_no_closing_bracket():
                      + 'the diagram')
 
 def test_generate_analyzed_circuit_inconsistent_opening_brackets():
-    """Check that the generate_analyzed_circuit() method raises an
-    Exception with a certain message in the case of a circuit with a diagram
-    with at least an inconsistent pair of brackets
+    """Check that the generate_analyzed_circuit() method raises an Exception
+    with a certain message in the case of a circuit with a diagram with at
+    least an inconsistent pair of brackets.
 
     GIVEN: an invalid initial circuit with a diagram with an inconsistent
     pair of brackets (invalid diagram)
-    WHEN: function to generate the AnalisysCircuit object to analyze the
+    WHEN: the function to generate the AnalisysCircuit object to analyze the
     circuit is called
     THEN: the function raises an Exception with a message that states the
     invalidity of the diagram
@@ -1727,6 +1757,8 @@ def invalid_elements_type(element_list):
 def test_invalid_elements_type_no_element():
     """Check that the help function to find the elements with the wrong type
     works on an empty list.
+    If no invalid element is detected, the returned string given by the
+    function under test is empty.
 
     GIVEN: an empty list
     WHEN: I check if there are invalid elements inside the list
@@ -1743,6 +1775,8 @@ def test_invalid_elements_type_no_element():
 def test_invalid_elements_type_two_elements():
     """Check that the help function to find the elements with the wrong type
     works on a list of strings.
+    If no invalid element is detected, the returned string given by the
+    function under test is empty.
 
     GIVEN: a list of two strings, with right type and length
     WHEN: I check if there are invalid elements inside the list
@@ -1759,6 +1793,8 @@ def test_invalid_elements_type_two_elements():
 def test_invalid_elements_type_three_elements():
     """Check that the help function to find the elements with the wrong type
     works on a list of strings, with an element that is not a circuit element.
+    If no invalid element is detected, the returned string given by the
+    function under test is empty.
 
     GIVEN: a list of three strings, with right type and length
     WHEN: I check if there are invalid elements inside the list
@@ -1774,9 +1810,12 @@ def test_invalid_elements_type_three_elements():
 
 def test_invalid_elements_type_wrong_element():
     """Check that the help function to find the elements with the wrong type
-    works on a list of strings, with the first three elements that have a wrong
-    type or length (two of them are not a string, and the third one is only
-    1 char long).
+    works on a list of strings, with the first three elements that have a
+    wrong type or length (two of them are not a string, and the third one is
+    only 1 char long).
+    If invalid elements are detected, the returned string given by the
+    function under test contains the correspondant elements of the bad
+    matches.
 
     GIVEN: a list of four objects, with only the last one that has a right
     type and length
@@ -1797,8 +1836,7 @@ def test_invalid_elements_type_wrong_element():
 def invalid_elements_character(elements_circuit):
     """Given an element list, return any character that as a fist character
     invalid, i.e. any outside R, C, Q, or as a second character invalid, i.e.
-    not numerical.
-    Used for testing.
+    not numerical. Used for testing.
 
     Parameters
     ----------
@@ -1829,7 +1867,9 @@ def invalid_elements_character(elements_circuit):
 
 def test_invalid_elements_characters_no_element():
     """Check that the help function to find the elements with the wrong letter
-    or number works on an empty list
+    or number works on an empty list.
+    If no invalid character is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: an empty list
     WHEN: I check if there are invalid characters inside the element of the
@@ -1849,7 +1889,9 @@ def test_invalid_elements_characters_no_element():
 
 def test_invalid_elements_characters_one_element():
     """Check that the help function to find the elements with the wrong letter
-    or number works on a list with one valid element
+    or number works on a list with one valid element.
+    If no invalid character is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: an list of an string of length 2 that is a valid elements
     WHEN: I check if there are invalid characters inside the element of the
@@ -1868,7 +1910,9 @@ def test_invalid_elements_characters_one_element():
 
 def test_invalid_elements_characters_three_elements():
     """Check that the help function to find the elements with the wrong letter
-    or number works on a list with three valid elements
+    or number works on a list with three valid elements.
+    If no invalid character is detected, the returned string and list given
+    by the function under test are empty.
 
     GIVEN: an list of three strings of length 2 with only valid elements
     WHEN: I check if there are invalid characters inside the element of the
@@ -1888,7 +1932,10 @@ def test_invalid_elements_characters_three_elements():
 def test_invalid_elements_type_invalid_characters():
     """Check that the help function to find the elements with the wrong letter
     or number works on a list with three elements, of which only the first one
-    is valid
+    is valid.
+    If invalid characters are detected, the returned string contains the
+    invalid characters, while the returned list contains their index in the
+    string.
 
     GIVEN: an list of three strings of length 2 with only valid element, the
     first one
@@ -1909,7 +1956,7 @@ def test_invalid_elements_type_invalid_characters():
 
 def remove_elements(elements_list, diagram):
     """Given an element list of a circuit diagram and the diagram itself,
-    removes th elements from the diagram.
+    removes th elements from the diagram. Used for testing.
 
     Parameters
     ----------
@@ -2020,7 +2067,8 @@ def test_remove_elements_invalid_diagram():
 
 
 def test_list_elements_circuit_empty_string():
-    """Check if the list elements function works on an empty diagram.
+    """Check if the function that list the elements inside a diagram works on
+    an empty diagram.
 
     GIVEN: the circuit diagram is an empty one
     WHEN: I call the function to list the elements of a diagram
@@ -2029,26 +2077,23 @@ def test_list_elements_circuit_empty_string():
     empty_diagram = ''
     elements_list = list_elements_circuit(empty_diagram)
     expected_listing = []
-    caller = 'list_elements_circuit()'
 
+    caller = 'list_elements_circuit()'
     assert isinstance(elements_list, list), (
         'TypeError for output in ' + caller + '. It must be a list')
     wrong_types, wrong_types_index = invalid_elements_type(elements_list)
     assert not wrong_types, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
         + wrong_types + ' in ' + str(elements_list) + ' in ' + caller
-        + '. Elements (here dictionary keys) can only be strings of '
-        + 'length 2')
+        + '. Elements (here dictionary keys) can only be strings of length 2')
     (wrong_char_letter,
-        wrong_char_letter_index) = invalid_elements_character(
-            elements_list)
+        wrong_char_letter_index) = invalid_elements_character(elements_list)
     assert not wrong_char_letter, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_letter_index) + ' ' + wrong_char_letter + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and end '
-        + 'with a natural number and each element number must be '
-        + 'unique')
+        'StructuralError for element(s) number ' + str(wrong_char_letter_index)
+        + ' ' + wrong_char_letter + ' in ' + str(elements_list) + ' in '
+        + caller + '. All elements must begin with a letter among \'C\', '
+        + '\'R\' and \'Q\', and end with a natural number and each element '
+        + 'number must be unique')
 
     replaced_diagram = remove_elements(elements_list, empty_diagram)
     assert set(replaced_diagram).issubset({'(', ')', '[', ']'}), (
@@ -2060,7 +2105,8 @@ def test_list_elements_circuit_empty_string():
         + 'the correct listing of elements')
 
 def test_list_elements_circuit_single_element():
-    """Check if the list elements function works on a single element diagram.
+    """Check if the function that list the elements inside a diagram works on
+    a single element diagram.
 
     GIVEN: the circuit diagram has only a valid element
     WHEN: I call the function to list the elements of a diagram
@@ -2069,26 +2115,23 @@ def test_list_elements_circuit_single_element():
     empty_diagram = '(R1)'
     elements_list = list_elements_circuit(empty_diagram)
     expected_listing = ['R1']
-    caller = 'list_elements_circuit()'
 
+    caller = 'list_elements_circuit()'
     assert isinstance(elements_list, list), (
         'TypeError for output in ' + caller + '. It must be a list')
     wrong_types, wrong_types_index = invalid_elements_type(elements_list)
     assert not wrong_types, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
         + wrong_types + ' in ' + str(elements_list) + ' in ' + caller
-        + '. Elements (here dictionary keys) can only be strings of '
-        + 'length 2')
+        + '. Elements (here dictionary keys) can only be strings of length 2')
     (wrong_char_letter,
-        wrong_char_letter_index) = invalid_elements_character(
-            elements_list)
+        wrong_char_letter_index) = invalid_elements_character(elements_list)
     assert not wrong_char_letter, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_letter_index) + ' ' + wrong_char_letter + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and end '
-        + 'with a natural number and each element number must be '
-        + 'unique')
+        'StructuralError for element(s) number ' + str(wrong_char_letter_index)
+        + ' ' + wrong_char_letter + ' in ' + str(elements_list) + ' in '
+        + caller + '. All elements must begin with a letter among \'C\', '
+        + '\'R\' and \'Q\', and end with a natural number and each element '
+        + 'number must be unique')
 
     replaced_diagram = remove_elements(elements_list, empty_diagram)
     assert set(replaced_diagram).issubset({'(', ')', '[', ']'}), (
@@ -2100,7 +2143,8 @@ def test_list_elements_circuit_single_element():
         + 'the correct listing of elements')
 
 def test_list_elements_circuit_many_elements():
-    """Check if the list elements function works on a many elements diagram.
+    """Check if the function that list the elements inside a diagram works on
+    a many elements diagram.
 
     GIVEN: the circuit diagram has many valid elements and brackets
     WHEN: I call the function to list the elements of a diagram
@@ -2109,26 +2153,23 @@ def test_list_elements_circuit_many_elements():
     empty_diagram = '(R1C2[R3Q4][C5R6])'
     elements_list = list_elements_circuit(empty_diagram)
     expected_listing = ['R1', 'C2', 'R3', 'Q4', 'C5', 'R6']
-    caller = 'list_elements_circuit()'
 
+    caller = 'list_elements_circuit()'
     assert isinstance(elements_list, list), (
         'TypeError for output in ' + caller + '. It must be a list')
     wrong_types, wrong_types_index = invalid_elements_type(elements_list)
     assert not wrong_types, (
         'TypeError for element(s) number ' + str(wrong_types_index) + ' '
         + wrong_types + ' in ' + str(elements_list) + ' in ' + caller
-        + '. Elements (here dictionary keys) can only be strings of '
-        + 'length 2')
+        + '. Elements (here dictionary keys) can only be strings of length 2')
     (wrong_char_letter,
-        wrong_char_letter_index) = invalid_elements_character(
-            elements_list)
+        wrong_char_letter_index) = invalid_elements_character(elements_list)
     assert not wrong_char_letter, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_letter_index) + ' ' + wrong_char_letter + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and end '
-        + 'with a natural number and each element number must be '
-        + 'unique')
+        'StructuralError for element(s) number ' + str(wrong_char_letter_index)
+        + ' ' + wrong_char_letter + ' in ' + str(elements_list) + ' in '
+        + caller + '. All elements must begin with a letter among \'C\', '
+        + '\'R\' and \'Q\', and end with a natural number and each element '
+        + 'number must be unique')
 
     replaced_diagram = remove_elements(elements_list, empty_diagram)
     assert set(replaced_diagram).issubset({'(', ')', '[', ']'}), (
@@ -2149,8 +2190,8 @@ def test_list_elements_circuit_invalid_elements():
     empty_diagram = '(S1C2G3)' #Invalid letters
     elements_list = list_elements_circuit(empty_diagram)
     expected_listing = ['C2']
-    caller = 'list_elements_circuit()'
 
+    caller = 'list_elements_circuit()'
     assert isinstance(elements_list, list), (
         'TypeError for output in ' + caller + '. It must be a list')
     wrong_types, wrong_types_index = invalid_elements_type(elements_list)
@@ -2160,15 +2201,13 @@ def test_list_elements_circuit_invalid_elements():
         + '. Elements (here dictionary keys) can only be strings of '
         + 'length 2')
     (wrong_char_letter,
-        wrong_char_letter_index) = invalid_elements_character(
-            elements_list)
+        wrong_char_letter_index) = invalid_elements_character(elements_list)
     assert not wrong_char_letter, (
-        'StructuralError for element(s) number '
-        + str(wrong_char_letter_index) + ' ' + wrong_char_letter + ' in '
-        + str(elements_list) + ' in ' + caller + '. All elements must '
-        + 'begin with a letter among \'C\', \'R\' ' + 'and \'Q\', and end '
-        + 'with a natural number and each element number must be '
-        + 'unique')
+        'StructuralError for element(s) number ' + str(wrong_char_letter_index)
+        + ' ' + wrong_char_letter + ' in ' + str(elements_list) + ' in '
+        + caller + '. All elements must begin with a letter among \'C\', '
+        + '\'R\' and \'Q\', and end with a natural number and each element '
+        + 'number must be unique')
 
     replaced_diagram = remove_elements(elements_list, empty_diagram)
     assert not set(replaced_diagram).issubset({'(', ')', '[', ']'}), (

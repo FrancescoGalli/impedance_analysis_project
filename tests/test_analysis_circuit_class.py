@@ -1262,7 +1262,7 @@ def test_set_impedance_non_existent_element_name():
 
 def wrong_impedance_generate_cell_impedance(impedance_cell):
     """Find any invalid function inside the impedance_cell (a list). Used for
-    testing.
+    testing. Used for testing.
 
     Parameters
     ----------
@@ -2507,7 +2507,7 @@ def wrong_match_element_analyzed_circuit_final_parameters(
     the same element name a key. No constant element of the
     impedance_parameters_map must be present in the final parameters_map and
     no element that is not present in the analyzed parameters must be present
-    in the final parameters map
+    in the final parameters map. Used for testing.
 
     Parameters
     ----------
@@ -2721,7 +2721,7 @@ def wrong_match_parameter_analyzed_circuit_final_parameters(
     with the same element name a key. No constant parameter of the
     impedance_parameters_map must be present in the final parameters_map and
     no parameter that is not present in the analyzed parameter must be present
-    in the final parameters map.
+    in the final parameters map. Used for testing.
 
     Parameters
     ----------
