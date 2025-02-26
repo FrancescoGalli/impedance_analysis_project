@@ -350,9 +350,9 @@ def test_wrong_parameter_impedance_parameters_map_const_wrong_elements():
     function_1 = lambda x, y: 2000.
     function_2 = lambda x, y: 1/(x*y)
     two_elements = {'R1': (function_1, 2000.), 'C2': (function_2, 'const')}
-    expected_result = 'R1 '
     wrong_parameters = wrong_parameter_impedance_parameters_map_const(
         two_elements)
+    expected_result = 'R1 '
 
     assert wrong_parameters==expected_result, (
         'TypeError for element type(s)' + wrong_parameters + 'from '
@@ -392,8 +392,7 @@ def test_set_impedance_constant_element_resistor():
     assert not wrong_tuples, (
         'TypeError for element \'' + wrong_tuples + '\'. Its value in the '
         + ' dictionary have to be a tuple')
-    wrong_functions = wrong_function_impedance_parameters_map(
-        impedance_map)
+    wrong_functions = wrong_function_impedance_parameters_map(impedance_map)
     assert not wrong_functions, (
         'TypeError for element type(s) ' + ' \'' + wrong_functions
             + '\'. Its first element of the tuple must be a function')
@@ -438,8 +437,7 @@ def test_set_impedance_constant_element_capacitor():
     assert not wrong_tuples, (
         'TypeError for element \'' + wrong_tuples + '\'. Its value in the '
         + ' dictionary have to be a tuple')
-    wrong_functions = wrong_function_impedance_parameters_map(
-        impedance_map)
+    wrong_functions = wrong_function_impedance_parameters_map(impedance_map)
     assert not wrong_functions, (
         'TypeError for element type(s) ' + ' \'' + wrong_functions
         + '\'. Its first element of the tuple must be a function')
@@ -480,8 +478,7 @@ def test_set_impedance_constant_element_cpe():
     assert not wrong_tuples, (
         'TypeError for element \'' + wrong_tuples + '\'. Its value in the '
         + ' dictionary have to be a tuple')
-    wrong_functions = wrong_function_impedance_parameters_map(
-        impedance_map)
+    wrong_functions = wrong_function_impedance_parameters_map(impedance_map)
     assert not wrong_functions, (
         'TypeError for element type(s) ' + ' \'' + wrong_functions
             + '\'. Its first element of the tuple must be a function')
@@ -586,10 +583,10 @@ def test_wrong_parameter_impedance_parameters_map_non_constant_single_element():
     the tuple, that are values of a dictionary
     THEN: no invalid parameter is found
     """
-    parameter = 1000.
-    element_name = 'R1'
-    function_1 = lambda x, y: y
-    single_element = {'R1': (function_1, 1000.)}
+    parameter = 1e-4
+    element_name = 'C1'
+    function_1 = lambda x, y: 1/(x*y)
+    single_element = {'R1': (function_1, 1e-4)}
     wrong_parameters = wrong_parameter_impedance_parameters_map_non_constant(
         element_name, parameter, single_element)
 
@@ -613,11 +610,11 @@ def test_wrong_parameter_impedance_parameters_map_non_constant_two_elements():
     the tuple, that are values of a dictionary
     THEN: no invalid parameter is found
     """
-    parameter = 1e-4
-    element_name = 'C2'
-    function_1 = lambda x, y: 1/(x*y)
-    function_2 = lambda x, y: 1000.
-    two_elements = {'R1': (function_1, 2000.), 'C2': (function_2, 1e-4), }
+    parameter = [1e-4, 0.2]
+    element_name = 'Q2'
+    function_1 = lambda x, y: y
+    function_2 = lambda x, y: 1/(x*y)
+    two_elements = {'R1': (function_1, 2000.), 'Q2': (function_2, [1e-4, 0.2])}
     wrong_parameters = wrong_parameter_impedance_parameters_map_non_constant(
         element_name, parameter, two_elements)
 
@@ -912,9 +909,8 @@ def test_wrong_parameter_impedance_parameters_map_single_element():
     assert not wrong_parameters, (
         'TypeError for element type(s)' + wrong_parameters + ' in '
         + str(single_element) + ' from '
-        + 'wrong_parameter_impedance_parameters_map(). '
-        + 'The parameter inside the dictionary must be the same of the '
-        + ' input one')
+        + 'wrong_parameter_impedance_parameters_map(). The parameter inside '
+        + 'the dictionary must be the same of the input one')
 
 def test_wrong_parameter_impedance_parameters_map_two_elements():
     """Check that the help function that returns any element (constant or not)
@@ -946,17 +942,16 @@ def test_wrong_parameter_impedance_parameters_map_two_elements():
     assert not wrong_parameters, (
         'TypeError for element type(s)' + wrong_parameters + ' for '
         + element_name_non_const + ' from '
-        + 'wrong_parameter_impedance_parameters_map(). '
-        + 'One of the parameters inside the dictionary must be the same of the '
-        + ' input one')
+        + 'wrong_parameter_impedance_parameters_map(). The parameter inside '
+        + 'the dictionary must be the same of the input one')
+
     wrong_parameters = wrong_parameter_impedance_parameters_map(
         element_name_const, input_parameter_const, 1, two_elements)
     assert not wrong_parameters, (
         'TypeError for element type(s)' + wrong_parameters + ' for '
         + element_name_const + ' from '
-        + 'wrong_parameter_impedance_parameters_map(). '
-        + 'One of the parameters inside the dictionary must be the same of the '
-        + ' input one')
+        + 'wrong_parameter_impedance_parameters_map(). The parameter inside '
+        + 'the dictionary must be the same of the input one')
 
 def test_wrong_parameter_impedance_parameters_map_wrong_element():
     """Check that the help function that returns any element (constant or not)
@@ -1291,8 +1286,7 @@ def test_wrong_impedance_generate_cell_impedance_no_functions():
     THEN: no invalid function is found
     """
     empty_list = []
-    wrong_functions_index = wrong_impedance_generate_cell_impedance(
-        empty_list)
+    wrong_functions_index = wrong_impedance_generate_cell_impedance(empty_list)
 
     assert not wrong_functions_index, (
         'TypeError for element number(s) ' + str(wrong_functions_index)
@@ -1871,7 +1865,6 @@ def inconsistent_elements_updated_diagram(circuit_diagram):
                 wrong_elements += str(circuit_diagram[i-1]) + char + ' '
                 wrong_element_index.append(i-1)
     return wrong_elements, wrong_element_index
-
 
 def test_inconsistent_elements_updated_diagram_no_element():
     """Check that the help function to find inconsistent elements in an

@@ -25,7 +25,7 @@ def test_error_function_resistor():
     parameters and function match the data
     WHEN: I call the the function to calculate the error between the impedance
     function (with given parameters) and the data
-    THEN: the error is a non-negative float, smaller than 1 (thus small).
+    THEN: the error is the expected value, smaller than 1 (thus small).
     """
     impedance = np.array([complex(100,0), complex(100,0), complex(100,0),
                           complex(100,0)])
@@ -56,7 +56,7 @@ def test_error_function_capacitor():
     capacitor
     WHEN: I call the the function to calculate the error between the impedance
     function (with given parameters) and the data
-    THEN: the error is a non-negative float, bigger than 1 (thus big)
+    THEN: the error the is expected value, bigger than 1 (thus big)
     """
     impedance = np.array([complex(0,-1000), complex(0,-100), complex(0,-10),
                          complex(0,-1)])
@@ -86,7 +86,7 @@ def test_error_function_rc():
     parameters and functions match the data
     WHEN: I call the the function to calculate the error between the impedance
     function (with given parameters) and the data
-    THEN: the error is a non-negative float, smaller than 1 (thus small).
+    THEN: the error is the expected value, smaller than 1 (thus small).
     """
     impedance = np.array([complex(500,-1000), complex(500,-100),
                           complex(500,-10), complex(500,-1)])
@@ -165,8 +165,7 @@ def test_wrong_element_type_bound_empty_list():
     THEN: no invalid element is found
     """
     empty_list = []
-    wrong_element_type_index = wrong_element_type_bound_definitions(
-        empty_list)
+    wrong_element_type_index = wrong_element_type_bound_definitions(empty_list)
 
     assert not wrong_element_type_index, (
         'TypeError in output of bound_definitions(): the output must be'
@@ -188,7 +187,7 @@ def test_wrong_element_type_bound_single_tuple():
 
     assert not wrong_element_type_index, (
         'TypeError in output of bound_definitions(): the output must be'
-        + ' a list of tuples of length 2.')
+        + ' a list of tuples of length 2')
 
 def test_wrong_element_type_bound_many_tuples():
     """Check that the the help function to find objects that are not a
@@ -206,7 +205,7 @@ def test_wrong_element_type_bound_many_tuples():
 
     assert not wrong_element_type_index, (
         'TypeError in output of bound_definitions(): the output must be'
-        + ' a list of tuples of length 2.')
+        + ' a list of tuples of length 2')
 
 def test_wrong_element_type_bound_invalid_tuples():
     """Check that the the help function to find objects that are not a
@@ -390,7 +389,7 @@ def test_count_Q_no_q_elements():
     THEN: count of Q is 0, as it should be
     """
     no_q = ['R1', 'C2', 'R3']
-    counting_element = 2 #I.e. R3
+    counting_element = 2 #I.e. counting until C2 (included)
     number_of_q = count_q(no_q, counting_element)
     expected_result = 0
 
@@ -408,7 +407,7 @@ def test_count_Q_one_q_elements():
     THEN: count of Q is 1, as it should be
     """
     no_q = ['R1', 'Q2', 'R3']
-    counting_element = 2 #I.e. R3
+    counting_element = 2 #I.e. counting until Q2 (included)
     number_of_q = count_q(no_q, counting_element)
     expected_result = 1
 
@@ -426,7 +425,7 @@ def test_count_Q_two_q_elements():
     THEN: count of Q is 2, as it should be
     """
     no_q = ['R1', 'Q2', 'Q3', 'C4', 'R5', 'Q6']
-    counting_element = 3 #I.e. C4
+    counting_element = 3 #I.e. counting until Q3 (included)
     number_of_q = count_q(no_q, counting_element)
     expected_result = 2
 
@@ -444,7 +443,7 @@ def test_count_Q_one_q_element_after():
     THEN: count of Q is 0, as it should be
     """
     no_q = ['R1', 'R2', 'Q3']
-    counting_element = 1
+    counting_element = 2 #I.e. counting until R2 (included)
     number_of_q = count_q(no_q, counting_element)
     expected_result = 0
 
@@ -566,8 +565,9 @@ def test_bad_match_bound_bad_match():
     bound list have a bad match works on lists with two bad matches.
     Bound for R, C or Q must have a positive umber as first element, while
     for n the second parameter must not be bigger than 1.
-    If no invalid match is detected, the returned string given by the function
-    under test is empty.
+    If invalid matches are detected, the returned string given by the function
+    under test contains the positions of the bound in the list associated with
+    invalid matches.
 
     GIVEN: an element list and a bound list with three and four valid elements
     each, but ony one each is matching (the second ones)
@@ -1451,8 +1451,8 @@ def test_results_info_resistor(post_fit_circuit_resistor):
     diagram = '(R1)'
     parameters = {'R1': (100., 0)}
     initial_circuit = Circuit(diagram, parameters)
-    final_errors = 0.0254
-    result_string = get_results_info(post_fit_circuit_resistor, final_errors,
+    final_error = 0.0254
+    result_string = get_results_info(post_fit_circuit_resistor, final_error,
                                      initial_circuit)
     expected_result = 'R1: 100.0\nError: 0.0254'
 
@@ -1476,8 +1476,8 @@ def test_results_info_rc(post_fit_circuit_rc):
     diagram = '(R1C2)'
     parameters = {'R1': (100., 0), 'C2': (1e-6, 0)}
     initial_circuit = Circuit(diagram, parameters)
-    final_errors = 0.174
-    result_string = get_results_info(post_fit_circuit_rc, final_errors,
+    final_error = 0.174
+    result_string = get_results_info(post_fit_circuit_rc, final_error,
                                      initial_circuit)
     expected_result = 'R1: 1200.642\nC2: 5.2072e-07\nError: 0.1740'
 
@@ -1502,8 +1502,8 @@ def test_results_info_rq(post_fit_circuit_rq):
     diagram = '[R1Q2]'
     parameters = {'R1': (500., 1), 'Q2': ([1e-6, 0.5], 0)}
     initial_circuit = Circuit(diagram, parameters)
-    final_errors = 0.0037
-    result_string = get_results_info(post_fit_circuit_rq, final_errors,
+    final_error = 0.0037
+    result_string = get_results_info(post_fit_circuit_rq, final_error,
                                      initial_circuit)
     expected_result = ('R1: 500.0 (constant)\nQ2: 1.49755e-06, 0.9\nError: '
                        + '0.0037')

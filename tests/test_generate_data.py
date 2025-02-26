@@ -160,7 +160,7 @@ def test_simulate_noise_single_element_resistor():
     to the signal
     THEN: the output is  avalid complex 1D array. The noise amplitude (the
     difference between the output and the input signal), is smaller than 1%
-    of the input signal but bigger than zero.
+    of the input signal.
     """
     seed = 0
     input_signal = np.array([complex(100,0)])
@@ -168,8 +168,8 @@ def test_simulate_noise_single_element_resistor():
 
     assert isinstance(simulated_signal, np.ndarray), (
         'TypeError in simulate_noise(): the output must be a numpy.ndarray')
-    assert simulated_signal.size>0, (
-        'TypeError in simulate_noise(): the output cannot be an empty array')
+    assert simulated_signal.size>0, ('TypeError in simulate_noise(): the '
+                                     + 'output cannot be an empty array')
     assert simulated_signal.ndim==1, (
         'TypeError in simulate_noise(): the output must be a one-dimention '
         + 'array, while it is ' + str(simulated_signal.ndim))
@@ -193,7 +193,7 @@ def test_simulate_noise_many_elements_capacitor():
     to the signal
     THEN: the output is  avalid complex 1D array. The noise amplitude (the
     difference between the output and the input signal), is smaller than 1%
-    of the input signal but bigger than zero for all the points.
+    of the input signal for all the points.
     """
     seed = 12
     input_signal = np.array([complex(0,-1000), complex(0,-100),
@@ -202,8 +202,8 @@ def test_simulate_noise_many_elements_capacitor():
 
     assert isinstance(simulated_signal, np.ndarray), (
         'TypeError in simulate_noise(): the output must be a numpy.ndarray')
-    assert simulated_signal.size>0, (
-        'TypeError in simulate_noise(): the output cannot be an empty array')
+    assert simulated_signal.size>0, ('TypeError in simulate_noise(): the '
+                                     + 'output cannot be an empty array')
     assert simulated_signal.ndim==1, (
         'TypeError in simulate_noise(): the output must be a one-dimention '
         + 'array, while it is ' + str(simulated_signal.ndim))
@@ -226,7 +226,7 @@ def test_simulate_noise_many_elements_rc():
     to the signal
     THEN: the output is a valid complex 1D array. The noise amplitude (the
     difference between the output and the input signal), is smaller than 1%
-    the input signal but bigger than zero for all the points.
+    the input signal for all the points.
     """
     seed = 145
     input_signal = np.array([complex(100, 1000), complex(100, 100),
@@ -235,8 +235,8 @@ def test_simulate_noise_many_elements_rc():
 
     assert isinstance(simulated_signal, np.ndarray), (
         'TypeError in simulate_noise(): the output must be a numpy.ndarray')
-    assert simulated_signal.size>0, (
-        'TypeError in simulate_noise(): the output cannot be an empty array')
+    assert simulated_signal.size>0, ('TypeError in simulate_noise(): the '
+                                     + 'output cannot be an empty array')
     assert simulated_signal.ndim==1, (
         'TypeError in simulate_noise(): the output must be a one-dimention '
         + 'array, while it is ' + str(simulated_signal.ndim))
@@ -265,5 +265,5 @@ def test_simulate_noise_no_elements():
 
     assert isinstance(simulated_signal, np.ndarray), (
         'TypeError in simulate_noise(): the output must be a numpy.ndarray')
-    assert simulated_signal.size==0, (
-        'TypeError in simulate_noise(): the output is not empty as expected')
+    assert simulated_signal.size==0, ('TypeError in simulate_noise(): the '
+                                      + 'output is not empty as expected')
