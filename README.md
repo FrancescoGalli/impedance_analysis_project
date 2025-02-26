@@ -125,5 +125,9 @@ data with the fit and the results.
 Then, there are two folders:\
 `Tutorials` containes three Jupiter (`.ipynb`) files that
 should work as a guide through the specifics of the input information, the
-generation module and the analysis module, respectively.\
+generation module and the analysis module, respectively. There are also a
+`.txt` file with some mock impedance data and three folders. One contains the
+all the configuration files for the sections of the tutorials, one has the
+input data files for the analysis tutorials and the last one contains the
+images of the schemes of the circuits mentioned throughout the tutorials.\
 `tests` instead is the collection of tests of the project.
